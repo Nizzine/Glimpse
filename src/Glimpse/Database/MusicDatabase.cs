@@ -25,7 +25,7 @@ public class MusicDatabase : IConfig
 
     public void Refresh()
     {
-        Tracks = Tracks.OrderBy(pair => pair.Value.Title).ToDictionary();
+        Tracks = Tracks.OrderBy(pair => pair.Value.TrackNumber).ToDictionary();
         Albums = Albums.OrderBy(pair => pair.Key).ToDictionary();
     }
 
@@ -49,17 +49,17 @@ public class MusicDatabase : IConfig
         Dictionary<string, Track> tracks = new Dictionary<string, Track>();
         Dictionary<string, Album> albums = new Dictionary<string, Album>();
 
-        foreach (string file in Directory.GetFiles(directory, "*.*", SearchOption.AllDirectories))
+        foreach (FileInfo file in new DirectoryInfo(directory).EnumerateFiles("*.*", SearchOption.AllDirectories).OrderBy(info => info.Name))
         {
             Logger.Log($"Indexing {file}");
-            current = file;
+            current = file.FullName;
             
             TrackInfo info;
 
             // TODO: This is a bit crude. Improve this.
             try
             {
-                CodecStream stream = player.CreateStreamFromFile(file);
+                CodecStream stream = player.CreateStreamFromFile(file.FullName);
                 info = stream.TrackInfo;
                 stream.Dispose();
             }
@@ -68,7 +68,7 @@ public class MusicDatabase : IConfig
                 continue;
             }
 
-            tracks.Add(file, new Track(info));
+            tracks.Add(file.FullName, new Track(info));
 
             if (info.Album != null)
             {
@@ -78,7 +78,7 @@ public class MusicDatabase : IConfig
                     albums.Add(info.Album, album);
                 }
                 
-                album.Tracks.Add(file);
+                album.Tracks.Add(file.FullName);
             }
         }
 

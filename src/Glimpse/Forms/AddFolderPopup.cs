@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Glimpse.Database;
@@ -116,7 +117,7 @@ public class AddFolderPopup : Popup
             {
                 SubDirectories = new List<DirectorySource>();
                 DirectoryInfo info = new DirectoryInfo(Path);
-                foreach (DirectoryInfo dir in info.EnumerateDirectories())
+                foreach (DirectoryInfo dir in info.EnumerateDirectories().OrderBy(info => info.Name))
                 {
                     if ((dir.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
                         continue;
