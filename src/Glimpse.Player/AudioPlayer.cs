@@ -12,8 +12,6 @@ using Glimpse.Player.Codecs.Wav;
 using Glimpse.Player.Configs;
 using Glimpse.Player.Plugins;
 using MixrSharp;
-using MixrSharp.Devices;
-using MixrSharp.Stream;
 
 namespace Glimpse.Player;
 
@@ -24,8 +22,9 @@ public class AudioPlayer : IDisposable
     public event OnStateChanged StateChanged = delegate { };
     
     private AssemblyLoadContext _pluginsContext;
-    
-    private Device _device;
+
+    private readonly Context _context;
+    private readonly AudioDevice _device;
 
     private readonly TrackInfo _defaultTrackInfo;
     
@@ -64,9 +63,12 @@ public class AudioPlayer : IDisposable
             IConfig.WriteConfig("Player", Config);
         }
 
-        Logger.Log("Creating SdlDevice.");
-        _device = new SdlDevice(Config.SampleRate);
-        _device.Context.MasterVolume = Config.Volume;
+        Logger.Log("Creating context.");
+        _context = new Context(Config.SampleRate);
+        _context.MasterVolume = Config.Volume;
+        
+        Logger.Log("Creating device.");
+        _device = new AudioDevice(_context, Config.SampleRate);
         
         _defaultTrackInfo = new TrackInfo(null, "Unknown Title", "Unknown Artist", "Unknown Album", null);
 
@@ -185,6 +187,8 @@ public class AudioPlayer : IDisposable
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
             throw new Exception("Cannot queue track that is not in the queue.");
         
+        _device.Lock();
+        
         _activeTrack?.Dispose();
         _currentTrackIndex = queueIndex;
 
@@ -195,9 +199,11 @@ public class AudioPlayer : IDisposable
         CodecStream stream = CreateStreamFromFile(path);
         TrackInfo info = stream.TrackInfo;
 
-        _activeTrack = new Track(_device.Context, stream, info, Config, OnTrackFinish);
+        _activeTrack = new Track(_context, stream, info, Config, OnTrackFinish);
 
         TrackChanged(info, path);
+        
+        _device.Unlock();
         
         if (Config.AutoPlay)
             Play();
@@ -208,6 +214,7 @@ public class AudioPlayer : IDisposable
         Logger.Log("Start playback.");
         _activeTrack.Play();
         StateChanged(TrackState.Playing);
+        _device.Play();
     }
     
     public void Pause()
@@ -218,6 +225,7 @@ public class AudioPlayer : IDisposable
 
     public void Stop()
     {
+        _device.Pause();
         _activeTrack?.Dispose();
         _activeTrack = null;
         
@@ -317,6 +325,8 @@ public class AudioPlayer : IDisposable
         _activeTrack?.Dispose();
         Logger.Log("Disposing device.");
         _device.Dispose();
+        Logger.Log("Disposing context.");
+        _context.Dispose();
     }
 
     public delegate void OnTrackChanged(TrackInfo info, string path);
