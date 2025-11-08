@@ -63,6 +63,8 @@ public partial class DiscordPresence : Plugin
         DateTime now = DateTime.UtcNow;
         
         RichPresence presence = new RichPresence()
+            .WithType(ActivityType.Listening)
+            .WithStatusDisplay(StatusDisplayType.State)
             .WithDetails(info.Title)
             .WithState(info.Artist)
             .WithTimestamps(new Timestamps(now - TimeSpan.FromSeconds(currentSecond), now + TimeSpan.FromSeconds(totalSeconds)))
