@@ -38,6 +38,7 @@ public static class Glimpse
         Platform.EnableDPIAwareness();
         
         _sdl = Sdl.GetApi();
+        _sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
         
         if (_sdl.Init(Sdl.InitVideo | Sdl.InitEvents) < 0)
             throw new Exception("Failed to initialize SDL.");

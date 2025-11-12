@@ -68,8 +68,16 @@ public class GlimpsePlayer : Window
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         io.FontDefault = roboto;
+
+        ImGuiStylePtr style = ImGui.GetStyle();
+        int rounding = (int) (5 * Scale);
+        style.FrameRounding = rounding;
+        style.GrabRounding = rounding;
+        style.ChildRounding = rounding;
+        style.PopupRounding = rounding;
+        style.DockingSeparatorSize = (int) float.Ceiling(1 * Scale);
         
-        Span<Vector4> colors = ImGui.GetStyle().Colors;
+        Span<Vector4> colors = style.Colors;
         colors[(int) ImGuiCol.Text]                   = new Vector4(0.93f, 0.93f, 0.93f, 1.00f);
         colors[(int) ImGuiCol.TextDisabled]           = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
         colors[(int) ImGuiCol.WindowBg]               = new Vector4(0.12f, 0.12f, 0.14f, 0.94f);
@@ -152,7 +160,7 @@ public class GlimpsePlayer : Window
         
         Renderer.Clear(Color.Black);
         
-#if DEBUG
+/*#if DEBUG
         if (ImGui.BeginMainMenuBar())
         {
             ImGui.Text("DEBUG Menu");
@@ -167,7 +175,7 @@ public class GlimpsePlayer : Window
             
             ImGui.EndMainMenuBar();
         }
-#endif
+#endif*/
         
         //ImGui.ShowStyleEditor();
         
@@ -184,9 +192,10 @@ public class GlimpsePlayer : Window
             uint outId = id;
 
             uint transportId;
-            uint transportDock = ImGui.DockBuilderSplitNode(outId, ImGuiDir.Down, 0.2f, &transportId, &outId);
+            uint transportDock = ImGui.DockBuilderSplitNode(outId, ImGuiDir.Down, 0.18f, &transportId, &outId);
 
-            ImGui.DockBuilderGetNode(transportId).LocalFlags |= ImGuiDockNodeFlags.NoResize;
+            ImGuiDockNodePtr node = ImGui.DockBuilderGetNode(transportId);
+            node.LocalFlags |= ImGuiDockNodeFlags.NoResize;
             
             uint foldersDock = ImGui.DockBuilderSplitNode(outId, ImGuiDir.Left, 0.3f, null, &outId);
             
@@ -224,7 +233,7 @@ public class GlimpsePlayer : Window
             
             ImGui.SameLine();
             
-            Vector2 centerPos = new Vector2(Size.Width / 2 - 80, ImGui.GetCursorScreenPos().Y);
+            Vector2 centerPos = new Vector2(Size.Width / 2 - 40, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
             ImGui.SetNextWindowPos(centerPos);
             
             if (ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
@@ -280,19 +289,34 @@ public class GlimpsePlayer : Window
 
             //if (ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX))
             {
+                float cursorPos = ImGui.GetCursorPosY() + (int) (10 * Scale);
+                Vector2 contentRegion = ImGui.GetContentRegionAvail();
+
+                float align = ImGui.GetStyle().FramePadding.Y;
+
                 int position = player.ElapsedSeconds;
                 int length = player.TrackLength;
-                ImGui.Text($"{position / 60:0}:{position % 60:00}");
+                
+                string elapsedText = $"{position / 60:0}:{position % 60:00}";
+                string lengthText = $"{length / 60:0}:{length % 60:00}";
+
+                Vector2 elapsedTextSize = ImGui.CalcTextSize(elapsedText);
+                Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
+                
+                ImGui.SetCursorPosY(cursorPos + align);
+                ImGui.Text(elapsedText);
                 ImGui.SameLine();
+                ImGui.SetCursorPosY(cursorPos);
+                ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
                 if (ImGui.SliderInt("##transport", ref position, 0, length, ""))
                     _seekPosition = position;
 
                 if (ImGui.IsItemDeactivatedAfterEdit())
                     player.Seek(_seekPosition);
 
-
                 ImGui.SameLine();
-                ImGui.Text($"{length / 60:0}:{length % 60:00}");
+                ImGui.SetCursorPosY(cursorPos);
+                ImGui.Text(lengthText);
                 
                 //ImGui.EndChild();
             }
@@ -319,14 +343,6 @@ public class GlimpsePlayer : Window
             
             if (newDirectory != null)
                 ChangeDirectory(newDirectory);*/
-
-            if (ImGui.ImageButton("Settings", (IntPtr) _cogButton.ID, ScaleVec(16)))
-                AddPopup(new SettingsPopup());
-            
-            ImGui.SameLine();
-            
-            if (ImGui.ImageButton("AddDirs", (IntPtr) _plusButton.ID, ScaleVec(16)))
-                AddPopup(new AddFolderPopup());
             
             if (ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar))
             {
@@ -371,6 +387,24 @@ public class GlimpsePlayer : Window
 
             if (ImGui.BeginTabBar("SongsTabs"))
             {
+                Vector2 currentCursorPos = ImGui.GetCursorPos();
+                Vector2 contentRegion = ImGui.GetContentRegionAvail();
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) (50 * Scale), (int) (5 * Scale)));
+                ImGui.BeginChild("SettingsButtons");
+                {
+                    if (ImGui.ImageButton("Settings", (IntPtr) _cogButton.ID, ScaleVec(16)))
+                        AddPopup(new SettingsPopup());
+            
+                    ImGui.SameLine();
+            
+                    if (ImGui.ImageButton("AddDirs", (IntPtr) _plusButton.ID, ScaleVec(16)))
+                        AddPopup(new AddFolderPopup());
+                    
+                    ImGui.EndChild();
+                }
+                
+                ImGui.SetCursorPos(currentCursorPos);
+                
                 ImGuiTabItemFlags trackFlags =
                     switchToTrackList ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
                 

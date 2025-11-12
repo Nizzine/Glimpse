@@ -1,6 +1,6 @@
 ﻿namespace Glimpse.Player.Configs;
 
-public class PlayerConfig : IConfig
+public struct PlayerConfig : IConfig
 {
     public uint SampleRate;
 

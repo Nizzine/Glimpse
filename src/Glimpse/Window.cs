@@ -102,7 +102,7 @@ public abstract unsafe class Window : IDisposable
         float dpi;
         _sdl.GetDisplayDPI(0, &dpi, null, null);
         _scale = dpi / 96.0f;
-        _scale = 1;
+        _scale = 1.0f;
         
         _size = new Size((int) (_size.Width * _scale), (int) (_size.Height * _scale));
         

@@ -33,7 +33,7 @@ public class AudioPlayer : IDisposable
     private int _currentTrackIndex;
     private int _currentQueueIndex;
 
-    public readonly PlayerConfig Config;
+    public PlayerConfig Config;
 
     public readonly List<Codec> Codecs;
 

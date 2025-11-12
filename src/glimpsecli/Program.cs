@@ -23,7 +23,8 @@ public static class GlimpseCli
         List<string> files = new List<string>();
         float? volume = null;
         double? speed = null;
-        int currentFile = 0;
+        bool shuffle = false;
+        int startingTrack = 0;
 
         int argIndex = 0;
         while (ReadArg(args, ref argIndex, out string arg))
@@ -68,7 +69,7 @@ public static class GlimpseCli
                     {
                         if (ReadArg(args, ref argIndex, out arg) && int.TryParse(arg, out int trackNumber))
                         {
-                            currentFile = trackNumber - 1;
+                            startingTrack = trackNumber - 1;
                             continue;
                         }
 
@@ -77,6 +78,10 @@ public static class GlimpseCli
                         Console.WriteLine("ERROR: Track number was not parsable.");
                         return;
                     }
+                    
+                    case "--shuffle":
+                        shuffle = true;
+                        break;
                     
                     default:
                         PrintHelp();
@@ -118,17 +123,35 @@ public static class GlimpseCli
             return;
         }
 
+        if (shuffle)
+        {
+            Random random = new Random();
+            List<string> shuffled = new List<string>(files.Count);
+
+            while (shuffled.Count < files.Count)
+            {
+                int randomId = random.Next(files.Count);
+                string file = files[randomId];
+                if (shuffled.Contains(file))
+                    continue;
+                shuffled.Add(file);
+            }
+
+            files = shuffled;
+        }
+
         Logger.Log("Create Audio Player");
         AudioPlayer player = new AudioPlayer();
-        player.Config.Volume = volume ?? player.Config.Volume;
-        player.Config.SpeedAdjust = speed ?? player.Config.SpeedAdjust;
+        ref PlayerConfig cfg = ref player.Config;
+        cfg.Volume = volume ?? player.Config.Volume;
+        cfg.SpeedAdjust = speed ?? player.Config.SpeedAdjust;
         
         foreach (string path in files)
             player.QueueTrack(path, QueueSlot.AtEnd);
 
-        player.ChangeTrack(0);
+        player.ChangeTrack(startingTrack);
         
-        PrintConsoleText(player.TrackInfo, 0, player.TrackLength, player.TrackState, currentFile, files.Count);
+        PrintConsoleText(player.TrackInfo, 0, player.TrackLength, player.TrackState, player.CurrentTrackIndex, files.Count);
 
         Console.CancelKeyPress += (sender, eventArgs) =>
         {
@@ -137,14 +160,14 @@ public static class GlimpseCli
         
         Console.CursorVisible = false;
 
-        while (true)
+        while (player.TrackState != TrackState.Stopped)
         {
             int elapsed = player.ElapsedSeconds;
             int total = player.TrackLength;
 
             (int left, int top) = Console.GetCursorPosition();
             Console.SetCursorPosition(left, top - 8);
-            PrintConsoleText(player.TrackInfo, elapsed, total, player.TrackState, currentFile, files.Count);
+            PrintConsoleText(player.TrackInfo, elapsed, total, player.TrackState, player.CurrentTrackIndex, files.Count);
 
             if (Console.KeyAvailable)
             {
@@ -164,31 +187,17 @@ public static class GlimpseCli
                     
                     case ConsoleKey.Q:
                         player.Stop();
-                        goto EXIT;
+                        break;
 
                     case ConsoleKey.OemPeriod:
                     {
-                        // TODO: This needs to be in a method.
-                        currentFile++;
-                        if (currentFile >= files.Count)
-                        {
-                            player.Stop();
-                            goto EXIT;
-                        }
-
                         player.Next();
-
                         break;
                     }
 
                     case ConsoleKey.OemComma:
                     {
-                        currentFile--;
-                        if (currentFile < 0)
-                            currentFile = 0;
-                
                         player.Previous();
-
                         break;
                     }
                 }
@@ -196,8 +205,6 @@ public static class GlimpseCli
             
             Thread.Sleep(125);
         }
-        
-        EXIT: ;
         
         Logger.Log("Quitting.");
         
@@ -265,6 +272,8 @@ public static class GlimpseCli
                                   Change the playback volume, where a value of 1.0 is 100% volume.
                               --speed <s>, -s <s>
                                   Change the playback speed, where a value of 1.0 is 100% speed;
+                              --shuffle
+                                  Shuffle the playback.
                           """);
     }
 }
