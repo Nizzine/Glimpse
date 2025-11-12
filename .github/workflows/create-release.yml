@@ -1,0 +1,45 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version of Glimpse"
+        required: true
+        type: string
+      pre-release:
+        description: "Is Pre-release?"
+        required: true
+        type: boolean
+
+jobs:
+  publish:
+    name: "Publish Glimpse ${{ inputs.version }} ${{ matrix.runtime }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: [win-x64, linux-x64]
+
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: "Install .NET"
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: "Publish"
+        run: ./glimpsebuild.sh GlimpseBuild/ ${{ matrix.runtime }}
+
+      - name: "Upload Artifact"
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Glimpse-${{ inputs.version }}-${{ matrix.runtime }}"
+          path: GlimpseBuild/
+        
+
+      
