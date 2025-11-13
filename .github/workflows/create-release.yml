@@ -33,7 +33,7 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: "Publish"
-        run: ./glimpsebuild.sh GlimpseBuild/ ${{ matrix.runtime }}
+        run: ./glimpsebuild.sh GlimpseBuild/ ${{ matrix.runtime }} ${{ inputs.version }}
 
       - name: "Upload Artifact"
         uses: actions/upload-artifact@v4
