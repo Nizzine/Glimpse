@@ -1,12 +1,13 @@
 #!/bin/bash
 
-if [ $# -ne 2 ]; then
-  echo "Usage: glimpsebuild <out-dir> <runtime>"
+if [ $# -ne 3 ]; then
+  echo "Usage: glimpsebuild <out-dir> <runtime> <version>"
   exit 2
 fi
 
 OUT_DIR="$(pwd)/$1"
 RUNTIME=$2
+VERSION=$3
 PLUGINS_DIR="$OUT_DIR/Plugins"
 PLUGINS_DIR_TEMP="$OUT_DIR/PluginsTEMP"
 
@@ -15,7 +16,7 @@ rm -rf $OUT_DIR || exit 1
 mkdir -p $OUT_DIR || exit 1
 
 # Publish main glimpse program.
-dotnet publish -c Release -r $RUNTIME -o $OUT_DIR src/Glimpse || exit 1
+dotnet publish -c Release -r $RUNTIME -o $OUT_DIR -p:Version="$VERSION" src/Glimpse || exit 1
 
 # As glimpse uses MixrSharp as a project reference rather than a nuget, we must delete the library file that doesn't
 # match the output runtime.
@@ -40,7 +41,7 @@ for dir in Plugins/*; do
     mkdir -p $plugin_out_dir
     
     # Publish to a temporary directory first.
-    dotnet publish -c Release -r $RUNTIME -o $plugin_temp_dir . || exit 1
+    dotnet publish -c Release -r $RUNTIME -o $plugin_temp_dir -p:Version="$VERSION" . || exit 1
     
     # Read the list of dependencies. Native dependencies are marked with a *, which get special treatment.
     # Only the native deps that fit the output runtime are copied.
