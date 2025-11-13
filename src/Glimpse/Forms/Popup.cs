@@ -11,7 +11,9 @@ public abstract class Popup : IDisposable
     public Renderer Renderer;
 
     public float Scale;
-    
+
+    public virtual void Open() { }
+
     public abstract void Update();
 
     public void Close()

@@ -37,7 +37,7 @@ public class AudioPlayer : IDisposable
 
     public readonly List<Codec> Codecs;
 
-    public readonly List<Plugin> Plugins;
+    public readonly Dictionary<string, Plugin> Plugins;
 
     public readonly List<string> QueuedTracks;
 
@@ -56,11 +56,11 @@ public class AudioPlayer : IDisposable
     public AudioPlayer()
     {
         Logger.Log("Loading player configuration.");
-        if (!IConfig.TryGetConfig("Player", out Config))
+        if (!IConfig.TryGetConfig(PlayerConfig.ConfigName, out Config))
         {
             Logger.Log("   ... Failed: Creating new config.");
             Config = new PlayerConfig();
-            IConfig.WriteConfig("Player", Config);
+            IConfig.WriteConfig(PlayerConfig.ConfigName, Config);
         }
 
         Logger.Log("Creating context.");
@@ -81,8 +81,8 @@ public class AudioPlayer : IDisposable
         if (Directory.Exists("Plugins"))
         {
             _pluginsContext = new AssemblyLoadContext("Plugins");
-            
-            Plugins = new List<Plugin>();
+
+            Plugins = [];
 
             string pluginsLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Plugins");
             
@@ -129,11 +129,16 @@ public class AudioPlayer : IDisposable
                     Plugin plugin = (Plugin) Activator.CreateInstance(type);
                     if (plugin == null)
                         continue;
-                    
-                    Logger.Log("    ... Initialize()");
-                    plugin.Initialize(this);
 
-                    Plugins.Add(plugin);
+                    string assemblyName = assembly.GetName().Name;
+
+                    if (Config.EnabledPlugins.Contains(assemblyName))
+                    {
+                        Logger.Log("    ... Initialize()");
+                        plugin.Initialize(this);
+                    }
+
+                    Plugins.Add(assemblyName, plugin);
                 }
             }
         }
@@ -314,9 +319,9 @@ public class AudioPlayer : IDisposable
         if (Plugins != null)
         {
             Logger.Log("Disposing all plugins.");
-            foreach (Plugin plugin in Plugins)
+            foreach ((string name, Plugin plugin) in Plugins)
             {
-                Logger.Log($"Disposing plugin {plugin.GetType()}");
+                Logger.Log($"Disposing plugin {name}");
                 plugin.Dispose();
             }
         }

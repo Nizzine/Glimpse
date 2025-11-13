@@ -23,6 +23,8 @@ public static class Glimpse
 
     public static MusicDatabase Database;
 
+    public static Window MainWindow => _windows[0];
+
     public static void AddWindow(Window window)
     {
         uint id = window.Create(_sdl, Platform);

@@ -80,7 +80,8 @@ public class Track : IDisposable
         // The source will loop the last buffer if it runs out of buffers. It won't sound nice but at least it will
         // continue to play.
         _source.Looping = true;
-        
+
+        _source.Volume = config.Volume;
         _source.Speed = config.SpeedAdjust;
         
         _source.BufferFinished += BufferFinished;

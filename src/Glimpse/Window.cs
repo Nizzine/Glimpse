@@ -86,6 +86,7 @@ public abstract unsafe class Window : IDisposable
     {
         popup.Renderer = Renderer;
         popup.Scale = _scale;
+        popup.Open();
         _popups.Add(popup);
     }
 

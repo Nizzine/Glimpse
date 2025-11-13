@@ -5,6 +5,7 @@ using DiscordRPC;
 using Glimpse.Player;
 using Glimpse.Player.Configs;
 using Glimpse.Player.Plugins;
+using Hexa.NET.ImGui;
 using MetaBrainz.MusicBrainz;
 using MetaBrainz.MusicBrainz.CoverArt;
 using MetaBrainz.MusicBrainz.CoverArt.Interfaces;
@@ -15,13 +16,23 @@ namespace Glimpse.DiscordPresence;
 public partial class DiscordPresence : Plugin
 {
     private AudioPlayer _player;
+    private bool _initialized;
     
     private string _currentUrl;
 
     public DiscordConfig Config;
     
     public DiscordRpcClient Client;
+
+    public override bool IsInitialized => _initialized;
     
+    public override string Name => "Discord RPC";
+
+    public override void DisplayGui()
+    {
+        ImGui.Text("Hello world!");
+    }
+
     public override void Initialize(AudioPlayer player)
     {
         _player = player;
@@ -38,6 +49,8 @@ public partial class DiscordPresence : Plugin
         Client.Initialize();
         
         player.StateChanged += PlayerOnStateChanged;
+
+        _initialized = true;
     }
 
     void PlayerOnStateChanged(TrackState state)
@@ -130,6 +143,11 @@ public partial class DiscordPresence : Plugin
 
     public override void Dispose()
     {
+        if (!_initialized)
+            return;
+        _initialized = false;
+
+        _player.StateChanged -= PlayerOnStateChanged;
         Client.Dispose();
     }
 

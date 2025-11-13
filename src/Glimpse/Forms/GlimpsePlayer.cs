@@ -191,8 +191,17 @@ public class GlimpsePlayer : Window
 
             uint outId = id;
 
+            ImGuiDir dir = ImGuiDir.Down;
+            float sizeRatio = 0.18f;
+
+            if (Glimpse.Player.Config.SwapTransportControls)
+            {
+                dir = ImGuiDir.Up;
+                sizeRatio = 0.19f;
+            }
+            
             uint transportId;
-            uint transportDock = ImGui.DockBuilderSplitNode(outId, ImGuiDir.Down, 0.18f, &transportId, &outId);
+            uint transportDock = ImGui.DockBuilderSplitNode(outId, dir, sizeRatio, &transportId, &outId);
 
             ImGuiDockNodePtr node = ImGui.DockBuilderGetNode(transportId);
             node.LocalFlags |= ImGuiDockNodeFlags.NoResize;
@@ -209,8 +218,8 @@ public class GlimpsePlayer : Window
         if (ImGui.Begin("Transport", ImGuiWindowFlags.NoResize))
         {
             Vector2 winSize = ImGui.GetContentRegionAvail();
-            
-            if (ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y)))
+
+            ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y));
             {
                 ImGui.Image((IntPtr) (_albumArt?.ID ?? _defaultAlbumArt.ID), new Vector2(winSize.Y));
                 
@@ -220,8 +229,8 @@ public class GlimpsePlayer : Window
             ImGui.SameLine();
 
             ImGui.BeginChild("MainThing");
-            
-            if (ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
+
+            ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
                 ImGui.Text(player.TrackInfo.Title);
                 ImGui.Text(player.TrackInfo.Artist);
@@ -235,8 +244,8 @@ public class GlimpsePlayer : Window
             
             Vector2 centerPos = new Vector2(Size.Width / 2 - 40, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
             ImGui.SetNextWindowPos(centerPos);
-            
-            if (ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
+
+            ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
                 //Vector2 centerPos = new Vector2(Size.Width / 2, ImGui.GetCursorScreenPos().Y);
                 //float padding = ImGui.GetStyle().WindowPadding.X + 10;
@@ -287,7 +296,7 @@ public class GlimpsePlayer : Window
                 ImGui.EndChild();
             }
 
-            //if (ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX))
+            //ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX)
             {
                 float cursorPos = ImGui.GetCursorPosY() + (int) (10 * Scale);
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
@@ -343,8 +352,8 @@ public class GlimpsePlayer : Window
             
             if (newDirectory != null)
                 ChangeDirectory(newDirectory);*/
-            
-            if (ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar))
+
+            ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
             {
                 if (ImGui.Selectable("Show All", _currentAlbum == ShowAllString))
                 {
@@ -485,7 +494,7 @@ public class GlimpsePlayer : Window
 
                 if (ImGui.BeginTabItem("Queue"))
                 {
-                    if (ImGui.BeginChild("QueuedTracks"))
+                    ImGui.BeginChild("QueuedTracks");
                     {
                         int song = 0;
                         foreach (string path in player.QueuedTracks)
@@ -515,6 +524,11 @@ public class GlimpsePlayer : Window
             
             ImGui.End();
         }
+    }
+
+    public void RefreshLayout()
+    {
+        _init = false;
     }
     
     private void PlayerOnTrackChanged(TrackInfo info, string path)
