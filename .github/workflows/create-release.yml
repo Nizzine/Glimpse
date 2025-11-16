@@ -16,10 +16,6 @@ jobs:
   publish:
     name: "Publish Glimpse ${{ inputs.version }} ${{ matrix.runtime }}"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runtime: [win-x64, linux-x64]
-
     steps:
       - name: "Checkout"
         uses: actions/checkout@v4
@@ -32,19 +28,12 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: "Publish"
-        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-${{ matrix.runtime }}" ${{ matrix.runtime }} ${{ inputs.version }}
+      - name: "Publish Windows"
+        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-win-x64" win-x64 ${{ inputs.version }}
 
-      - name: "Upload Artifact"
-        uses: actions/upload-artifact@v4
-        with:
-          name: "Glimpse-${{ inputs.version }}-${{ matrix.runtime }}"
-          path: GlimpseBuild/
+      - name: "Publish Linux"
+        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-linux-x64" linux-x64 ${{ inputs.version }}
 
-  release:
-    needs: publish
-    runs-on: ubuntu-latest
-    steps:
       - name: Create Release
         uses: ncipollo/release-action@v1.20.0
         with:
@@ -54,3 +43,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ inputs.version }}
           generateReleaseNotes: true
+          prerelease: ${{ inputs.prerelease }}
