@@ -33,13 +33,24 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: "Publish"
-        run: ./glimpsebuild.sh GlimpseBuild/ ${{ matrix.runtime }} ${{ inputs.version }}
+        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-${{ matrix.runtime }}" ${{ matrix.runtime }} ${{ inputs.version }}
 
       - name: "Upload Artifact"
         uses: actions/upload-artifact@v4
         with:
           name: "Glimpse-${{ inputs.version }}-${{ matrix.runtime }}"
           path: GlimpseBuild/
-        
 
-      
+  release:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        uses: ncipollo/release-action@v1.20.0
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: "*.zip,*.tar.gz"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ inputs.version }}
+          generateReleaseNotes: true
