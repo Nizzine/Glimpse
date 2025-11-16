@@ -55,10 +55,12 @@ public class Track : IDisposable
     {
         _stream = stream;
         _onFinish = onFinish;
+        Info = info;
 
         _format = stream.Format;
-        
-        Info = info;
+        Logger.Log($"DataType: {_format.DataType}");
+        Logger.Log($"SampleRate: {_format.SampleRate}");
+        Logger.Log($"Channels: {_format.Channels}");
 
         LengthInSeconds = (int) (_stream.LengthInSamples / _format.SampleRate);
         Logger.Log($"LengthInSeconds: {LengthInSeconds}");
@@ -89,30 +91,41 @@ public class Track : IDisposable
 
     public void Play()
     {
+        Logger.Log("Playing.");
         _source.Play();
     }
 
     public void Pause()
     {
+        Logger.Log("Pausing.");
         _source.Pause();
     }
 
     public void Seek(int second)
     {
+        Logger.Log($"Seeking to {second}s.");
+        
         SourceState state = _source.State;
+        Logger.Log("  Pausing source.");
         _source.Pause();
+        Logger.Log("  Seeking stream.");
         _stream.Seek((ulong) (second * _format.SampleRate));
+        Logger.Log("  Clearing buffers.");
         _source.ClearBuffers();
         _currentBuffer = 0;
+        Logger.Log("  Updating buffers.");
         for (int i = 0; i < _buffers.Length; i++)
         {
             _stream.GetBuffer(_audioBuffer);
             _buffers[i].Update(_audioBuffer);
             _source.SubmitBuffer(_buffers[i]);
         }
-        
+
         if (state == SourceState.Playing)
+        {
+            Logger.Log("  Playing.");
             _source.Play();
+        }
 
         _totalBytes = (ulong) (second * _format.SampleRate * _format.Channels * _format.BytesPerSample);
     }

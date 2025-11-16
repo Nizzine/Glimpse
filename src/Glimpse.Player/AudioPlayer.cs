@@ -189,25 +189,30 @@ public class AudioPlayer : IDisposable
 
     public void ChangeTrack(int queueIndex)
     {
+        Logger.Log($"Changing to track {queueIndex}.");
+        
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
             throw new Exception("Cannot queue track that is not in the queue.");
         
+        Logger.Log("  Locking device.");
         _device.Lock();
         
+        Logger.Log("  Disposing the active track.");
         _activeTrack?.Dispose();
         _currentTrackIndex = queueIndex;
 
         string path = QueuedTracks[queueIndex];
         
-        Logger.Log($"Creating codec stream from file {path}");
-
+        Logger.Log($"  Creating codec stream from file {path}");
         CodecStream stream = CreateStreamFromFile(path);
         TrackInfo info = stream.TrackInfo;
 
+        Logger.Log("  Creating track.");
         _activeTrack = new Track(_context, stream, info, Config, OnTrackFinish);
 
         TrackChanged(info, path);
         
+        Logger.Log("  Unlocking device.");
         _device.Unlock();
         
         if (Config.AutoPlay)
@@ -219,6 +224,7 @@ public class AudioPlayer : IDisposable
         Logger.Log("Start playback.");
         _activeTrack.Play();
         StateChanged(TrackState.Playing);
+        Logger.Log("  Playing device.");
         _device.Play();
     }
     
@@ -230,13 +236,17 @@ public class AudioPlayer : IDisposable
 
     public void Stop()
     {
+        Logger.Log("Stopping.");
+        
+        Logger.Log("  Pausing device.");
         _device.Pause();
+        Logger.Log("  Disposing active track.");
         _activeTrack?.Dispose();
         _activeTrack = null;
         
+        Logger.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
         _currentTrackIndex = 0;
-        
         StateChanged(TrackState.Stopped);
     }
 
@@ -296,13 +306,17 @@ public class AudioPlayer : IDisposable
     {
         Logger.Log("Checking for codec support.");
         if (FileIsSupported(path, out Codec codec))
+        {
+            Logger.Log("Creating stream.");
             return codec.CreateStream(path);
+        }
 
         throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
     }
 
     private void InsertTrackAtIndex(int index, string path)
     {
+        Logger.Log($"Inserting track '{path}' at index {index}.");
         if (index >= QueuedTracks.Count)
             QueuedTracks.Add(path);
         else
