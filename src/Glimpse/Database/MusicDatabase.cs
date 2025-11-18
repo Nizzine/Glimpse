@@ -20,7 +20,7 @@ public class MusicDatabase : IConfig
 
     public void Refresh()
     {
-        Tracks = Tracks.OrderBy(pair => pair.Value.TrackNumber).ToDictionary();
+        Tracks = Tracks.OrderBy(pair => pair.Value.Album).ThenBy(pair => pair.Value.TrackNumber).ToDictionary();
         Albums = Albums.OrderBy(pair => pair.Key).ToDictionary();
     }
 

@@ -421,12 +421,16 @@ public class GlimpsePlayer : Window
                         trackList = album.Tracks;
                     }
 
-                    if (ImGui.BeginTable("SongTable", 4, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
+                    if (ImGui.BeginTable("SongTable", 8, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
-                        ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthStretch,  1.0f);
-                        ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthStretch, 5.0f);
-                        ImGui.TableSetupColumn("Artist", ImGuiTableColumnFlags.WidthStretch, 3.0f);
-                        ImGui.TableSetupColumn("Album", ImGuiTableColumnFlags.WidthStretch, 4.0f);
+                        ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthFixed,  50.0f);
+                        ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 350.0f);
+                        ImGui.TableSetupColumn("Artist", ImGuiTableColumnFlags.WidthFixed, 200.0f);
+                        ImGui.TableSetupColumn("Album", ImGuiTableColumnFlags.WidthFixed, 300.0f);
+                        ImGui.TableSetupColumn("Length", ImGuiTableColumnFlags.WidthFixed, 75.0f);
+                        ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 50.0f);
+                        ImGui.TableSetupColumn("Rating", ImGuiTableColumnFlags.WidthFixed, 75.0f);
+                        ImGui.TableSetupColumn("Last Played", ImGuiTableColumnFlags.WidthFixed, 200.0f);
                         ImGui.TableHeadersRow();
 
                         string currentTrackPath = Glimpse.Player.CurrentTrack;
@@ -447,8 +451,10 @@ public class GlimpsePlayer : Window
                             if (ImGui.Selectable($"{track.Title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 player.QueueTracks(trackList, QueueSlot.Clear);
-                            
                                 player.ChangeTrack(song);
+                                track.PlayCount++;
+                                track.LastPlayed = DateTime.Now;
+                                Glimpse.Database.Tracks[path] = track;
                             }
 
                             if (ImGui.BeginPopupContextItem())
@@ -474,6 +480,19 @@ public class GlimpsePlayer : Window
                             ImGui.Text(track.Artist);
                             ImGui.TableNextColumn();
                             ImGui.Text(track.Album);
+                            ImGui.TableNextColumn();
+                            ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
+                            ImGui.TableNextColumn();
+                            ImGui.Text(track.PlayCount.ToString());
+                            ImGui.TableNextColumn();
+                            for (int i = 0; i < 5; i++)
+                            {
+                                ImGui.Text(i < track.Rating ? "*" : "-");
+                                ImGui.SameLine(0, 7);
+                            }
+                            ImGui.NewLine();
+                            ImGui.TableNextColumn();
+                            ImGui.Text(track.LastPlayed is {} lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
 
                             song++;
                         }
