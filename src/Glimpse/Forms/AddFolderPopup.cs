@@ -126,19 +126,22 @@ public class AddFolderPopup : Popup
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
                 if (directory.Path == selected)
                     flags |= ImGuiTreeNodeFlags.Selected;
+                if (directory.SubDirectories != null && directory.SubDirectories.Count == 0)
+                    flags |= ImGuiTreeNodeFlags.Leaf;
 
                 string dirName = System.IO.Path.GetFileName(directory.Path);
                 if (string.IsNullOrWhiteSpace(dirName))
                     dirName = directory.Path;
 
-                if (ImGui.TreeNodeEx(dirName, flags))
+                bool node = ImGui.TreeNodeEx(dirName, flags);
+                if (ImGui.IsItemClicked())
+                    selected = directory.Path;
+                    
+                if (node) 
                 {
                     directory.Update(ref selected);
                     ImGui.TreePop();
                 }
-
-                if (ImGui.IsItemClicked())
-                    selected = directory.Path;
             }
         }
     }
