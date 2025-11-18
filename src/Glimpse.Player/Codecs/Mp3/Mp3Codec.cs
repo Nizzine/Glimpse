@@ -9,6 +9,9 @@ public class Mp3Codec : Codec
         return extension == ".mp3";
     }
 
+    public override TrackInfo GetTrackInfo(string path)
+        => TrackInfo.FromFile(path);
+
     public override CodecStream CreateStream(string path)
     {
         return new Mp3Stream(path);

@@ -7,6 +7,9 @@ public class WavCodec : Codec
         return extension == ".wav";
     }
 
+    public override TrackInfo GetTrackInfo(string path)
+        => TrackInfo.FromFile(path);
+    
     public override CodecStream CreateStream(string path)
     {
         return new WavStream(path);

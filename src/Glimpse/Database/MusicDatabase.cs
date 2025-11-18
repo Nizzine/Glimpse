@@ -56,15 +56,15 @@ public class MusicDatabase : IConfig
             
             TrackInfo info;
 
-            // TODO: This is a bit crude. Improve this.
+            // As GetTrackInfoForFile throws an exception if the track is supported, simply catch all errors, log them,
+            // then carry on.
             try
             {
-                CodecStream stream = player.CreateStreamFromFile(file.FullName);
-                info = stream.TrackInfo;
-                stream.Dispose();
+                info = player.GetTrackInfoForFile(file.FullName);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                Logger.Log($"Exception occurred while getting track info: {e}");
                 continue;
             }
 

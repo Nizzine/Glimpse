@@ -7,6 +7,9 @@ public class VorbisCodec : Codec
         return extension == ".ogg";
     }
 
+    public override TrackInfo GetTrackInfo(string path)
+        => TrackInfo.FromFile(path);
+
     public override CodecStream CreateStream(string path)
     {
         return new VorbisStream(path);

@@ -302,12 +302,22 @@ public class AudioPlayer : IDisposable
         return false;
     }
 
+    public TrackInfo GetTrackInfoForFile(string path)
+    {
+        Logger.Log("Checking for codec support.");
+        if (!FileIsSupported(path, out Codec codec))
+            throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
+        
+        Logger.Log("  Getting track info.");
+        return codec.GetTrackInfo(path);
+    }
+
     public CodecStream CreateStreamFromFile(string path)
     {
         Logger.Log("Checking for codec support.");
         if (FileIsSupported(path, out Codec codec))
         {
-            Logger.Log("Creating stream.");
+            Logger.Log("  Creating stream.");
             return codec.CreateStream(path);
         }
 
