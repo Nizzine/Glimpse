@@ -424,14 +424,14 @@ public class GlimpsePlayer : Window
 
                     if (ImGui.BeginTable("SongTable", 8, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
-                        ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthFixed,  50.0f);
-                        ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 350.0f);
-                        ImGui.TableSetupColumn("Artist", ImGuiTableColumnFlags.WidthFixed, 200.0f);
-                        ImGui.TableSetupColumn("Album", ImGuiTableColumnFlags.WidthFixed, 300.0f);
-                        ImGui.TableSetupColumn("Length", ImGuiTableColumnFlags.WidthFixed, 75.0f);
-                        ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 50.0f);
-                        ImGui.TableSetupColumn("Rating", ImGuiTableColumnFlags.WidthFixed, 75.0f);
-                        ImGui.TableSetupColumn("Last Played", ImGuiTableColumnFlags.WidthFixed, 200.0f);
+                        ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthFixed,  40.0f * Scale);
+                        ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 280.0f * Scale);
+                        ImGui.TableSetupColumn("Artist", ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
+                        ImGui.TableSetupColumn("Album", ImGuiTableColumnFlags.WidthFixed, 240.0f * Scale);
+                        ImGui.TableSetupColumn("Length", ImGuiTableColumnFlags.WidthFixed, 48.0f * Scale);
+                        ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40.0f * Scale);
+                        ImGui.TableSetupColumn("Rating", ImGuiTableColumnFlags.WidthFixed, 60.0f * Scale);
+                        ImGui.TableSetupColumn("Last Played", ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
                         ImGui.TableHeadersRow();
 
                         string currentTrackPath = Glimpse.Player.CurrentTrack;
@@ -449,7 +449,7 @@ public class GlimpsePlayer : Window
 
                             ImGui.TableNextColumn();
                             
-                            if (ImGui.Selectable($"{track.Title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
+                            if (ImGui.Selectable($"{track.Title ?? "Unknown Title"}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
                             {
                                 player.QueueTracks(trackList, QueueSlot.Clear);
                                 player.ChangeTrack(song);
@@ -475,9 +475,9 @@ public class GlimpsePlayer : Window
                             }
                             
                             ImGui.TableNextColumn();
-                            ImGui.Text(track.Artist);
+                            ImGui.Text(track.Artist ?? "Unknown Artist");
                             ImGui.TableNextColumn();
-                            ImGui.Text(track.Album);
+                            ImGui.Text(track.Album ?? "Unknown Album");
                             ImGui.TableNextColumn();
                             ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
                             ImGui.TableNextColumn();

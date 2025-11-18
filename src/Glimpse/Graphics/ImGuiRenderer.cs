@@ -94,6 +94,8 @@ public class ImGuiRenderer : IDisposable
         
         ImGui.Render();
         ImDrawDataPtr drawData = ImGui.GetDrawData();
+        
+        _bufferSet.Bind();
 
         if (drawData.TotalVtxCount >= _vBufferSize)
         {
@@ -134,8 +136,6 @@ public class ImGuiRenderer : IDisposable
                 drawData.DisplayPos.Y + drawData.DisplaySize.Y, drawData.DisplayPos.Y, -1, 1));
 
         _gl.Viewport(0, 0, (uint) drawData.DisplaySize.X, (uint) drawData.DisplaySize.Y);
-        
-        _bufferSet.Bind();
 
         vertexOffset = 0;
         indexOffset = 0;
