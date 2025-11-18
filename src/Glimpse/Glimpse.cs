@@ -1,10 +1,12 @@
 ﻿using System.Drawing;
+using System.Reflection;
 using Glimpse.Database;
 using Glimpse.Platforms;
 using Glimpse.Player;
 using Glimpse.Player.Configs;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
+using Version = System.Version;
 
 namespace Glimpse;
 
@@ -13,6 +15,8 @@ public static class Glimpse
     private static Sdl _sdl;
     private static List<Window> _windows;
     private static Dictionary<uint, Window> _windowIds;
+
+    public static Version Version;
 
     public static Platform Platform;
 
@@ -31,6 +35,9 @@ public static class Glimpse
 
     public static unsafe void Run(Window window, string[] args)
     {
+        Version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
+        Logger.Log($"Glimpse {Version}");
+        
         Platform = Platform.AutoDetect();
         Logger.Log($"Detected platform {Platform.GetType()}");
         

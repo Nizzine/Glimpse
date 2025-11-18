@@ -1,9 +1,13 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
+using System.Net.Http.Headers;
 using System.Numerics;
+using System.Text.Json.Nodes;
 using Glimpse.Database;
 using Glimpse.Platforms;
 using Glimpse.Player;
 using Hexa.NET.ImGui;
+using Newtonsoft.Json.Linq;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
 using Track = Glimpse.Database.Track;
@@ -15,6 +19,10 @@ public class GlimpsePlayer : Window
     private const string ShowAllString = "*";
     
     private bool _init;
+
+    private Version? _newVersion;
+    private string? _newVersionURL;
+    private float _newVersionBlinker;
     
     private string _currentAlbum;
     private int _seekPosition;
@@ -25,6 +33,7 @@ public class GlimpsePlayer : Window
     private Image _stopButton;
     private Image _plusButton;
     private Image _cogButton;
+    private Image _updateButton;
 
     private Image _defaultAlbumArt;
     private Image _albumArt;
@@ -44,7 +53,7 @@ public class GlimpsePlayer : Window
         Size = new Size(1100, 650);
     }
 
-    protected override unsafe void Initialize()
+    protected override void Initialize()
     {
         _playButton = Renderer.CreateImage("Assets/Icons/PlayButton.png");
         _pauseButton = Renderer.CreateImage("Assets/Icons/PauseButton.png");
@@ -52,6 +61,7 @@ public class GlimpsePlayer : Window
         _stopButton = Renderer.CreateImage("Assets/Icons/StopButton.png");
         _plusButton = Renderer.CreateImage("Assets/Icons/plus.png");
         _cogButton = Renderer.CreateImage("Assets/Icons/cog.png");
+        _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
         
         _defaultAlbumArt = Renderer.CreateImage("Assets/Icons/Glimpse.png");
         
@@ -132,6 +142,10 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
 
         _currentAlbum = ShowAllString;
+
+#if !DEBUG
+        Task.Run(CheckForNewerVersion);
+#endif
     }
 
     protected override unsafe void Update()
@@ -391,9 +405,34 @@ public class GlimpsePlayer : Window
             {
                 Vector2 currentCursorPos = ImGui.GetCursorPos();
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) (50 * Scale), (int) (5 * Scale)));
+
+                bool updateAvailable = _newVersionURL != null;
+                
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) ((updateAvailable ? 82 : 50) * Scale), (int) (5 * Scale)));
                 ImGui.BeginChild("SettingsButtons");
                 {
+                    if (updateAvailable)
+                    {
+                        Vector4 buttonColor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
+                        Vector4 highlightColor = new Vector4(1, 0, 0, 1);
+                        float amount = (float.Sin(_newVersionBlinker) + 1) / 2;
+                        
+                        ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Lerp(buttonColor, highlightColor, amount));
+                        if (ImGui.ImageButton("Update", _updateButton.ID, ScaleVec(16)))
+                            OpenLink(_newVersionURL);
+                        
+                        ImGui.SetItemTooltip($"Version {_newVersion} is available!");
+                        
+                        ImGui.PopStyleColor();
+                        ImGui.SameLine();
+
+                        // TODO: DeltaTime
+                        const float dt = 1 / 60.0f;
+                        _newVersionBlinker += dt * 2;
+                        if (_newVersionBlinker >= float.Pi * 2)
+                            _newVersionBlinker -= float.Pi * 2;
+                    }
+                    
                     if (ImGui.ImageButton("Settings", _cogButton.ID, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
             
@@ -602,4 +641,57 @@ public class GlimpsePlayer : Window
 
     private Vector2 ScaleVec(float scalar)
         => ScaleVec(scalar, scalar);
+
+    private async Task CheckForNewerVersion()
+    {
+        try
+        {
+            using HttpClient client = new();
+            client.BaseAddress = new Uri("https://api.github.com/repos/aquagoose/Glimpse/");
+            client.DefaultRequestHeaders.UserAgent.Add(
+                new ProductInfoHeaderValue("Glimpse", Glimpse.Version.ToString()));
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
+            client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "releases/latest");
+            using HttpResponseMessage response = await client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync();
+            JObject obj = JObject.Parse(json);
+
+            Version thisVersion = Glimpse.Version;
+
+            string? newVersionString = (string?) obj["tag_name"];
+            if (newVersionString == null)
+                return;
+            int posOfSuffixDash = newVersionString.IndexOf('-');
+            if (posOfSuffixDash >= 0)
+                newVersionString = newVersionString.Remove(posOfSuffixDash);
+            Version newVersion = new Version(newVersionString);
+
+            if (newVersion <= thisVersion)
+            {
+                Logger.Log("Glimpse is up to date.");
+                return;
+            }
+
+            string? newVersionUrl = (string?) obj["html_url"];
+            if (newVersionUrl == null)
+                return;
+
+            _newVersion = newVersion;
+            _newVersionURL = newVersionUrl;
+            Logger.Log($"Version {_newVersion} is available!");
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"Error occurred while checking for update: {e}");
+        }
+    }
+
+    private static void OpenLink(string link)
+    {
+        Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+    }
 }
