@@ -44,13 +44,14 @@ public class AddFolderPopup : Popup
         
         if (ImGui.BeginPopupModal("Add Folder", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove))
         {
-            if (ImGui.BeginChild("FoldersList", ScaleVec(300, 300), ImGuiChildFlags.AutoResizeY))
+            if (ImGui.BeginChild("FoldersList", ScaleVec(500, 300), ImGuiWindowFlags.HorizontalScrollbar))
             {
                 _baseDirectory.Update(ref Selected);
                 ImGui.EndChild();
             }
 
-            ImGui.InputText("##FolderPath", ref Selected, 5000);
+            ImGui.SetNextItemWidth(500);
+            ImGui.InputTextWithHint("##FolderPath", "Path", ref Selected, 5000);
 
             ImGui.BeginDisabled(string.IsNullOrWhiteSpace(Selected) || _currentTask != null);
             
@@ -98,7 +99,7 @@ public class AddFolderPopup : Popup
     {
         public string Path;
         
-        public List<DirectorySource> SubDirectories;
+        public List<DirectorySource>? SubDirectories;
 
         public DirectorySource(string path)
         {
@@ -122,7 +123,7 @@ public class AddFolderPopup : Popup
             
             foreach (DirectorySource directory in SubDirectories)
             {
-                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow;
+                ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
                 if (directory.Path == selected)
                     flags |= ImGuiTreeNodeFlags.Selected;
 

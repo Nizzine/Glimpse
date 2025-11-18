@@ -127,7 +127,6 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.TextLink]               = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
         colors[(int) ImGuiCol.TextSelectedBg]         = new Vector4(0.26f, 0.59f, 0.98f, 0.35f);
         colors[(int) ImGuiCol.DragDropTarget]         = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
-        colors[(int) ImGuiCol.NavHighlight]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
         colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
         colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
         colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
@@ -181,8 +180,8 @@ public class GlimpsePlayer : Window
         {
             _init = true;
             
-            ImGui.DockBuilderRemoveNode(id);
-            ImGui.DockBuilderAddNode(id, ImGuiDockNodeFlags.NoUndocking);
+            ImGuiP.DockBuilderRemoveNode(id);
+            ImGuiP.DockBuilderAddNode(id, ImGuiDockNodeFlags.NoUndocking);
 
             uint outId = id;
 
@@ -196,18 +195,18 @@ public class GlimpsePlayer : Window
             }
             
             uint transportId;
-            uint transportDock = ImGui.DockBuilderSplitNode(outId, dir, sizeRatio, &transportId, &outId);
+            uint transportDock = ImGuiP.DockBuilderSplitNode(outId, dir, sizeRatio, &transportId, &outId);
 
-            ImGuiDockNodePtr node = ImGui.DockBuilderGetNode(transportId);
+            ImGuiDockNodePtr node = ImGuiP.DockBuilderGetNode(transportId);
             node.LocalFlags |= ImGuiDockNodeFlags.NoResize;
             
-            uint foldersDock = ImGui.DockBuilderSplitNode(outId, ImGuiDir.Left, 0.3f, null, &outId);
+            uint foldersDock = ImGuiP.DockBuilderSplitNode(outId, ImGuiDir.Left, 0.3f, null, &outId);
             
-            ImGui.DockBuilderDockWindow("Transport", transportDock);
-            ImGui.DockBuilderDockWindow("Albums", foldersDock);
-            ImGui.DockBuilderDockWindow("Songs", outId);
+            ImGuiP.DockBuilderDockWindow("Transport", transportDock);
+            ImGuiP.DockBuilderDockWindow("Albums", foldersDock);
+            ImGuiP.DockBuilderDockWindow("Songs", outId);
         
-            ImGui.DockBuilderFinish(id);
+            ImGuiP.DockBuilderFinish(id);
         }
 
         if (ImGui.Begin("Transport", ImGuiWindowFlags.NoResize))
@@ -216,7 +215,7 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y));
             {
-                ImGui.Image((IntPtr) (_albumArt?.ID ?? _defaultAlbumArt.ID), new Vector2(winSize.Y));
+                ImGui.Image(_albumArt?.ID ?? _defaultAlbumArt.ID, new Vector2(winSize.Y));
                 
                 ImGui.EndChild();
             }
@@ -251,7 +250,7 @@ public class GlimpsePlayer : Window
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
                 
-                if (ImGui.ImageButton("BackwardButton", (IntPtr) _skipButton.ID, ScaleVec(32), new Vector2(1, 0), new Vector2(0, 1)))
+                if (ImGui.ImageButton("BackwardButton", _skipButton.ID, ScaleVec(32), new Vector2(1, 0), new Vector2(0, 1)))
                 {
                     player.Previous();
                 }
@@ -260,24 +259,24 @@ public class GlimpsePlayer : Window
                 
                 if (player.TrackState == TrackState.Playing)
                 {
-                    if (ImGui.ImageButton("PauseButton", (IntPtr) _pauseButton.ID, ScaleVec(32)))
+                    if (ImGui.ImageButton("PauseButton", _pauseButton.ID, ScaleVec(32)))
                         player.Pause();
                 }
                 else
                 {
-                    if (ImGui.ImageButton("PlayButton", (IntPtr) _playButton.ID, ScaleVec(32)))
+                    if (ImGui.ImageButton("PlayButton", _playButton.ID, ScaleVec(32)))
                         player.Play();
                 }
                 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("ForwardButton", (IntPtr) _skipButton.ID, ScaleVec(32)))
+                if (ImGui.ImageButton("ForwardButton", _skipButton.ID, ScaleVec(32)))
                 {
                     player.Next();
                 }
 
                 ImGui.SameLine();
-                if (ImGui.ImageButton("StopButton", (IntPtr) _stopButton.ID, ScaleVec(32)))
+                if (ImGui.ImageButton("StopButton", _stopButton.ID, ScaleVec(32)))
                 {
                     player.Stop();
                 }
@@ -395,12 +394,12 @@ public class GlimpsePlayer : Window
                 ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) (50 * Scale), (int) (5 * Scale)));
                 ImGui.BeginChild("SettingsButtons");
                 {
-                    if (ImGui.ImageButton("Settings", (IntPtr) _cogButton.ID, ScaleVec(16)))
+                    if (ImGui.ImageButton("Settings", _cogButton.ID, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
             
                     ImGui.SameLine();
             
-                    if (ImGui.ImageButton("AddDirs", (IntPtr) _plusButton.ID, ScaleVec(16)))
+                    if (ImGui.ImageButton("AddDirs", _plusButton.ID, ScaleVec(16)))
                         AddPopup(new AddFolderPopup());
                     
                     ImGui.EndChild();

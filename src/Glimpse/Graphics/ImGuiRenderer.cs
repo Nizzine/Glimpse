@@ -199,7 +199,7 @@ public class ImGuiRenderer : IDisposable
 
         //_gl.GenerateMipmap(TextureTarget.Texture2D);
         
-        io.Fonts.SetTexID((IntPtr) _imGuiTexture);
+        io.Fonts.SetTexID(_imGuiTexture);
     }
     
     public void Dispose()
