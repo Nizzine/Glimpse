@@ -43,6 +43,8 @@ public class AudioPlayer : IDisposable
 
     public int ElapsedSeconds => _activeTrack?.ElapsedSeconds ?? 0;
 
+    public int SecondsConsumed => _activeTrack?.SecondsConsumed ?? 0;
+
     public int TrackLength => _activeTrack?.LengthInSeconds ?? 0;
 
     public TrackInfo TrackInfo => _activeTrack?.Info ?? _defaultTrackInfo;

@@ -16,7 +16,8 @@ public class Track : IDisposable
     private AudioBuffer[] _buffers;
     private int _currentBuffer;
 
-    private ulong _totalBytes;
+    private ulong _elapsedBytes;
+    private ulong _bytesConsumed;
 
     private Action _onFinish;
 
@@ -28,11 +29,21 @@ public class Track : IDisposable
     {
         get
         {
-            ulong totalSamples = _totalBytes / _format.BytesPerSample / _format.Channels;
-            totalSamples += _source.Position;
+            ulong elapsedSamples = _elapsedBytes / _format.BytesPerSample / _format.Channels;
+            elapsedSamples += _source.Position;
 
             // TODO: Make this better.
-            return (int) (totalSamples / _format.SampleRate);
+            return (int) (elapsedSamples / _format.SampleRate);
+        }
+    }
+
+    public int SecondsConsumed
+    {
+        get
+        {
+            ulong samplesConsumed = _bytesConsumed / _format.BytesPerSample / _format.Channels;
+            samplesConsumed += _source.Position;
+            return (int) (samplesConsumed / _format.SampleRate);
         }
     }
     
@@ -126,12 +137,13 @@ public class Track : IDisposable
             _source.Play();
         }
 
-        _totalBytes = (ulong) (second * _format.SampleRate * _format.Channels * _format.BytesPerSample);
+        _elapsedBytes = (ulong) (second * _format.SampleRate * _format.Channels * _format.BytesPerSample);
     }
     
     private void BufferFinished()
     {
-        _totalBytes += (ulong) _audioBuffer.Length;
+        _elapsedBytes += (ulong) _audioBuffer.Length;
+        _bytesConsumed += (ulong) _audioBuffer.Length;
         
         Task.Run(() =>
         {

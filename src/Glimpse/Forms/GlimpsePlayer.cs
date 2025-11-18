@@ -31,6 +31,8 @@ public class GlimpsePlayer : Window
 
     private byte[] _newAlbumArt;
     private bool _shouldDeleteArt;
+
+    private bool _hasIncrementedPlayCount;
     
     public GlimpsePlayer()
     {
@@ -452,9 +454,6 @@ public class GlimpsePlayer : Window
                             {
                                 player.QueueTracks(trackList, QueueSlot.Clear);
                                 player.ChangeTrack(song);
-                                track.PlayCount++;
-                                track.LastPlayed = DateTime.Now;
-                                Glimpse.Database.Tracks[path] = track;
                             }
 
                             if (ImGui.BeginPopupContextItem())
@@ -535,6 +534,16 @@ public class GlimpsePlayer : Window
             
             ImGui.End();
         }
+
+        if (player.TrackState == TrackState.Playing && player.SecondsConsumed >= int.Min(30, player.TrackLength) &&
+            !_hasIncrementedPlayCount)
+        {
+            _hasIncrementedPlayCount = true;
+            Track track = Glimpse.Database.Tracks[player.CurrentTrack];
+            track.PlayCount++;
+            track.LastPlayed = DateTime.Now;
+            Glimpse.Database.Tracks[player.CurrentTrack] = track;
+        }
     }
 
     public void RefreshLayout()
@@ -544,6 +553,7 @@ public class GlimpsePlayer : Window
     
     private void PlayerOnTrackChanged(TrackInfo info, string path)
     {
+        _hasIncrementedPlayCount = false;
         TrackInfo.Image art = info.AlbumArt;
 
         if (art?.Data == null)
