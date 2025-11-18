@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using Glimpse.Database;
 using Glimpse.Platforms;
 using Glimpse.Player;
 using Glimpse.Player.Configs;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
-using Renderer = Glimpse.Graphics.Renderer;
 
 namespace Glimpse;
 
@@ -50,10 +47,10 @@ public static class Glimpse
 
         Player = new AudioPlayer();
 
-        if (!IConfig.TryGetConfig("Database/MusicDatabase", out Database))
+        if (!IConfig.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
-            IConfig.WriteConfig("Database/MusicDatabase", Database);
+            IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
         }
         
         Database.Refresh();
@@ -147,6 +144,7 @@ public static class Glimpse
         }
         
         Player.Dispose();
+        IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
         
         _sdl.Quit();
         _sdl.Dispose();

@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
-using System.Linq;
+﻿using System.Drawing;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using Glimpse.Database;
 using Glimpse.Platforms;
 using Glimpse.Player;
-using Glimpse.Player.Configs;
 using Hexa.NET.ImGui;
-using Silk.NET.SDL;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
 using Track = Glimpse.Database.Track;
@@ -232,10 +225,9 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.Text(player.TrackInfo.Title);
-                ImGui.Text(player.TrackInfo.Artist);
-                
-                ImGui.Text(player.TrackInfo.Album);
+                ImGui.Text(player.TrackInfo.Title ?? "Unknown Track");
+                ImGui.Text(player.TrackInfo.Artist ?? "Unknown Artist");
+                ImGui.Text(player.TrackInfo.Album ?? "Unknown Album");
 
                 ImGui.EndChild();
             }

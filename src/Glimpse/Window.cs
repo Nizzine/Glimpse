@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
+﻿using System.Drawing;
 using Glimpse.Forms;
-using Glimpse.Graphics;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using Silk.NET.OpenGL;
 using Silk.NET.SDL;
 using StbImageSharp;
-using PixelFormat = Silk.NET.OpenGL.PixelFormat;
 using Renderer = Glimpse.Graphics.Renderer;
 
 namespace Glimpse;

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Glimpse.Graphics;
 using Glimpse.Player;
 using Glimpse.Player.Configs;

@@ -6,11 +6,19 @@ public struct Track
 {
     public uint? TrackNumber;
     
-    public string Title;
+    public string? Title;
 
-    public string Artist;
+    public string? Artist;
 
-    public string Album;
+    public string? Album;
+
+    public TimeSpan? Length;
+
+    public byte Rating;
+
+    public byte PlayCount;
+
+    public DateTime? LastPlayed;
 
     public Track(TrackInfo info)
     {
@@ -18,5 +26,8 @@ public struct Track
         Title = info.Title;
         Artist = info.Artist;
         Album = info.Album;
+        Length = info.Length;
+        Rating = 0;
+        PlayCount = 0;
     }
 }

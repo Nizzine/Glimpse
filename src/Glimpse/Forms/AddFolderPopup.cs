@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Threading.Tasks;
-using Glimpse.Database;
+﻿using Glimpse.Database;
 using Glimpse.Player.Configs;
 using Hexa.NET.ImGui;
 
@@ -90,7 +84,7 @@ public class AddFolderPopup : Popup
                 if (task.IsCompleted)
                 {
                     Glimpse.Database.AddIndexToDatabase(_result);
-                    IConfig.WriteConfig("Database/MusicDatabase", Glimpse.Database);
+                    IConfig.WriteConfig(MusicDatabase.DatabaseName, Glimpse.Database);
                     _result = default;
                     Close();
                 }

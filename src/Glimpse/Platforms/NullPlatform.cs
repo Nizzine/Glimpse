@@ -1,4 +1,3 @@
-using System;
 using Glimpse.Player;
 
 namespace Glimpse.Platforms;

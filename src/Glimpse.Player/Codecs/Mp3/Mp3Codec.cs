@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Glimpse.Player.Codecs.Mp3;
+﻿namespace Glimpse.Player.Codecs.Mp3;
 
 public class Mp3Codec : Codec
 {

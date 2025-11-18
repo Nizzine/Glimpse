@@ -1,6 +1,4 @@
-﻿using System.IO;
-
-namespace Glimpse.Player.Codecs.Flac;
+﻿namespace Glimpse.Player.Codecs.Flac;
 
 public class FlacCodec : Codec
 {

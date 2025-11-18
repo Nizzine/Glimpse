@@ -84,22 +84,21 @@ public partial class DiscordPresence : Plugin
             .WithAssets(new Assets() { LargeImageText = info.Album, LargeImageKey = _currentUrl });
         
         Client.SetPresence(presence);
-        
-        string albumName = info.Album;
-        Console.WriteLine($"AlbumName: {albumName}");
-        albumName = RemoveDiscNumberRegex().Replace(albumName, "");
-        Console.WriteLine(albumName);
-
-        if (Config.AlbumArt.TryGetValue(albumName, out _currentUrl))
-        {
-            Client.UpdateLargeAsset(_currentUrl);
-            return;
-        }
 
         // Only search for new album art if the album changes or the URL is null.
         // This saves queries to musicbrainz.
-        if (info.Album != TrackInfo.UnknownAlbum)
+        if (info.Album is { } albumName)
         {
+            Console.WriteLine($"AlbumName: {albumName}");
+            albumName = RemoveDiscNumberRegex().Replace(albumName, "");
+            Console.WriteLine(albumName);
+
+            if (Config.AlbumArt.TryGetValue(albumName, out _currentUrl))
+            {
+                Client.UpdateLargeAsset(_currentUrl);
+                return;
+            }
+            
             Task.Run(() =>
             {
                 const string app = "GlimpseAudioPlayer";

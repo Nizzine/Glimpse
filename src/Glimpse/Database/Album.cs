@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Glimpse.Database;
+﻿namespace Glimpse.Database;
 
 public class Album
 {

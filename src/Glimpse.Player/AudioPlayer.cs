@@ -70,7 +70,7 @@ public class AudioPlayer : IDisposable
         Logger.Log("Creating device.");
         _device = new AudioDevice(_context, Config.SampleRate);
         
-        _defaultTrackInfo = new TrackInfo(null, "Unknown Title", "Unknown Artist", "Unknown Album", null);
+        _defaultTrackInfo = TrackInfo.Null;
 
         Logger.Log("Initializing codecs.");
         Codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];

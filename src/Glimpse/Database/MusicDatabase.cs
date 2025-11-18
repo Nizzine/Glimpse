@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Diagnostics.CodeAnalysis;
 using Glimpse.Player;
-using Glimpse.Player.Codecs;
 using Glimpse.Player.Configs;
 
 namespace Glimpse.Database;
@@ -13,8 +7,9 @@ namespace Glimpse.Database;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 public class MusicDatabase : IConfig
 {
-    public Dictionary<string, Track> Tracks;
+    public const string DatabaseName = "Database/MusicDatabase";
     
+    public Dictionary<string, Track> Tracks;
     public Dictionary<string, Album> Albums;
     
     public MusicDatabase()
