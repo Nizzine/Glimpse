@@ -31,7 +31,7 @@ public class MptStream : CodecStream
 
         ModuleMetadata metadata = _module.Metadata;
         TrackInfo = new TrackInfo(null, metadata.Title ?? Path.GetFileNameWithoutExtension(path), metadata.Artist, null,
-            null, null);
+            null, null, null);
     }
     
     public override unsafe ulong GetBuffer(Span<byte> buffer)

@@ -14,6 +14,8 @@ public struct Track
 
     public TimeSpan? Length;
 
+    public string? Genre;
+
     public byte Rating;
 
     public byte PlayCount;
@@ -27,6 +29,7 @@ public struct Track
         Artist = info.Artist;
         Album = info.Album;
         Length = info.Length;
+        Genre = info.Genre;
         Rating = 0;
         PlayCount = 0;
     }
