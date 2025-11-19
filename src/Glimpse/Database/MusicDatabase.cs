@@ -27,10 +27,22 @@ public class MusicDatabase : IConfig
     public void AddIndexToDatabase(in IndexResult index)
     {
         Logger.Log($"Adding indexed directory {index.Directory} to dataabase.");
-        
+
         foreach ((string path, Track track) in index.Tracks)
-            Tracks[path] = track;
-        
+        {
+            Track trk = track;
+            
+            if (Tracks.TryGetValue(path, out Track oldTrack))
+            {
+                // Copy over playback metadata to the new track.
+                trk.Rating = oldTrack.Rating;
+                trk.PlayCount = oldTrack.PlayCount;
+                trk.LastPlayed = oldTrack.LastPlayed;
+            }
+            
+            Tracks[path] = trk;
+        }
+
         foreach ((string name, Album album) in index.Albums)
             Albums[name] = album;
         
