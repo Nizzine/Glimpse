@@ -649,13 +649,9 @@ public class GlimpsePlayer : Window
         try
         {
             using HttpClient client = new();
-            client.BaseAddress = new Uri("https://api.github.com/repos/aquagoose/Glimpse/");
-            client.DefaultRequestHeaders.UserAgent.Add(
-                new ProductInfoHeaderValue("Glimpse", Glimpse.Version.ToString()));
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
-            client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+            client.BaseAddress = new Uri("https://glimpseaudio.co.uk");
 
-            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "releases/latest");
+            using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "download/version.json");
             using HttpResponseMessage response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
@@ -664,7 +660,7 @@ public class GlimpsePlayer : Window
 
             Version thisVersion = Glimpse.Version;
 
-            string? newVersionString = (string?) obj["tag_name"];
+            string? newVersionString = (string?) obj["version"];
             if (newVersionString == null)
                 return;
             int posOfSuffixDash = newVersionString.IndexOf('-');
@@ -678,7 +674,7 @@ public class GlimpsePlayer : Window
                 return;
             }
 
-            string? newVersionUrl = (string?) obj["html_url"];
+            string? newVersionUrl = (string?) obj["url"];
             if (newVersionUrl == null)
                 return;
 
