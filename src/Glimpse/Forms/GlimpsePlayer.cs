@@ -577,10 +577,12 @@ public class GlimpsePlayer : Window
             !_hasIncrementedPlayCount)
         {
             _hasIncrementedPlayCount = true;
-            Track track = Glimpse.Database.Tracks[player.CurrentTrack];
-            track.PlayCount++;
-            track.LastPlayed = DateTime.Now;
-            Glimpse.Database.Tracks[player.CurrentTrack] = track;
+            if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrack, out Track track))
+            {
+                track.PlayCount++;
+                track.LastPlayed = DateTime.Now;
+                Glimpse.Database.Tracks[player.CurrentTrack] = track;
+            }
         }
     }
 
