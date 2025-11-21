@@ -290,7 +290,7 @@ public class AudioPlayer : IDisposable
 
     public bool FileIsSupported(string path, out Codec outCodec)
     {
-        string extension = Path.GetExtension(path);
+        string extension = Path.GetExtension(path).ToLower();
         foreach (Codec codec in Codecs)
         {
             if (codec.FileIsSupported(path, extension))
