@@ -33,6 +33,7 @@ public class GlimpsePlayer : Window
     private Image _stopButton;
     private Image _plusButton;
     private Image _cogButton;
+    private Image _bugButton;
     private Image _updateButton;
 
     private Image _defaultAlbumArt;
@@ -59,8 +60,9 @@ public class GlimpsePlayer : Window
         _pauseButton = Renderer.CreateImage("Assets/Icons/PauseButton.png");
         _skipButton = Renderer.CreateImage("Assets/Icons/SkipButton.png");
         _stopButton = Renderer.CreateImage("Assets/Icons/StopButton.png");
-        _plusButton = Renderer.CreateImage("Assets/Icons/plus.png");
-        _cogButton = Renderer.CreateImage("Assets/Icons/cog.png");
+        _plusButton = Renderer.CreateImage("Assets/Icons/Plus.png");
+        _cogButton = Renderer.CreateImage("Assets/Icons/Cog.png");
+        _bugButton = Renderer.CreateImage("Assets/Icons/Bug.png");
         _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
         
         _defaultAlbumArt = Renderer.CreateImage("Assets/Icons/Glimpse.png");
@@ -408,7 +410,7 @@ public class GlimpsePlayer : Window
 
                 bool updateAvailable = _newVersionURL != null;
                 
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) ((updateAvailable ? 82 : 50) * Scale), (int) (5 * Scale)));
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) ((updateAvailable ? 114 : 82) * Scale), (int) (5 * Scale)));
                 ImGui.BeginChild("SettingsButtons");
                 {
                     if (updateAvailable)
@@ -433,13 +435,21 @@ public class GlimpsePlayer : Window
                             _newVersionBlinker -= float.Pi * 2;
                     }
                     
+                    if (ImGui.ImageButton("ReportBug", _bugButton.ID, ScaleVec(16)))
+                        OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
+                    ImGui.SetItemTooltip("Report Bug");
+                    
+                    ImGui.SameLine();
+                    
                     if (ImGui.ImageButton("Settings", _cogButton.ID, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
+                    ImGui.SetItemTooltip("Settings");
             
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton.ID, ScaleVec(16)))
                         AddPopup(new AddFolderPopup());
+                    ImGui.SetItemTooltip("Add Folders");
                     
                     ImGui.EndChild();
                 }

@@ -132,8 +132,8 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.BeginChild("GlimpseText"))
                         {
-                            ImGui.Text("Glimpse");
-                            ImGui.Text("2025 Ollie Robinson");
+                            ImGui.Text($"Glimpse {Glimpse.Version}");
+                            ImGui.Text("2025 aquagoose");
 
                             ImGui.Spacing();
                             ImGui.Text("Made by aquagoose");
