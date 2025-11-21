@@ -144,6 +144,9 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
 
         _currentAlbum = ShowAllString;
+        
+        if (Glimpse.Database.Tracks.Count == 0)
+            AddPopup(new AddFolderPopup());
 
 #if !DEBUG
         Task.Run(CheckForNewerVersion);

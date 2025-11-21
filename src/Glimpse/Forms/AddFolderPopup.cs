@@ -71,8 +71,12 @@ public class AddFolderPopup : Popup
             
             ImGui.SameLine();
             
+            ImGui.BeginDisabled(_currentTask != null);
+            
             if (ImGui.Button("Cancel"))
                 Close();
+            
+            ImGui.EndDisabled();
 
             if (_currentTask is Task task)
             {
