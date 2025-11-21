@@ -464,7 +464,7 @@ public class GlimpsePlayer : Window
                 
                 if (ImGui.BeginTabItem("Tracks", trackFlags))
                 {
-                    IEnumerable<string> trackList;
+                    ICollection<string> trackList;
 
                     if (_currentAlbum == ShowAllString)
                         trackList = Glimpse.Database.Tracks.Keys;
@@ -474,7 +474,7 @@ public class GlimpsePlayer : Window
                         trackList = album.Tracks;
                     }
 
-                    if (ImGui.BeginTable("SongTable", 8, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
+                    if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
                         ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthFixed,  40.0f * Scale);
                         ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 280.0f * Scale);
@@ -484,69 +484,87 @@ public class GlimpsePlayer : Window
                         ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40.0f * Scale);
                         ImGui.TableSetupColumn("Rating", ImGuiTableColumnFlags.WidthFixed, 60.0f * Scale);
                         ImGui.TableSetupColumn("Last Played", ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
+                        ImGui.TableSetupColumn("File Name", ImGuiTableColumnFlags.WidthFixed, 300.0f * Scale);
+                        
+                        ImGui.TableSetupScrollFreeze(0, 1);
+                        
                         ImGui.TableHeadersRow();
 
                         string currentTrackPath = Glimpse.Player.CurrentTrack;
-                        
-                        int song = 0;
-                        foreach (string path in trackList)
+                        int songEntryHeight = (int) (25 * Scale);
+
+                        ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                        clipper.Begin(trackList.Count, songEntryHeight);
+                        while (clipper.Step())
                         {
-                            Track track = Glimpse.Database.Tracks[path];
-                            
-                            ImGui.TableNextRow();
-                            
-                            ImGui.TableNextColumn();
-                            if (track.TrackNumber is uint trackNumber)
-                                ImGui.Text(trackNumber.ToString());
-
-                            ImGui.TableNextColumn();
-                            
-                            if (ImGui.Selectable($"{track.Title ?? "Unknown Title"}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
+                            int song = clipper.DisplayStart;
+                            IEnumerable<string> visibleTracks =
+                                trackList.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                            foreach (string path in visibleTracks)
                             {
-                                player.QueueTracks(trackList, QueueSlot.Clear);
-                                player.ChangeTrack(song);
-                            }
+                                Track track = Glimpse.Database.Tracks[path];
 
-                            if (ImGui.BeginPopupContextItem())
-                            {
-                                if (ImGui.Selectable("Add to queue"))
-                                    player.QueueTrack(path, QueueSlot.Queue);
-                                if (ImGui.Selectable("Play next"))
-                                    player.QueueTrack(path, QueueSlot.NextTrack);
-                                if (ImGui.Selectable("Add to end"))
-                                    player.QueueTrack(path, QueueSlot.AtEnd);
-                                
-                                ImGui.Spacing();
+                                ImGui.TableNextRow(songEntryHeight);
 
-                                if (ImGui.Selectable("Show File In Explorer"))
+                                //Console.WriteLine(song);
+
+                                ImGui.TableNextColumn();
+                                if (track.TrackNumber is uint trackNumber)
+                                    ImGui.Text(trackNumber.ToString());
+
+                                ImGui.TableNextColumn();
+
+                                if (ImGui.Selectable($"{track.Title ?? "Unknown Title"}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
                                 {
-                                    Glimpse.Platform.OpenFileInExplorer(path);
+                                    player.QueueTracks(trackList, QueueSlot.Clear);
+                                    player.ChangeTrack(song);
                                 }
-                                
-                                ImGui.EndPopup();
-                            }
-                            
-                            ImGui.TableNextColumn();
-                            ImGui.Text(track.Artist ?? "Unknown Artist");
-                            ImGui.TableNextColumn();
-                            ImGui.Text(track.Album ?? "Unknown Album");
-                            ImGui.TableNextColumn();
-                            ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
-                            ImGui.TableNextColumn();
-                            ImGui.Text(track.PlayCount.ToString());
-                            ImGui.TableNextColumn();
-                            for (int i = 0; i < 5; i++)
-                            {
-                                ImGui.Text(i < track.Rating ? "*" : "-");
-                                ImGui.SameLine(0, 7);
-                            }
-                            ImGui.NewLine();
-                            ImGui.TableNextColumn();
-                            ImGui.Text(track.LastPlayed is {} lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
 
-                            song++;
+                                if (ImGui.BeginPopupContextItem())
+                                {
+                                    if (ImGui.Selectable("Add to queue"))
+                                        player.QueueTrack(path, QueueSlot.Queue);
+                                    if (ImGui.Selectable("Play next"))
+                                        player.QueueTrack(path, QueueSlot.NextTrack);
+                                    if (ImGui.Selectable("Add to end"))
+                                        player.QueueTrack(path, QueueSlot.AtEnd);
+
+                                    ImGui.Spacing();
+
+                                    if (ImGui.Selectable("Show File In Explorer"))
+                                    {
+                                        Glimpse.Platform.OpenFileInExplorer(path);
+                                    }
+
+                                    ImGui.EndPopup();
+                                }
+
+                                ImGui.TableNextColumn();
+                                ImGui.Text(track.Artist ?? "Unknown Artist");
+                                ImGui.TableNextColumn();
+                                ImGui.Text(track.Album ?? "Unknown Album");
+                                ImGui.TableNextColumn();
+                                ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
+                                ImGui.TableNextColumn();
+                                ImGui.Text(track.PlayCount.ToString());
+                                ImGui.TableNextColumn();
+                                for (int i = 0; i < 5; i++)
+                                {
+                                    ImGui.Text(i < track.Rating ? "*" : "-");
+                                    ImGui.SameLine(0, 7);
+                                }
+
+                                ImGui.NewLine();
+                                ImGui.TableNextColumn();
+                                ImGui.Text(track.LastPlayed is { } lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
+                                ImGui.TableNextColumn();
+                                ImGui.Text(path);
+                                ImGui.SetItemTooltip(path);
+
+                                song++;
+                            }
                         }
-                        
+
                         ImGui.EndTable();
                     }
                     
@@ -557,23 +575,29 @@ public class GlimpsePlayer : Window
                 {
                     ImGui.BeginChild("QueuedTracks");
                     {
-                        int song = 0;
-                        foreach (string path in player.QueuedTracks)
+                        List<string> queuedTracks = player.QueuedTracks;
+                        ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                        clipper.Begin(queuedTracks.Count);
+
+                        while (clipper.Step())
                         {
-                            bool selected = song == player.CurrentTrackIndex;
-                            bool dark = song < player.CurrentTrackIndex;
-                        
-                            if (dark)
-                                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+                            for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                            {
+                                string path = queuedTracks[i];
 
-                            if (ImGui.Selectable($"{song + 1}. {Glimpse.Database.Tracks[path].Title}", selected))
-                                player.ChangeTrack(song);
-                            if (dark)
-                                ImGui.PopStyleColor();
+                                bool selected = i == player.CurrentTrackIndex;
+                                bool dark = i < player.CurrentTrackIndex;
 
-                            song++;
+                                if (dark)
+                                    ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
+
+                                if (ImGui.Selectable($"{i + 1}. {Glimpse.Database.Tracks[path].Title}", selected))
+                                    player.ChangeTrack(i);
+                                if (dark)
+                                    ImGui.PopStyleColor();
+                            }
                         }
-                        
+
                         ImGui.EndChild();
                     }
                     
