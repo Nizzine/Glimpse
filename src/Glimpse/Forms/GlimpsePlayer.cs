@@ -245,9 +245,9 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.Text(player.TrackInfo.Title ?? "Unknown Track");
-                ImGui.Text(player.TrackInfo.Artist ?? "Unknown Artist");
-                ImGui.Text(player.TrackInfo.Album ?? "Unknown Album");
+                ImGui.Text(EscapeString(player.TrackInfo.Title) ?? "Unknown Track");
+                ImGui.Text(EscapeString(player.TrackInfo.Artist) ?? "Unknown Artist");
+                ImGui.Text(EscapeString(player.TrackInfo.Album) ?? "Unknown Album");
 
                 ImGui.EndChild();
             }
@@ -514,7 +514,12 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
 
-                                if (ImGui.Selectable($"{track.Title ?? "Unknown Title"}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
+                                string title = EscapeString(track.Title) ?? "Unknown Track";
+                                string artist = EscapeString(track.Artist) ?? "Unknown Artist";
+                                string album = EscapeString(track.Album) ?? "Unknown Artist";
+                                string escapedPath = EscapeString(path);
+
+                                if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
                                 {
                                     player.QueueTracks(trackList, QueueSlot.Clear);
                                     player.ChangeTrack(song);
@@ -540,9 +545,9 @@ public class GlimpsePlayer : Window
                                 }
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text(track.Artist ?? "Unknown Artist");
+                                ImGui.Text(artist);
                                 ImGui.TableNextColumn();
-                                ImGui.Text(track.Album ?? "Unknown Album");
+                                ImGui.Text(album);
                                 ImGui.TableNextColumn();
                                 ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
                                 ImGui.TableNextColumn();
@@ -558,8 +563,8 @@ public class GlimpsePlayer : Window
                                 ImGui.TableNextColumn();
                                 ImGui.Text(track.LastPlayed is { } lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
                                 ImGui.TableNextColumn();
-                                ImGui.Text(path);
-                                ImGui.SetItemTooltip(path);
+                                ImGui.Text(EscapeString(escapedPath));
+                                ImGui.SetItemTooltip(escapedPath);
 
                                 song++;
                             }
@@ -728,5 +733,10 @@ public class GlimpsePlayer : Window
     private static void OpenLink(string link)
     {
         Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+    }
+
+    private static string? EscapeString(string? @string)
+    {
+        return @string?.Replace("%", "%%");
     }
 }
