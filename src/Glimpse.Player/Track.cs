@@ -80,23 +80,30 @@ public class Track : IDisposable
         
         _audioBuffer = new byte[_format.SampleRate * _format.Channels * _format.BytesPerSample];
 
+        // The source will loop the last buffer if it runs out of buffers. It won't sound nice but at least it will
+        // continue to play.
+        _source.Looping = true;
+        
         Logger.Log("Creating audio buffers.");
         _buffers = new AudioBuffer[2];
         for (int i = 0; i < _buffers.Length; i++)
         {
-            _stream.GetBuffer(_audioBuffer);
-            _buffers[i] = context.CreateBuffer(_audioBuffer);
+            ulong amount = _stream.GetBuffer(_audioBuffer);
+            if (amount == 0)
+            {
+                _source.Looping = false;
+                break;
+            }
+            
+            _buffers[i] = context.CreateBuffer(new ReadOnlySpan<byte>(_audioBuffer, 0, (int) amount));
             _source.SubmitBuffer(_buffers[i]);
         }
-
-        // The source will loop the last buffer if it runs out of buffers. It won't sound nice but at least it will
-        // continue to play.
-        _source.Looping = true;
 
         _source.Volume = config.Volume;
         _source.Speed = config.SpeedAdjust;
         
         _source.BufferFinished += BufferFinished;
+        _source.StateChanged += StateChanged;
     }
 
     public void Play()
@@ -126,8 +133,14 @@ public class Track : IDisposable
         Logger.Log("  Updating buffers.");
         for (int i = 0; i < _buffers.Length; i++)
         {
-            _stream.GetBuffer(_audioBuffer);
-            _buffers[i].Update(_audioBuffer);
+            ulong amount = _stream.GetBuffer(_audioBuffer);
+            if (amount == 0)
+            {
+                _source.Looping = false;
+                break;
+            }
+
+            _buffers[i].Update(new ReadOnlySpan<byte>(_audioBuffer, 0, (int) amount));
             _source.SubmitBuffer(_buffers[i]);
         }
 
@@ -153,7 +166,6 @@ public class Track : IDisposable
             {
                 // Disable looping so the source can successfully stop.
                 _source.Looping = false;
-                _onFinish();
                 return;
             }
 
@@ -168,6 +180,16 @@ public class Track : IDisposable
                 _currentBuffer = 0;
         });
     }
+    
+    private void StateChanged(SourceState state)
+    {
+        Logger.Log($"Source state changed to {state}.");
+        if (state == SourceState.Stopped && !_source.Looping)
+        {
+            Logger.Log("  ... Calling _onFinish()");
+            _onFinish();
+        }
+    }
 
     public void Dispose()
     {
@@ -175,7 +197,7 @@ public class Track : IDisposable
         _source.Dispose();
         Logger.Log("Disposing buffers.");
         foreach (AudioBuffer buffer in _buffers)
-            buffer.Dispose();
+            buffer?.Dispose();
         Logger.Log("Disposing stream.");
         _stream.Dispose();
     }

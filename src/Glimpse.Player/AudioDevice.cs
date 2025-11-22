@@ -42,7 +42,7 @@ public sealed unsafe class AudioDevice : IDisposable
         _sdl.PauseAudioDevice(_device, 1);
     }
 
-    public void Lock()
+    /*public void Lock()
     {
         _sdl.LockAudioDevice(_device);
     }
@@ -50,7 +50,7 @@ public sealed unsafe class AudioDevice : IDisposable
     public void Unlock()
     {
         _sdl.UnlockAudioDevice(_device);
-    }
+    }*/
     
     public void Dispose()
     {

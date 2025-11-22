@@ -196,14 +196,12 @@ public class AudioPlayer : IDisposable
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
             throw new Exception("Cannot queue track that is not in the queue.");
         
-        Logger.Log("  Locking device.");
-        _device.Lock();
-        
-        Logger.Log("  Disposing the active track.");
-        _activeTrack?.Dispose();
-        _currentTrackIndex = queueIndex;
+        //Logger.Log("  Locking device.");
+        //_device.Lock();
+        Track oldTrack = _activeTrack;
 
         string path = QueuedTracks[queueIndex];
+        _currentTrackIndex = queueIndex;
         
         Logger.Log($"  Creating codec stream from file {path}");
         CodecStream stream = CreateStreamFromFile(path);
@@ -214,11 +212,14 @@ public class AudioPlayer : IDisposable
 
         TrackChanged(info, path);
         
-        Logger.Log("  Unlocking device.");
-        _device.Unlock();
-        
         if (Config.AutoPlay)
             Play();
+        
+        Logger.Log("  Disposing the old track.");
+        oldTrack?.Dispose();
+        
+        //Logger.Log("  Unlocking device.");
+        //_device.Unlock();
     }
 
     public void Play()
