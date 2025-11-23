@@ -386,6 +386,11 @@ public class GlimpsePlayer : Window
                         if (ImGui.Selectable("Add to queue"))
                             player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
                         
+                        ImGui.Spacing();
+                        
+                        if (ImGui.Selectable("Remove from Library..."))
+                            AddPopup(new RemovePopup(name, true));
+                        
                         ImGui.EndPopup();
                     }
                 }
@@ -466,13 +471,13 @@ public class GlimpsePlayer : Window
                 {
                     ICollection<string> trackList;
 
-                    if (_currentAlbum == ShowAllString)
-                        trackList = Glimpse.Database.Tracks.Keys;
-                    else
+                    if (_currentAlbum == ShowAllString || !Glimpse.Database.Albums.TryGetValue(_currentAlbum, out Album currentAlbum))
                     {
-                        Album album = Glimpse.Database.Albums[_currentAlbum];
-                        trackList = album.Tracks;
+                        trackList = Glimpse.Database.Tracks.Keys;
+                        _currentAlbum = ShowAllString;
                     }
+                    else
+                        trackList = currentAlbum.Tracks;
 
                     if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
@@ -537,9 +542,9 @@ public class GlimpsePlayer : Window
                                     ImGui.Spacing();
 
                                     if (ImGui.Selectable("Show File In Explorer"))
-                                    {
                                         Glimpse.Platform.OpenFileInExplorer(path);
-                                    }
+                                    if (ImGui.Selectable("Remove from Library..."))
+                                        AddPopup(new RemovePopup(path, false));
 
                                     ImGui.EndPopup();
                                 }
