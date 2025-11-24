@@ -43,7 +43,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\..\Glimpse.API\Glimpse.API.csproj" />
+      <ProjectReference Include="..\Glimpse.API\Glimpse.API.csproj" />
       <ProjectReference Include="..\..\MixrSharp\MixrSharp\MixrSharp.csproj" />
     </ItemGroup>
 

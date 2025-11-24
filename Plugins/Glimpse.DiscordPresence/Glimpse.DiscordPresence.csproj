@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Glimpse.API\Glimpse.API.csproj" />
+      <ProjectReference Include="..\..\src\Glimpse.API\Glimpse.API.csproj" />
     </ItemGroup>
 
 </Project>

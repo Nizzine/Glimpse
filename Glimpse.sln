@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.OpenMPT", "Plugins\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenMPT.NET", "Plugins\OpenMPT.NET\OpenMPT.NET\OpenMPT.NET.csproj", "{25093E53-1E76-400A-B5A5-8E2E5E8B3691}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.API", "Glimpse.API\Glimpse.API.csproj", "{CCFA2821-EBF6-4614-A833-063675D8FBB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.API", "src\Glimpse.API\Glimpse.API.csproj", "{CCFA2821-EBF6-4614-A833-063675D8FBB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
