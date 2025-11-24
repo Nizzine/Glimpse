@@ -111,7 +111,7 @@ public class Glimpse : IGlimpse, IDisposable
                 }
             }
 
-            AssemblyName currentName = Assembly.GetAssembly(typeof(AudioPlayer))?.GetName();
+            AssemblyName currentName = Assembly.GetAssembly(typeof(IPlugin))?.GetName();
             
             foreach (Assembly assembly in _pluginsContext.Assemblies)
             {
