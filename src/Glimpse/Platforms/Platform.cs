@@ -1,4 +1,5 @@
-﻿using Glimpse.Player;
+﻿using Glimpse.API;
+using Glimpse.Audio;
 
 namespace Glimpse.Platforms;
 
@@ -14,7 +15,7 @@ public abstract class Platform
 
     public abstract void OpenFileInExplorer(string path);
 
-    public abstract void SetPlayState(TrackState state, TrackInfo info);
+    public abstract void SetPlayState(TrackState state, TrackInfo? info);
 
     protected void InvokeButtonPressed(TransportButton button)
     {

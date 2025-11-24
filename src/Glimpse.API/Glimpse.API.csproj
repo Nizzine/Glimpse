@@ -4,12 +4,10 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Glimpse.API\Glimpse.API.csproj" />
-      <ProjectReference Include="..\OpenMPT.NET\OpenMPT.NET\OpenMPT.NET.csproj" />
+      <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
 
 </Project>

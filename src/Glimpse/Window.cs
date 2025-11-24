@@ -22,6 +22,8 @@ public abstract unsafe class Window : IDisposable
 
     private List<Popup> _popups;
 
+    public Glimpse Glimpse;
+    
     public Renderer Renderer;
 
     public string Title
@@ -79,6 +81,7 @@ public abstract unsafe class Window : IDisposable
 
     public void AddPopup(Popup popup)
     {
+        popup.Glimpse = Glimpse;
         popup.Renderer = Renderer;
         popup.Scale = _scale;
         popup.Open();

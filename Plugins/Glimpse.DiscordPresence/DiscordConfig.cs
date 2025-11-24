@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Glimpse.Player.Configs;
+using Glimpse.API;
 
 namespace Glimpse.DiscordPresence;
 

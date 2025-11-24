@@ -1,6 +1,4 @@
 ﻿using Glimpse.Forms;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
 using Silk.NET.SDL;
 
 namespace Glimpse;
@@ -13,7 +11,8 @@ public static class Program
         try
 #endif
         {
-            Glimpse.Run(new GlimpsePlayer(), args);
+            using Glimpse glimpse = new Glimpse();
+            glimpse.Run(new GlimpsePlayer(), args);
         }
 #if !DEBUG
         catch (Exception e)

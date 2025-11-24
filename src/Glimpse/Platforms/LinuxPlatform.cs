@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
-using Glimpse.Player;
+using Glimpse.API;
+using Glimpse.Audio;
 
 namespace Glimpse.Platforms;
 
@@ -70,5 +71,5 @@ public class LinuxPlatform : Platform
         process.Dispose();
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo info) { }
+    public override void SetPlayState(TrackState state, TrackInfo? info) { }
 }

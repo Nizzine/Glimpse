@@ -1,5 +1,5 @@
-﻿using Glimpse.Database;
-using Glimpse.Player.Configs;
+﻿using Glimpse.Configs;
+using Glimpse.Database;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
@@ -63,7 +63,7 @@ public class AddFolderPopup : Popup
 
                 _currentTask = Task.Run(() =>
                 {
-                    _result = MusicDatabase.IndexDirectory(Selected, Glimpse.Player, ref _currentFile);
+                    _result = MusicDatabase.IndexDirectory(Selected, Glimpse.Player, Glimpse.Logger, ref _currentFile);
                 });
             }
             
@@ -89,7 +89,7 @@ public class AddFolderPopup : Popup
                 if (task.IsCompleted)
                 {
                     Glimpse.Database.AddIndexToDatabase(_result);
-                    IConfig.WriteConfig(MusicDatabase.DatabaseName, Glimpse.Database);
+                    Glimpse.ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Glimpse.Database);
                     _result = default;
                     Close();
                 }

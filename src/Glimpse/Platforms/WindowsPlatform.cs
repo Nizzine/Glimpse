@@ -1,5 +1,9 @@
-﻿using Windows.Media;
-using Glimpse.Player;
+﻿using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Media;
+using Windows.Storage.Streams;
+using Glimpse.API;
+using Glimpse.Audio;
+using StbImageSharp;
 using TerraFX.Interop.Windows;
 
 namespace Glimpse.Platforms;
@@ -9,6 +13,8 @@ public unsafe class WindowsPlatform : Platform
     //private ISystemMediaTransportControls* _transportControls;
     private SystemMediaTransportControls _transportControls;
 
+    private InMemoryRandomAccessStream? _albumArtStream;
+
     public WindowsPlatform()
     {
         TerraFX.Interop.Windows.Windows.CoInitialize(null);
@@ -16,7 +22,7 @@ public unsafe class WindowsPlatform : Platform
 
     public override void InitializeMainWindow(IntPtr hwnd)
     {
-        _transportControls = SystemMediaTransportControlsInterop.GetForWindow(hwnd);
+        _transportControls = SystemMediaTransportControlsInterop.GetForWindow(hwnd); 
         _transportControls.ButtonPressed += MediaButtonPressed;
         
         _transportControls.IsEnabled = true;
@@ -67,19 +73,12 @@ public unsafe class WindowsPlatform : Platform
         }
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo info)
+    public override void SetPlayState(TrackState state, TrackInfo? info)
     {
-        _transportControls.DisplayUpdater.Type = MediaPlaybackType.Music;
-        _transportControls.DisplayUpdater.MusicProperties.Title = info.Title;
-        _transportControls.DisplayUpdater.MusicProperties.Artist = info.Artist;
-        _transportControls.DisplayUpdater.MusicProperties.AlbumTitle = info.Album;
-        
-        _transportControls.DisplayUpdater.Update();
-        
         switch (state)
         {
             case TrackState.Stopped:
-                _transportControls.PlaybackStatus = MediaPlaybackStatus.Stopped;
+                _transportControls.PlaybackStatus = MediaPlaybackStatus.Closed;
                 break;
             case TrackState.Paused:
                 _transportControls.PlaybackStatus = MediaPlaybackStatus.Paused;
@@ -90,5 +89,30 @@ public unsafe class WindowsPlatform : Platform
             default:
                 throw new ArgumentOutOfRangeException(nameof(state), state, null);
         }
+        
+        if (info == null)
+            _transportControls.DisplayUpdater.ClearAll();
+        else
+        {
+            _albumArtStream?.Dispose();
+            _transportControls.DisplayUpdater.Thumbnail = null;
+            
+            if (info.AlbumArt != null)
+            {
+                _albumArtStream = new InMemoryRandomAccessStream();
+                _albumArtStream.WriteAsync(info.AlbumArt.Data.AsBuffer()).GetAwaiter().GetResult();
+                _transportControls.DisplayUpdater.Thumbnail =
+                    RandomAccessStreamReference.CreateFromStream(_albumArtStream);
+            }
+
+            _transportControls.DisplayUpdater.AppMediaId = "Glimpse.Glimpse";
+            _transportControls.DisplayUpdater.Type = MediaPlaybackType.Music;
+            _transportControls.DisplayUpdater.MusicProperties.TrackNumber = info.TrackNumber ?? 0;
+            _transportControls.DisplayUpdater.MusicProperties.Title = info.Title;
+            _transportControls.DisplayUpdater.MusicProperties.Artist = info.Artist;
+            _transportControls.DisplayUpdater.MusicProperties.AlbumTitle = info.Album;
+        }
+        
+        _transportControls.DisplayUpdater.Update();
     }
 }

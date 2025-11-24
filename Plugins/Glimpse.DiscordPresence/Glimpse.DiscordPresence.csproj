@@ -7,14 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Glimpse.Player\Glimpse.Player.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
       <PackageReference Include="Hexa.NET.ImGui" Version="2.2.7" />
       <PackageReference Include="MetaBrainz.MusicBrainz" Version="6.1.0" />
       <PackageReference Include="MetaBrainz.MusicBrainz.CoverArt" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Glimpse.API\Glimpse.API.csproj" />
     </ItemGroup>
 
 </Project>

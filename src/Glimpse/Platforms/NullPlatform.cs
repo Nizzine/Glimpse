@@ -1,4 +1,5 @@
-using Glimpse.Player;
+using Glimpse.API;
+using Glimpse.Audio;
 
 namespace Glimpse.Platforms;
 

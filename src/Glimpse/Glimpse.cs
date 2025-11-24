@@ -1,47 +1,71 @@
 ﻿using System.Drawing;
 using System.Reflection;
+using System.Runtime.Loader;
+using Glimpse.API;
+using Glimpse.Audio;
+using Glimpse.Configs;
 using Glimpse.Database;
 using Glimpse.Platforms;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
 using Version = System.Version;
 
 namespace Glimpse;
 
-public static class Glimpse
+public class Glimpse : IGlimpse, IDisposable
 {
-    private static Sdl _sdl;
-    private static List<Window> _windows;
-    private static Dictionary<uint, Window> _windowIds;
+    private Sdl _sdl;
+    private List<Window> _windows;
+    private Dictionary<uint, Window> _windowIds;
+    private AssemblyLoadContext _pluginsContext;
 
-    public static Version Version;
+    public Logger Logger;
+    
+    public Version Version;
 
-    public static Platform Platform;
+    public ConfigManager ConfigManager;
 
-    public static AudioPlayer Player;
+    public GlimpseConfig Config;
 
-    public static MusicDatabase Database;
+    public Platform Platform;
 
-    public static Window MainWindow => _windows[0];
+    public AudioPlayer Player;
 
-    public static void AddWindow(Window window)
+    public MusicDatabase? Database;
+    
+    public Dictionary<string, IPlugin>? Plugins;
+
+    public Window MainWindow => _windows[0];
+
+    public void AddWindow(Window window)
     {
+        window.Glimpse = this;
         uint id = window.Create(_sdl, Platform);
         _windows.Add(window);
         _windowIds.Add(id, window);
     }
 
-    public static unsafe void Run(Window window, string[] args)
+    public unsafe void Run(Window window, string[] args)
     {
+        Logger = new Logger();
+        
         Version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
         Logger.Log($"Glimpse {Version}");
         
+        Logger.Log("Creating config manager.");
+        ConfigManager = new ConfigManager(Logger);
+        
         Platform = Platform.AutoDetect();
         Logger.Log($"Detected platform {Platform.GetType()}");
-        
         Platform.EnableDPIAwareness();
+        
+        Logger.Log("Loading player configuration.");
+        if (!ConfigManager.TryGetConfig(GlimpseConfig.ConfigName, out Config))
+        {
+            Logger.Log("   ... Failed: Creating new config.");
+            Config = new GlimpseConfig();
+            ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
+        }
         
         _sdl = Sdl.GetApi();
         _sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
@@ -52,15 +76,82 @@ public static class Glimpse
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer();
+        Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
 
-        if (!IConfig.TryGetConfig(MusicDatabase.DatabaseName, out Database))
+        if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
-            IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
+            ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         }
+
+        Database!.Logger = Logger;
+        Database!.Refresh();
         
-        Database.Refresh();
+        Logger.Log("Searching for 'Plugins' directory.");
+        if (Directory.Exists("Plugins"))
+        {
+            _pluginsContext = new AssemblyLoadContext("Plugins");
+
+            Plugins = [];
+
+            string pluginsLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Plugins");
+            
+            Logger.Log($"Searching for plugins in {pluginsLocation}");
+            foreach (string file in Directory.GetFiles(pluginsLocation, "*.dll", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    Logger.Log($"Loading assembly from {file}");
+                    _pluginsContext.LoadFromAssemblyPath(file);
+                }
+                catch (BadImageFormatException e)
+                {
+                    Logger.Log($"Failed to load DLL: {e}");
+                    // If this is thrown then it's likely a native DLL.
+                }
+            }
+
+            AssemblyName currentName = Assembly.GetAssembly(typeof(AudioPlayer))?.GetName();
+            
+            foreach (Assembly assembly in _pluginsContext.Assemblies)
+            {
+                foreach (AssemblyName name in assembly.GetReferencedAssemblies())
+                {
+                    if (name.Name == currentName.Name)
+                    {
+                        if (name.Version != currentName.Version)
+                            Console.WriteLine("WARNING: Plugin requires different version of Glimpse. It may cause errors.");
+                        
+                        goto ASSEMBLY_GOOD;
+                    }
+                }
+                
+                continue;
+                
+                ASSEMBLY_GOOD: ;
+                
+                Logger.Log($"Plugin {assembly} loaded.");
+                
+                foreach (Type type in assembly.GetTypes().Where(type => type.IsAssignableTo(typeof(IPlugin))))
+                {
+                    Logger.Log($"Initializing plugin {type}");
+                    
+                    IPlugin? plugin = (IPlugin?) Activator.CreateInstance(type);
+                    if (plugin == null)
+                        continue;
+
+                    string assemblyName = assembly.GetName().Name;
+
+                    if (Config.EnabledPlugins.Contains(assemblyName))
+                    {
+                        Logger.Log("    ... Initialize()");
+                        plugin.Initialize(this);
+                    }
+
+                    Plugins.Add(assemblyName, plugin);
+                }
+            }
+        }
         
         AddWindow(window);
         
@@ -149,15 +240,9 @@ public static class Glimpse
                 wnd.Present();
             }
         }
-        
-        Player.Dispose();
-        IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
-        
-        _sdl.Quit();
-        _sdl.Dispose();
     }
 
-    private static ImGuiMouseButton SdlButtonToImGui(uint button)
+    private ImGuiMouseButton SdlButtonToImGui(uint button)
     {
         return button switch
         {
@@ -167,4 +252,28 @@ public static class Glimpse
             _ => ImGuiMouseButton.Count
         };
     }
+    
+    public void Dispose()
+    {
+        if (Plugins != null)
+        {
+            Logger.Log("Disposing all plugins.");
+            foreach ((string name, IPlugin plugin) in Plugins)
+            {
+                Logger.Log($"Disposing plugin {name}");
+                plugin.Dispose();
+            }
+        }
+        
+        Player.Dispose();
+        ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
+        
+        _sdl.Quit();
+        _sdl.Dispose();
+    }
+
+    Version IGlimpse.Version => Version;
+    ILogger IGlimpse.Logger => Logger;
+    IConfigManager IGlimpse.ConfigManager => ConfigManager;
+    IAudioPlayer IGlimpse.Player => Player;
 }

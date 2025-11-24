@@ -8,8 +8,4 @@
         <TrimMode>partial</TrimMode>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Glimpse.Player\Glimpse.Player.csproj" />
-    </ItemGroup>
-
 </Project>
