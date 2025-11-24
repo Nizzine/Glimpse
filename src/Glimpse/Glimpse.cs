@@ -12,35 +12,35 @@ using Version = System.Version;
 
 namespace Glimpse;
 
-public static class Glimpse
+public class Glimpse
 {
-    private static Sdl _sdl;
-    private static List<Window> _windows;
-    private static Dictionary<uint, Window> _windowIds;
-    private static AssemblyLoadContext _pluginsContext;
+    private Sdl _sdl;
+    private List<Window> _windows;
+    private Dictionary<uint, Window> _windowIds;
+    private AssemblyLoadContext _pluginsContext;
 
-    public static Version Version;
+    public Version Version;
 
-    public static PlayerConfig Config;
+    public PlayerConfig Config;
 
-    public static Platform Platform;
+    public Platform Platform;
 
-    public static AudioPlayer Player;
+    public AudioPlayer Player;
 
-    public static MusicDatabase Database;
+    public MusicDatabase Database;
     
-    public static Dictionary<string, Plugin> Plugins;
+    public Dictionary<string, Plugin> Plugins;
 
-    public static Window MainWindow => _windows[0];
+    public Window MainWindow => _windows[0];
 
-    public static void AddWindow(Window window)
+    public void AddWindow(Window window)
     {
         uint id = window.Create(_sdl, Platform);
         _windows.Add(window);
         _windowIds.Add(id, window);
     }
 
-    public static unsafe void Run(Window window, string[] args)
+    public unsafe void Run(Window window, string[] args)
     {
         Version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
         Logger.Log($"Glimpse {Version}");
@@ -236,7 +236,7 @@ public static class Glimpse
         _sdl.Dispose();
     }
 
-    private static ImGuiMouseButton SdlButtonToImGui(uint button)
+    private ImGuiMouseButton SdlButtonToImGui(uint button)
     {
         return button switch
         {

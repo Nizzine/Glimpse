@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.Loader;
+using Glimpse.API;
 using Glimpse.Audio.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
@@ -11,7 +12,7 @@ using MixrSharp;
 
 namespace Glimpse.Audio;
 
-public class AudioPlayer : IDisposable
+public class AudioPlayer : IAudioPlayer, IDisposable
 {
     public event OnTrackChanged TrackChanged = delegate { };
 
