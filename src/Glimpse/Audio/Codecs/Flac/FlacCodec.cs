@@ -1,18 +1,19 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 
 namespace Glimpse.Audio.Codecs.Flac;
 
-public class FlacCodec : Codec
+public class FlacCodec : ICodec
 {
-    public override bool FileIsSupported(string path, string extension)
+    public bool FileIsSupported(string path, string extension)
     {
         return extension == ".flac";
     }
 
-    public override TrackInfo GetTrackInfo(string path)
+    public TrackInfo GetTrackInfo(string path)
         => TrackInfo.FromFile(path);
 
-    public override CodecStream CreateStream(string path)
+    public ICodecStream CreateStream(string path)
     {
         return new FlacStream(path);
     }

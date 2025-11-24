@@ -2,7 +2,7 @@
 
 namespace Glimpse.Configs;
 
-public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
+public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 {
     public const string ConfigName = "Player";
 
@@ -20,7 +20,7 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
 
     public bool EnableFileDeletion;
 
-    public PlayerConfig()
+    public GlimpseConfig()
     {
         SwapTransportControls = false;
         SampleRate = 48000;
@@ -31,7 +31,7 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
         EnableFileDeletion = false;
     }
 
-    public bool Equals(PlayerConfig other)
+    public bool Equals(GlimpseConfig other)
     {
         return SwapTransportControls == other.SwapTransportControls && SampleRate == other.SampleRate &&
                Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) && AutoPlay == other.AutoPlay &&
@@ -40,7 +40,7 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
 
     public override bool Equals(object obj)
     {
-        return obj is PlayerConfig other && Equals(other);
+        return obj is GlimpseConfig other && Equals(other);
     }
 
     public override int GetHashCode()
@@ -48,12 +48,12 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
         return HashCode.Combine(SampleRate, Volume, SpeedAdjust, AutoPlay, EnabledPlugins);
     }
 
-    public static bool operator ==(PlayerConfig left, PlayerConfig right)
+    public static bool operator ==(GlimpseConfig left, GlimpseConfig right)
     {
         return left.Equals(right);
     }
 
-    public static bool operator !=(PlayerConfig left, PlayerConfig right)
+    public static bool operator !=(GlimpseConfig left, GlimpseConfig right)
     {
         return !left.Equals(right);
     }

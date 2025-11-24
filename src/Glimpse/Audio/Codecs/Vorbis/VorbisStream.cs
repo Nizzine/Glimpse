@@ -1,17 +1,19 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 using MixrSharp;
+using AudioFormat = Glimpse.API.Codecs.AudioFormat;
 
 namespace Glimpse.Audio.Codecs.Vorbis;
 
-public class VorbisStream : CodecStream
+public class VorbisStream : ICodecStream
 {
     private readonly MixrSharp.Stream.Vorbis _vorbis;
 
-    public override TrackInfo TrackInfo { get; }
+    public TrackInfo TrackInfo { get; }
     
-    public override AudioFormat Format => _vorbis.Format;
+    public AudioFormat Format => _vorbis.Format.ToGlimpse();
 
-    public override ulong LengthInSamples => _vorbis.LengthInSamples;
+    public ulong LengthInSamples => _vorbis.LengthInSamples;
 
     public VorbisStream(string path)
     {
@@ -19,15 +21,15 @@ public class VorbisStream : CodecStream
         TrackInfo = TrackInfo.FromFile(path);
     }
     
-    public override ulong GetBuffer(Span<byte> buffer)
+    public ulong GetBuffer(Span<byte> buffer)
         => _vorbis.GetBuffer(buffer);
 
-    public override void Seek(ulong sample)
+    public void Seek(ulong sample)
     {
         _vorbis.SeekToSample(sample);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _vorbis.Dispose();
     }

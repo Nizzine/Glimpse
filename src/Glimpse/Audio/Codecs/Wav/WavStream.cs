@@ -1,17 +1,18 @@
 ﻿using Glimpse.API;
-using MixrSharp;
+using Glimpse.API.Codecs;
+using AudioFormat = Glimpse.API.Codecs.AudioFormat;
 
 namespace Glimpse.Audio.Codecs.Wav;
 
-public class WavStream : CodecStream
+public class WavStream : ICodecStream
 {
     private readonly MixrSharp.Stream.Wav _wav;
 
-    public override TrackInfo TrackInfo { get; }
+    public TrackInfo TrackInfo { get; }
     
-    public override AudioFormat Format => _wav.Format;
+    public AudioFormat Format => _wav.Format.ToGlimpse();
 
-    public override ulong LengthInSamples => _wav.LengthInSamples;
+    public ulong LengthInSamples => _wav.LengthInSamples;
 
     public WavStream(string path)
     {
@@ -19,15 +20,15 @@ public class WavStream : CodecStream
         TrackInfo = TrackInfo.FromFile(path);
     }
 
-    public override ulong GetBuffer(Span<byte> buffer)
+    public ulong GetBuffer(Span<byte> buffer)
         => _wav.GetBuffer(buffer);
 
-    public override void Seek(ulong sample)
+    public void Seek(ulong sample)
     {
         _wav.SeekToSample(sample);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _wav.Dispose();
     }

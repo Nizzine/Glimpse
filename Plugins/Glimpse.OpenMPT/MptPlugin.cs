@@ -1,44 +1,42 @@
-﻿using Glimpse.Player;
-using Glimpse.Player.Configs;
-using Glimpse.Player.Plugins;
+﻿using Glimpse.API;
 
 namespace Glimpse.OpenMPT;
 
-public class MptPlugin : Plugin
+public class MptPlugin : IPlugin
 {
-    private AudioPlayer _player;
+    private IAudioPlayer _player;
     private bool _initialized;
 
     private MptCodec _codec;
     
     public MptConfig Config;
 
-    public override bool IsInitialized => _initialized;
+    public bool IsInitialized => _initialized;
     
-    public override string Name => "OpenMPT Integration";
+    public string Name => "OpenMPT Integration";
 
-    public override void Initialize(AudioPlayer player)
+    public void Initialize(IGlimpse glimpse)
     {
-        _player = player;
+        _player = glimpse.Player;
         
-        if (!IConfig.TryGetConfig("MPT", out MptConfig Config))
+        if (!glimpse.ConfigManager.TryGetConfig("MPT", out MptConfig Config))
         {
             Config = new MptConfig();
-            IConfig.WriteConfig("MPT", Config);
+            glimpse.ConfigManager.WriteConfig("MPT", Config);
         }
 
         _codec = new MptCodec(Config);
-        _player.Codecs.Add(_codec);
+        _player.RegisterCodec(_codec);
 
         _initialized = true;
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         if (!_initialized)
             return;
         _initialized = false;
         
-        _player.Codecs.Remove(_codec);
+        _player.DeregisterCodec(_codec);
     }
 }

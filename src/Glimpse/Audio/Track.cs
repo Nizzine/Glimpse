@@ -1,16 +1,18 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 using Glimpse.Audio.Codecs;
-using Glimpse.Configs;
 using MixrSharp;
+using AudioFormat = Glimpse.API.Codecs.AudioFormat;
+using DataType = Glimpse.API.Codecs.DataType;
 
 namespace Glimpse.Audio;
 
 public class Track : IDisposable
 {
-    private CodecStream _stream;
+    private ICodecStream _stream;
     private Logger _logger;
     
-    private AudioFormat _format;
+    private MixrSharp.AudioFormat _format;
     private AudioSource _source;
 
     private byte[] _audioBuffer;
@@ -62,14 +64,14 @@ public class Track : IDisposable
         }
     }
     
-    internal Track(Context context, CodecStream stream, TrackInfo info, PlayerSettings settings, Action onFinish, Logger logger)
+    internal Track(Context context, ICodecStream stream, TrackInfo info, PlayerSettings settings, Action onFinish, Logger logger)
     {
         _stream = stream;
         _onFinish = onFinish;
         _logger = logger;
         Info = info;
 
-        _format = stream.Format;
+        _format = stream.Format.ToMixr();
         _logger.Log($"DataType: {_format.DataType}");
         _logger.Log($"SampleRate: {_format.SampleRate}");
         _logger.Log($"Channels: {_format.Channels}");

@@ -113,7 +113,7 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.Header]                 = new Vector4(0.23f, 0.66f, 0.87f, 0.16f);
         colors[(int) ImGuiCol.HeaderHovered]          = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
         colors[(int) ImGuiCol.HeaderActive]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.Separator]              = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
+        //colors[(int) ImGuiCol.Separator]              = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
         colors[(int) ImGuiCol.SeparatorHovered]       = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
         colors[(int) ImGuiCol.SeparatorActive]        = new Vector4(0.10f, 0.40f, 0.75f, 1.00f);
         colors[(int) ImGuiCol.ResizeGrip]             = new Vector4(0.26f, 0.59f, 0.98f, 0.20f);
@@ -387,7 +387,7 @@ public class GlimpsePlayer : Window
                         if (ImGui.Selectable("Add to queue"))
                             player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
                         
-                        ImGui.Spacing();
+                        ImGui.Separator();
                         
                         if (ImGui.Selectable("Remove from Library..."))
                             AddPopup(new RemovePopup(name, true, false));
@@ -542,7 +542,7 @@ public class GlimpsePlayer : Window
                                     if (ImGui.Selectable("Add to end"))
                                         player.QueueTrack(path, QueueSlot.AtEnd);
 
-                                    ImGui.Spacing();
+                                    ImGui.Separator();
 
                                     if (ImGui.Selectable("Show File In Explorer"))
                                         Glimpse.Platform.OpenFileInExplorer(path);

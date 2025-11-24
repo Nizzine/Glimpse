@@ -1,17 +1,19 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 using MixrSharp;
+using AudioFormat = Glimpse.API.Codecs.AudioFormat;
 
 namespace Glimpse.Audio.Codecs.Flac;
 
-public class FlacStream : CodecStream
+public class FlacStream : ICodecStream
 {
     private readonly MixrSharp.Stream.Flac _flac;
 
-    public override TrackInfo TrackInfo { get; }
+    public TrackInfo TrackInfo { get; }
     
-    public override AudioFormat Format => _flac.Format;
+    public AudioFormat Format => _flac.Format.ToGlimpse();
 
-    public override ulong LengthInSamples => _flac.LengthInSamples;
+    public ulong LengthInSamples => _flac.LengthInSamples;
 
     public FlacStream(string path)
     {
@@ -19,15 +21,15 @@ public class FlacStream : CodecStream
         TrackInfo = TrackInfo.FromFile(path);
     }
 
-    public override ulong GetBuffer(Span<byte> buffer)
+    public ulong GetBuffer(Span<byte> buffer)
         => _flac.GetBuffer(buffer);
 
-    public override void Seek(ulong sample)
+    public void Seek(ulong sample)
     {
         _flac.SeekToSample(sample);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _flac.Dispose();
     }

@@ -1,4 +1,5 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 using Glimpse.Audio.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
@@ -23,11 +24,12 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private int _currentTrackIndex;
     private int _currentQueueIndex;
 
-    public PlayerSettings Settings;
-
-    public readonly List<Codec> Codecs;
+    private PlayerSettings _settings;
+    private readonly List<ICodec> _codecs;
 
     public readonly List<string> QueuedTracks;
+
+    public IReadOnlyList<ICodec> Codecs => _codecs;
     
     public int ElapsedSeconds => _activeTrack?.ElapsedSeconds ?? 0;
 
@@ -46,17 +48,17 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public AudioPlayer(Logger logger, PlayerSettings settings)
     {
         _logger = logger;
-        Settings = settings;
+        _settings = settings;
         
         _logger.Log("Creating context.");
-        _context = new Context(Settings.SampleRate);
-        _context.MasterVolume = Settings.Volume;
+        _context = new Context(_settings.SampleRate);
+        _context.MasterVolume = _settings.Volume;
         
         _logger.Log("Creating device.");
-        _device = new AudioDevice(_context, Settings.SampleRate);
+        _device = new AudioDevice(_context, _settings.SampleRate);
 
         _logger.Log("Initializing codecs.");
-        Codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
+        _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
 
         QueuedTracks = new List<string>();
     }
@@ -119,15 +121,15 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _currentTrackIndex = queueIndex;
         
         _logger.Log($"  Creating codec stream from file {path}");
-        CodecStream stream = CreateStreamFromFile(path);
+        ICodecStream stream = CreateStreamFromFile(path);
         TrackInfo info = stream.TrackInfo;
 
         _logger.Log("  Creating track.");
-        _activeTrack = new Track(_context, stream, info, Settings, OnTrackFinish, _logger);
+        _activeTrack = new Track(_context, stream, info, _settings, OnTrackFinish, _logger);
 
         TrackChanged(info, path);
         
-        if (Settings.AutoPlay)
+        if (_settings.AutoPlay)
             Play();
         
         _logger.Log("  Disposing the old track.");
@@ -213,20 +215,30 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         StateChanged(TrackState);
     }
 
+    public void RegisterCodec(ICodec codec)
+    {
+        _codecs.Add(codec);
+    }
+    
+    public void DeregisterCodec(ICodec codec)
+    {
+        _codecs.Remove(codec);
+    }
+
     public TrackInfo GetTrackInfoForFile(string path)
     {
         _logger.Log("Checking for codec support.");
-        if (!FileIsSupported(path, out Codec codec))
+        if (!FileIsSupported(path, out ICodec codec))
             throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
         
         _logger.Log("  Getting track info.");
         return codec.GetTrackInfo(path);
     }
     
-    private bool FileIsSupported(string path, out Codec outCodec)
+    private bool FileIsSupported(string path, out ICodec outCodec)
     {
         string extension = Path.GetExtension(path).ToLower();
-        foreach (Codec codec in Codecs)
+        foreach (ICodec codec in Codecs)
         {
             if (codec.FileIsSupported(path, extension))
             {
@@ -239,10 +251,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         return false;
     }
 
-    private CodecStream CreateStreamFromFile(string path)
+    private ICodecStream CreateStreamFromFile(string path)
     {
         _logger.Log("Checking for codec support.");
-        if (FileIsSupported(path, out Codec codec))
+        if (FileIsSupported(path, out ICodec codec))
         {
             _logger.Log("  Creating stream.");
             return codec.CreateStream(path);

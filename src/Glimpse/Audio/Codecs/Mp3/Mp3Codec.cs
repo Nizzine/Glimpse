@@ -1,18 +1,19 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 
 namespace Glimpse.Audio.Codecs.Mp3;
 
-public class Mp3Codec : Codec
+public class Mp3Codec : ICodec
 {
-    public override bool FileIsSupported(string path, string extension)
+    public bool FileIsSupported(string path, string extension)
     {
         return extension == ".mp3";
     }
 
-    public override TrackInfo GetTrackInfo(string path)
+    public TrackInfo GetTrackInfo(string path)
         => TrackInfo.FromFile(path);
 
-    public override CodecStream CreateStream(string path)
+    public ICodecStream CreateStream(string path)
     {
         return new Mp3Stream(path);
     }

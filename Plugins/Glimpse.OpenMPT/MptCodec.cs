@@ -1,8 +1,9 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 
 namespace Glimpse.OpenMPT;
 
-public class MptCodec : Codec
+public class MptCodec : ICodec
 {
     public MptConfig Config;
 
@@ -18,10 +19,11 @@ public class MptCodec : Codec
 
     public TrackInfo GetTrackInfo(string path)
     {
-        throw new NotImplementedException();
+        using MptStream stream = new MptStream(path, Config);
+        return stream.TrackInfo;
     }
 
-    public CodecStream CreateStream(string path)
+    public ICodecStream CreateStream(string path)
     {
         return new MptStream(path, Config);
     }

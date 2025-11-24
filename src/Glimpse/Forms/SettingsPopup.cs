@@ -9,7 +9,7 @@ namespace Glimpse.Forms;
 
 public class SettingsPopup : Popup
 {
-    private PlayerConfig _currentConfig;
+    private GlimpseConfig _currentConfig;
     
     private Image _glimpseLogo;
     private string _currentPlugin;
@@ -173,7 +173,7 @@ public class SettingsPopup : Popup
 
     private void Apply()
     {
-        PlayerConfig oldConfig = Glimpse.Config;
+        GlimpseConfig oldConfig = Glimpse.Config;
         if (oldConfig == _currentConfig)
             return;
 
@@ -183,7 +183,7 @@ public class SettingsPopup : Popup
         Glimpse.Player.Stop();
         
         Glimpse.Config = _currentConfig;
-        Glimpse.ConfigManager.WriteConfig(PlayerConfig.ConfigName, Glimpse.Config);
+        Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
         //((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 

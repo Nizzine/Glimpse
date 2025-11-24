@@ -25,7 +25,7 @@ public class Glimpse : IGlimpse, IDisposable
 
     public ConfigManager ConfigManager;
 
-    public PlayerConfig Config;
+    public GlimpseConfig Config;
 
     public Platform Platform;
 
@@ -60,11 +60,11 @@ public class Glimpse : IGlimpse, IDisposable
         Platform.EnableDPIAwareness();
         
         Logger.Log("Loading player configuration.");
-        if (!ConfigManager.TryGetConfig(PlayerConfig.ConfigName, out Config))
+        if (!ConfigManager.TryGetConfig(GlimpseConfig.ConfigName, out Config))
         {
             Logger.Log("   ... Failed: Creating new config.");
-            Config = new PlayerConfig();
-            ConfigManager.WriteConfig(PlayerConfig.ConfigName, Config);
+            Config = new GlimpseConfig();
+            ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
         }
         
         _sdl = Sdl.GetApi();

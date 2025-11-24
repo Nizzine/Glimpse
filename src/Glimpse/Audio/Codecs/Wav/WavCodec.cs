@@ -1,18 +1,19 @@
 ﻿using Glimpse.API;
+using Glimpse.API.Codecs;
 
 namespace Glimpse.Audio.Codecs.Wav;
 
-public class WavCodec : Codec
+public class WavCodec : ICodec
 {
-    public override bool FileIsSupported(string path, string extension)
+    public bool FileIsSupported(string path, string extension)
     {
         return extension == ".wav";
     }
 
-    public override TrackInfo GetTrackInfo(string path)
+    public TrackInfo GetTrackInfo(string path)
         => TrackInfo.FromFile(path);
     
-    public override CodecStream CreateStream(string path)
+    public ICodecStream CreateStream(string path)
     {
         return new WavStream(path);
     }

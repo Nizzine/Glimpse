@@ -1,23 +1,22 @@
 ﻿using System.Runtime.CompilerServices;
-using Glimpse.Player;
-using Glimpse.Player.Codecs;
-using MixrSharp;
+using Glimpse.API;
+using Glimpse.API.Codecs;
 using OpenMPT.NET;
 
 namespace Glimpse.OpenMPT;
 
-public class MptStream : CodecStream
+public class MptStream : ICodecStream
 {
     private readonly Module _module;
 
     private int _position;
 
-    public override TrackInfo TrackInfo { get; }
+    public TrackInfo TrackInfo { get; }
 
-    public override AudioFormat Format =>
-        new AudioFormat(DataType.F32, (uint) _module.SampleRate, (byte) _module.Channels);
+    public AudioFormat Format =>
+        new AudioFormat(DataType.Float, (uint) _module.SampleRate, (byte) _module.Channels);
 
-    public override ulong LengthInSamples => (ulong) (_module.DurationInSeconds * _module.SampleRate);
+    public ulong LengthInSamples => (ulong) (_module.DurationInSeconds * _module.SampleRate);
 
     public MptStream(string path, MptConfig config)
     {
@@ -31,10 +30,10 @@ public class MptStream : CodecStream
 
         ModuleMetadata metadata = _module.Metadata;
         TrackInfo = new TrackInfo(null, metadata.Title ?? Path.GetFileNameWithoutExtension(path), metadata.Artist, null,
-            null, null, null);
+            TimeSpan.FromSeconds(_module.DurationInSeconds), null, null);
     }
     
-    public override unsafe ulong GetBuffer(Span<byte> buffer)
+    public unsafe ulong GetBuffer(Span<byte> buffer)
     {
         ulong totalBytes = 0;
 
@@ -59,12 +58,12 @@ public class MptStream : CodecStream
         return totalBytes;
     }
 
-    public override void Seek(ulong sample)
+    public void Seek(ulong sample)
     {
         _module.Seek(sample / (double) _module.SampleRate);
     }
 
-    public override void Dispose()
+    public void Dispose()
     {
         _module.Dispose();
     }

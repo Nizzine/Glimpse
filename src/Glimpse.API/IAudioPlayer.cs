@@ -1,4 +1,6 @@
-﻿namespace Glimpse.API;
+﻿using Glimpse.API.Codecs;
+
+namespace Glimpse.API;
 
 public interface IAudioPlayer
 {
@@ -11,6 +13,8 @@ public interface IAudioPlayer
     /// Called when the player state changes.
     /// </summary>
     public event OnStateChanged StateChanged;
+    
+    public IReadOnlyList<ICodec> Codecs { get; }
     
     /// <summary>
     /// The number of elapsed seconds that the current track has played for.
@@ -84,6 +88,25 @@ public interface IAudioPlayer
     /// </summary>
     /// <param name="second">The second to skip to.</param>
     public void Seek(int second);
+
+    /// <summary>
+    /// Register a codec that can be used to play back certain audio files.
+    /// </summary>
+    /// <param name="codec">The <see cref="ICodec"/> to register.</param>
+    public void RegisterCodec(ICodec codec);
+
+    /// <summary>
+    /// De-register a codec so it can no longer be used to play back certain audio files.
+    /// </summary>
+    /// <param name="codec">The <see cref="ICodec"/> to deregister.</param>
+    public void DeregisterCodec(ICodec codec);
+
+    /// <summary>
+    /// Get <see cref="TrackInfo"/> for the given file path.
+    /// </summary>
+    /// <param name="path">The path to the file.</param>
+    /// <returns>The <see cref="TrackInfo"/> for the file.</returns>
+    public TrackInfo GetTrackInfoForFile(string path);
     
     public delegate void OnTrackChanged(TrackInfo info, string path);
     public delegate void OnStateChanged(TrackState state);
