@@ -48,6 +48,11 @@ public class SettingsPopup : Popup
                         }
                         ImGui.SetItemTooltip("Set the location of the transport bar. PLEASE RESTART after saving!");
                         
+                        ImGui.Separator();
+                        
+                        ImGui.Checkbox("Enable \"delete file\" context menu item", ref _currentConfig.EnableFileDeletion);
+                        ImGui.SetItemTooltip("Enables the \"delete file\" context menu item, allowing files to be permanently deleted from your computer.");
+                        
                         ImGui.EndTabItem();
                     }
 
@@ -180,6 +185,9 @@ public class SettingsPopup : Popup
         
         //((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
+        if (Glimpse.Player.Plugins == null)
+            return;
+        
         foreach ((string name, Plugin plugin) in Glimpse.Player.Plugins)
         {
             // Plugin has been disabled

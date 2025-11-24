@@ -19,6 +19,8 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
 
     public HashSet<string> EnabledPlugins;
 
+    public bool EnableFileDeletion;
+
     public PlayerConfig()
     {
         SwapTransportControls = false;
@@ -27,13 +29,14 @@ public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
         SpeedAdjust = 1.0;
         AutoPlay = true;
         EnabledPlugins = ["Glimpse.OpenMPT"];
+        EnableFileDeletion = false;
     }
 
     public bool Equals(PlayerConfig other)
     {
         return SwapTransportControls == other.SwapTransportControls && SampleRate == other.SampleRate &&
                Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) && AutoPlay == other.AutoPlay &&
-               EnabledPlugins.SetEquals(other.EnabledPlugins);
+               EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion;
     }
 
     public override bool Equals(object obj)

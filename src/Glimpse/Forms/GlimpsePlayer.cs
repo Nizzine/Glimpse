@@ -389,7 +389,9 @@ public class GlimpsePlayer : Window
                         ImGui.Spacing();
                         
                         if (ImGui.Selectable("Remove from Library..."))
-                            AddPopup(new RemovePopup(name, true));
+                            AddPopup(new RemovePopup(name, true, false));
+                        if (Glimpse.Player.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
+                            AddPopup(new RemovePopup(name, true, true));
                         
                         ImGui.EndPopup();
                     }
@@ -544,7 +546,9 @@ public class GlimpsePlayer : Window
                                     if (ImGui.Selectable("Show File In Explorer"))
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable("Remove from Library..."))
-                                        AddPopup(new RemovePopup(path, false));
+                                        AddPopup(new RemovePopup(path, false, false));
+                                    if (Glimpse.Player.Config.EnableFileDeletion && ImGui.Selectable("Delete file..."))
+                                        AddPopup(new RemovePopup(path, false, true));
 
                                     ImGui.EndPopup();
                                 }
