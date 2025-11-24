@@ -524,7 +524,7 @@ public class GlimpsePlayer : Window
 
                                 string title = EscapeString(track.Title) ?? "Unknown Track";
                                 string artist = EscapeString(track.Artist) ?? "Unknown Artist";
-                                string album = EscapeString(track.Album) ?? "Unknown Artist";
+                                string album = EscapeString(track.Album) ?? "Unknown Album";
                                 string escapedPath = EscapeString(path);
 
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
