@@ -14,9 +14,12 @@ on:
   release:
     types: [created]
 
+env:
+  RELEASE_VERSION: ${{ github.event.release.tag_name }}
+
 jobs:
   publish:
-    name: "Publish Glimpse ${{ github.event.release.tag_name }}"
+    name: "Publish Glimpse $RELEASE_VERSION"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
@@ -31,10 +34,10 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: "Publish Windows"
-        run: ./glimpsebuild.sh "Glimpse-${{ github.event.release.tag_name }}-win-x64" win-x64 ${{ inputs.version }}
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION-win-x64" win-x64 $RELEASE_VERSION
 
       - name: "Publish Linux"
-        run: ./glimpsebuild.sh "Glimpse-${{ github.event.release.tag_name }}-linux-x64" linux-x64 ${{ inputs.version }}
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION-linux-x64" linux-x64 $RELEASE_VERSION
 
       - name: Create Release
         uses: ncipollo/release-action@v1.20.0
