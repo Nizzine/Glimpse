@@ -209,7 +209,8 @@ public class Glimpse : IGlimpse, IDisposable
                         Window wnd = _windowIds[winEvent.Button.WindowID];
                         ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                         
-                        ImGui.GetIO().AddMouseButtonEvent((int) SdlButtonToImGui(winEvent.Button.Button), true);
+                        if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                            ImGui.GetIO().AddMouseButtonEvent((int) button, true);
                         break;
                     }
                     
@@ -218,7 +219,8 @@ public class Glimpse : IGlimpse, IDisposable
                         Window wnd = _windowIds[winEvent.Button.WindowID];
                         ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                         
-                        ImGui.GetIO().AddMouseButtonEvent((int) SdlButtonToImGui(winEvent.Button.Button), false);
+                        if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                            ImGui.GetIO().AddMouseButtonEvent((int) button, false);
                         break;
                     }
 
@@ -242,14 +244,14 @@ public class Glimpse : IGlimpse, IDisposable
         }
     }
 
-    private ImGuiMouseButton SdlButtonToImGui(uint button)
+    private ImGuiMouseButton? SdlButtonToImGui(uint button)
     {
         return button switch
         {
             Sdl.ButtonLeft => ImGuiMouseButton.Left,
             Sdl.ButtonRight => ImGuiMouseButton.Right,
             Sdl.ButtonMiddle => ImGuiMouseButton.Middle,
-            _ => ImGuiMouseButton.Count
+            _ => null
         };
     }
     
