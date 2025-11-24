@@ -2,9 +2,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DiscordRPC;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
-using Glimpse.Player.Plugins;
+using Glimpse.API;
 using Hexa.NET.ImGui;
 using MetaBrainz.MusicBrainz;
 using MetaBrainz.MusicBrainz.CoverArt;
@@ -13,9 +11,9 @@ using MetaBrainz.MusicBrainz.Interfaces.Searches;
 
 namespace Glimpse.DiscordPresence;
 
-public partial class DiscordPresence : Plugin
+public partial class DiscordPresence : IPlugin
 {
-    private AudioPlayer _player;
+    private IAudioPlayer _player;
     private bool _initialized;
     
     private string _currentUrl;
@@ -24,18 +22,18 @@ public partial class DiscordPresence : Plugin
     
     public DiscordRpcClient Client;
 
-    public override bool IsInitialized => _initialized;
+    public bool IsInitialized => _initialized;
     
-    public override string Name => "Discord RPC";
+    public string Name => "Discord RPC";
 
-    public override void DisplayGui()
+    public void DisplayGui()
     {
         ImGui.Text("Hello world!");
     }
 
-    public override void Initialize(AudioPlayer player)
+    public void Initialize(IGlimpse glimpse)
     {
-        _player = player;
+        _player = glimpse.Player;
         _currentUrl = "glimpse";
         
         Client = new DiscordRpcClient("1280266653950804111");
@@ -48,7 +46,7 @@ public partial class DiscordPresence : Plugin
         
         Client.Initialize();
         
-        player.StateChanged += PlayerOnStateChanged;
+        _player.StateChanged += PlayerOnStateChanged;
 
         _initialized = true;
     }
@@ -58,7 +56,7 @@ public partial class DiscordPresence : Plugin
         switch (state)
         {
             case TrackState.Playing:
-                SetPresence(_player.TrackInfo, _player.ElapsedSeconds, _player.TrackLength);
+                SetPresence(_player.CurrentTrack, _player.ElapsedSeconds, _player.TrackLength);
                 break;
             
             case TrackState.Paused:

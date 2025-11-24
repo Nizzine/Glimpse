@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Audio.Codecs.Flac;
+﻿using Glimpse.API;
+
+namespace Glimpse.Audio.Codecs.Flac;
 
 public class FlacCodec : Codec
 {

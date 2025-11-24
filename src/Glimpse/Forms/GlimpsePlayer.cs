@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Text.Json.Nodes;
+using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Database;
 using Glimpse.Platforms;

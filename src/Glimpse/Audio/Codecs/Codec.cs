@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Audio.Codecs;
+﻿using Glimpse.API;
+
+namespace Glimpse.Audio.Codecs;
 
 public abstract class Codec
 {

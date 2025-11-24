@@ -14,16 +14,14 @@ namespace Glimpse.Audio;
 
 public class AudioPlayer : IAudioPlayer, IDisposable
 {
-    public event OnTrackChanged TrackChanged = delegate { };
-
-    public event OnStateChanged StateChanged = delegate { };
-
+    public event IAudioPlayer.OnTrackChanged TrackChanged = delegate { };
+    
+    public event IAudioPlayer.OnStateChanged StateChanged = delegate { };
+    
     private readonly Context _context;
     private readonly AudioDevice _device;
-
-    private readonly TrackInfo _defaultTrackInfo;
     
-    private Track _activeTrack;
+    private Track? _activeTrack;
 
     private int _currentTrackIndex;
     private int _currentQueueIndex;
@@ -33,20 +31,20 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public readonly List<Codec> Codecs;
 
     public readonly List<string> QueuedTracks;
-
+    
     public int ElapsedSeconds => _activeTrack?.ElapsedSeconds ?? 0;
 
     public int SecondsConsumed => _activeTrack?.SecondsConsumed ?? 0;
 
     public int TrackLength => _activeTrack?.LengthInSeconds ?? 0;
 
-    public TrackInfo TrackInfo => _activeTrack?.Info ?? _defaultTrackInfo;
+    public TrackInfo? CurrentTrack => _activeTrack?.Info;
 
     public TrackState TrackState => _activeTrack?.State ?? TrackState.Stopped;
 
     public int CurrentTrackIndex => _currentTrackIndex;
 
-    public string CurrentTrack => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
+    public string CurrentTrackPath => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
 
     public AudioPlayer(PlayerSettings settings)
     {
@@ -208,7 +206,17 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         StateChanged(TrackState);
     }
 
-    public bool FileIsSupported(string path, out Codec outCodec)
+    public TrackInfo GetTrackInfoForFile(string path)
+    {
+        Logger.Log("Checking for codec support.");
+        if (!FileIsSupported(path, out Codec codec))
+            throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
+        
+        Logger.Log("  Getting track info.");
+        return codec.GetTrackInfo(path);
+    }
+    
+    private bool FileIsSupported(string path, out Codec outCodec)
     {
         string extension = Path.GetExtension(path).ToLower();
         foreach (Codec codec in Codecs)
@@ -224,17 +232,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         return false;
     }
 
-    public TrackInfo GetTrackInfoForFile(string path)
-    {
-        Logger.Log("Checking for codec support.");
-        if (!FileIsSupported(path, out Codec codec))
-            throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
-        
-        Logger.Log("  Getting track info.");
-        return codec.GetTrackInfo(path);
-    }
-
-    public CodecStream CreateStreamFromFile(string path)
+    private CodecStream CreateStreamFromFile(string path)
     {
         Logger.Log("Checking for codec support.");
         if (FileIsSupported(path, out Codec codec))
@@ -279,8 +277,4 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         Logger.Log("Disposing context.");
         _context.Dispose();
     }
-
-    public delegate void OnTrackChanged(TrackInfo info, string path);
-
-    public delegate void OnStateChanged(TrackState state);
 }

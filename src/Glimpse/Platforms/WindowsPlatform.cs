@@ -1,4 +1,5 @@
 ﻿using Windows.Media;
+using Glimpse.API;
 using Glimpse.Audio;
 using TerraFX.Interop.Windows;
 

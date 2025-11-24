@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Audio.Codecs.Mp3;
+﻿using Glimpse.API;
+
+namespace Glimpse.Audio.Codecs.Mp3;
 
 public class Mp3Codec : Codec
 {

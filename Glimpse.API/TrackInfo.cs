@@ -1,7 +1,7 @@
 ﻿using TagLib;
 using File = TagLib.File;
 
-namespace Glimpse.Audio;
+namespace Glimpse.API;
 
 public class TrackInfo
 {
@@ -29,8 +29,6 @@ public class TrackInfo
         Genre = genre;
         AlbumArt = albumArt;
     }
-
-    public static TrackInfo Null => new TrackInfo(null, null, null, null, null, null, null);
 
     public static TrackInfo FromFile(string path)
     {

@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Audio.Codecs.Vorbis;
+﻿using Glimpse.API;
+
+namespace Glimpse.Audio.Codecs.Vorbis;
 
 public class VorbisCodec : Codec
 {

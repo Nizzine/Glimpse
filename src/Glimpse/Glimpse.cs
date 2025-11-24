@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.Reflection;
 using System.Runtime.Loader;
+using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Database;
@@ -12,7 +13,7 @@ using Version = System.Version;
 
 namespace Glimpse;
 
-public class Glimpse
+public class Glimpse : IGlimpse
 {
     private Sdl _sdl;
     private List<Window> _windows;
@@ -246,4 +247,6 @@ public class Glimpse
             _ => ImGuiMouseButton.Count
         };
     }
+
+    IAudioPlayer IGlimpse.Player => Player;
 }
