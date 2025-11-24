@@ -2,6 +2,7 @@
 using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Configs;
+using Newtonsoft.Json;
 
 namespace Glimpse.Database;
 
@@ -9,6 +10,8 @@ namespace Glimpse.Database;
 public class MusicDatabase : IConfig
 {
     public const string DatabaseName = "Database/MusicDatabase";
+
+    [JsonIgnore] public Logger Logger;
     
     public Dictionary<string, Track> Tracks;
     public Dictionary<string, Album> Albums;
@@ -50,16 +53,16 @@ public class MusicDatabase : IConfig
         Refresh();
     }
 
-    public static IndexResult IndexDirectory(string directory, AudioPlayer player, ref string current)
+    public static IndexResult IndexDirectory(string directory, AudioPlayer player, Logger logger, ref string current)
     {
-        Logger.Log($"Indexing directory {directory}.");
+        logger.Log($"Indexing directory {directory}.");
 
         Dictionary<string, Track> tracks = new Dictionary<string, Track>();
         Dictionary<string, Album> albums = new Dictionary<string, Album>();
 
         foreach (FileInfo file in new DirectoryInfo(directory).EnumerateFiles("*.*", SearchOption.AllDirectories).OrderBy(info => info.Name))
         {
-            Logger.Log($"Indexing {file}");
+            logger.Log($"Indexing {file}");
             current = file.FullName;
             
             TrackInfo info;
@@ -72,7 +75,7 @@ public class MusicDatabase : IConfig
             }
             catch (Exception e)
             {
-                Logger.Log($"Exception occurred while getting track info: {e}");
+                logger.Log($"Exception occurred while getting track info: {e}");
                 continue;
             }
 

@@ -83,7 +83,9 @@ public class Glimpse : IGlimpse, IDisposable
             Database = new MusicDatabase();
             ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         }
-        Database.Refresh();
+
+        Database!.Logger = Logger;
+        Database!.Refresh();
         
         Logger.Log("Searching for 'Plugins' directory.");
         if (Directory.Exists("Plugins"))

@@ -46,6 +46,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public AudioPlayer(Logger logger, PlayerSettings settings)
     {
         _logger = logger;
+        Settings = settings;
         
         _logger.Log("Creating context.");
         _context = new Context(Settings.SampleRate);

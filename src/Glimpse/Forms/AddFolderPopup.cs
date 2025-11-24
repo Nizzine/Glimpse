@@ -63,7 +63,7 @@ public class AddFolderPopup : Popup
 
                 _currentTask = Task.Run(() =>
                 {
-                    _result = MusicDatabase.IndexDirectory(Selected, Glimpse.Player, ref _currentFile);
+                    _result = MusicDatabase.IndexDirectory(Selected, Glimpse.Player, Glimpse.Logger, ref _currentFile);
                 });
             }
             

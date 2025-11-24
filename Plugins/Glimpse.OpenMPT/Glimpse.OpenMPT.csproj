@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Glimpse.API\Glimpse.API.csproj" />
       <ProjectReference Include="..\OpenMPT.NET\OpenMPT.NET\OpenMPT.NET.csproj" />
     </ItemGroup>
 

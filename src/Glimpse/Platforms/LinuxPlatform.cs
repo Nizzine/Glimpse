@@ -71,5 +71,5 @@ public class LinuxPlatform : Platform
         process.Dispose();
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo info) { }
+    public override void SetPlayState(TrackState state, TrackInfo? info) { }
 }

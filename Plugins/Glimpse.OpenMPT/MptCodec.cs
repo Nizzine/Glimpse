@@ -1,5 +1,4 @@
-﻿using Glimpse.Player;
-using Glimpse.Player.Codecs;
+﻿using Glimpse.API;
 
 namespace Glimpse.OpenMPT;
 
@@ -12,17 +11,17 @@ public class MptCodec : Codec
         Config = config;
     }
     
-    public override bool FileIsSupported(string path, string extension)
+    public bool FileIsSupported(string path, string extension)
     {
         return extension is ".it" or ".xm" or ".mod" or ".s3m" or ".mptm";
     }
 
-    public override TrackInfo GetTrackInfo(string path)
+    public TrackInfo GetTrackInfo(string path)
     {
         throw new NotImplementedException();
     }
 
-    public override CodecStream CreateStream(string path)
+    public CodecStream CreateStream(string path)
     {
         return new MptStream(path, Config);
     }
