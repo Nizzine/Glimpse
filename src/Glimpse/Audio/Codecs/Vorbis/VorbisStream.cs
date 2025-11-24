@@ -1,7 +1,6 @@
-﻿using System;
-using MixrSharp;
+﻿using MixrSharp;
 
-namespace Glimpse.Player.Codecs.Vorbis;
+namespace Glimpse.Audio.Codecs.Vorbis;
 
 public class VorbisStream : CodecStream
 {

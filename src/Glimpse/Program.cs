@@ -1,6 +1,4 @@
 ﻿using Glimpse.Forms;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
 using Silk.NET.SDL;
 
 namespace Glimpse;

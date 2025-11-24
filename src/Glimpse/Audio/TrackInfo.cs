@@ -1,7 +1,7 @@
-﻿using System;
-using TagLib;
+﻿using TagLib;
+using File = TagLib.File;
 
-namespace Glimpse.Player;
+namespace Glimpse.Audio;
 
 public class TrackInfo
 {

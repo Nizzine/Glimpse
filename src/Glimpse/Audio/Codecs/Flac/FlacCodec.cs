@@ -1,10 +1,10 @@
-﻿namespace Glimpse.Player.Codecs.Mp3;
+﻿namespace Glimpse.Audio.Codecs.Flac;
 
-public class Mp3Codec : Codec
+public class FlacCodec : Codec
 {
     public override bool FileIsSupported(string path, string extension)
     {
-        return extension == ".mp3";
+        return extension == ".flac";
     }
 
     public override TrackInfo GetTrackInfo(string path)
@@ -12,6 +12,6 @@ public class Mp3Codec : Codec
 
     public override CodecStream CreateStream(string path)
     {
-        return new Mp3Stream(path);
+        return new FlacStream(path);
     }
 }

@@ -1,27 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Runtime.Loader;
-using Glimpse.Player.Codecs;
-using Glimpse.Player.Codecs.Flac;
-using Glimpse.Player.Codecs.Mp3;
-using Glimpse.Player.Codecs.Vorbis;
-using Glimpse.Player.Codecs.Wav;
-using Glimpse.Player.Configs;
-using Glimpse.Player.Plugins;
+using Glimpse.Audio.Codecs;
+using Glimpse.Audio.Codecs.Flac;
+using Glimpse.Audio.Codecs.Mp3;
+using Glimpse.Audio.Codecs.Vorbis;
+using Glimpse.Audio.Codecs.Wav;
+using Glimpse.Configs;
+using Glimpse.Plugins;
 using MixrSharp;
 
-namespace Glimpse.Player;
+namespace Glimpse.Audio;
 
 public class AudioPlayer : IDisposable
 {
     public event OnTrackChanged TrackChanged = delegate { };
 
     public event OnStateChanged StateChanged = delegate { };
-    
-    private AssemblyLoadContext _pluginsContext;
 
     private readonly Context _context;
     private readonly AudioDevice _device;
@@ -33,11 +27,9 @@ public class AudioPlayer : IDisposable
     private int _currentTrackIndex;
     private int _currentQueueIndex;
 
-    public PlayerConfig Config;
+    public PlayerSettings Settings;
 
     public readonly List<Codec> Codecs;
-
-    public readonly Dictionary<string, Plugin> Plugins;
 
     public readonly List<string> QueuedTracks;
 
@@ -55,16 +47,8 @@ public class AudioPlayer : IDisposable
 
     public string CurrentTrack => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
 
-    public AudioPlayer()
+    public AudioPlayer(PlayerSettings settings)
     {
-        Logger.Log("Loading player configuration.");
-        if (!IConfig.TryGetConfig(PlayerConfig.ConfigName, out Config))
-        {
-            Logger.Log("   ... Failed: Creating new config.");
-            Config = new PlayerConfig();
-            IConfig.WriteConfig(PlayerConfig.ConfigName, Config);
-        }
-
         Logger.Log("Creating context.");
         _context = new Context(Config.SampleRate);
         _context.MasterVolume = Config.Volume;
@@ -78,72 +62,6 @@ public class AudioPlayer : IDisposable
         Codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
 
         QueuedTracks = new List<string>();
-
-        Logger.Log("Searching for 'Plugins' directory.");
-        if (Directory.Exists("Plugins"))
-        {
-            _pluginsContext = new AssemblyLoadContext("Plugins");
-
-            Plugins = [];
-
-            string pluginsLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Plugins");
-            
-            Logger.Log($"Searching for plugins in {pluginsLocation}");
-            foreach (string file in Directory.GetFiles(pluginsLocation, "*.dll", SearchOption.AllDirectories))
-            {
-                try
-                {
-                    Logger.Log($"Loading assembly from {file}");
-                    _pluginsContext.LoadFromAssemblyPath(file);
-                }
-                catch (BadImageFormatException e)
-                {
-                    Logger.Log($"Failed to load DLL: {e}");
-                    // If this is thrown then it's likely a native DLL.
-                }
-            }
-
-            AssemblyName currentName = Assembly.GetAssembly(typeof(AudioPlayer))?.GetName();
-            
-            foreach (Assembly assembly in _pluginsContext.Assemblies)
-            {
-                foreach (AssemblyName name in assembly.GetReferencedAssemblies())
-                {
-                    if (name.Name == currentName.Name)
-                    {
-                        if (name.Version != currentName.Version)
-                            Console.WriteLine("WARNING: Plugin requires different version of Glimpse. It may cause errors.");
-                        
-                        goto ASSEMBLY_GOOD;
-                    }
-                }
-                
-                continue;
-                
-                ASSEMBLY_GOOD: ;
-                
-                Logger.Log($"Plugin {assembly} loaded.");
-                
-                foreach (Type type in assembly.GetTypes().Where(type => type.IsAssignableTo(typeof(Plugin))))
-                {
-                    Logger.Log($"Initializing plugin {type}");
-                    
-                    Plugin plugin = (Plugin) Activator.CreateInstance(type);
-                    if (plugin == null)
-                        continue;
-
-                    string assemblyName = assembly.GetName().Name;
-
-                    if (Config.EnabledPlugins.Contains(assemblyName))
-                    {
-                        Logger.Log("    ... Initialize()");
-                        plugin.Initialize(this);
-                    }
-
-                    Plugins.Add(assemblyName, plugin);
-                }
-            }
-        }
     }
 
     /// <summary>

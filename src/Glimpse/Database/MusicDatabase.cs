@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
+using Glimpse.Audio;
+using Glimpse.Configs;
 
 namespace Glimpse.Database;
 

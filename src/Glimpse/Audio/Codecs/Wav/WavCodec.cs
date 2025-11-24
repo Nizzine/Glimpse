@@ -1,4 +1,4 @@
-﻿namespace Glimpse.Player.Codecs.Wav;
+﻿namespace Glimpse.Audio.Codecs.Wav;
 
 public class WavCodec : Codec
 {

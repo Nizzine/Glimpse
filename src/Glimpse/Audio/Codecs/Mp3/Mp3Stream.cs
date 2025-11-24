@@ -1,7 +1,6 @@
-﻿using System;
-using MixrSharp;
+﻿using MixrSharp;
 
-namespace Glimpse.Player.Codecs.Mp3;
+namespace Glimpse.Audio.Codecs.Mp3;
 
 public class Mp3Stream : CodecStream
 {

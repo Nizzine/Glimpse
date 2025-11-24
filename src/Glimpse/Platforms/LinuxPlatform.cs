@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using Glimpse.Player;
+using Glimpse.Audio;
 
 namespace Glimpse.Platforms;
 

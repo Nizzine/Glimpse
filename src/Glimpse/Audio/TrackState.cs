@@ -1,4 +1,4 @@
-﻿namespace Glimpse.Player;
+﻿namespace Glimpse.Audio;
 
 public enum TrackState
 {

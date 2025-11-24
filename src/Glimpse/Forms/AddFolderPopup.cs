@@ -1,5 +1,5 @@
-﻿using Glimpse.Database;
-using Glimpse.Player.Configs;
+﻿using Glimpse.Configs;
+using Glimpse.Database;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;

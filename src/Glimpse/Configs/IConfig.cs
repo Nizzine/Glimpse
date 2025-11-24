@@ -1,8 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using Glimpse.Audio;
 using Newtonsoft.Json;
 
-namespace Glimpse.Player.Configs;
+namespace Glimpse.Configs;
 
 public interface IConfig
 {

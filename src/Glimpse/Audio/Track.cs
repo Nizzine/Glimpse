@@ -1,10 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-using Glimpse.Player.Codecs;
-using Glimpse.Player.Configs;
+﻿using Glimpse.Audio.Codecs;
+using Glimpse.Configs;
 using MixrSharp;
 
-namespace Glimpse.Player;
+namespace Glimpse.Audio;
 
 public class Track : IDisposable
 {

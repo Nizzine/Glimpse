@@ -1,8 +1,7 @@
-using System;
 using MixrSharp;
 using Silk.NET.SDL;
 
-namespace Glimpse.Player;
+namespace Glimpse.Audio;
 
 public sealed unsafe class AudioDevice : IDisposable
 {

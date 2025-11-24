@@ -1,9 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using Glimpse.Player.Configs;
+﻿using System.Runtime.CompilerServices;
 
-namespace Glimpse.Player;
+namespace Glimpse;
 
 public static class Logger
 {

@@ -1,9 +1,11 @@
 ﻿using System.Drawing;
 using System.Reflection;
+using System.Runtime.Loader;
+using Glimpse.Audio;
+using Glimpse.Configs;
 using Glimpse.Database;
 using Glimpse.Platforms;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
+using Glimpse.Plugins;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
 using Version = System.Version;
@@ -15,14 +17,19 @@ public static class Glimpse
     private static Sdl _sdl;
     private static List<Window> _windows;
     private static Dictionary<uint, Window> _windowIds;
+    private static AssemblyLoadContext _pluginsContext;
 
     public static Version Version;
+
+    public static PlayerConfig Config;
 
     public static Platform Platform;
 
     public static AudioPlayer Player;
 
     public static MusicDatabase Database;
+    
+    public static Dictionary<string, Plugin> Plugins;
 
     public static Window MainWindow => _windows[0];
 
@@ -40,8 +47,15 @@ public static class Glimpse
         
         Platform = Platform.AutoDetect();
         Logger.Log($"Detected platform {Platform.GetType()}");
-        
         Platform.EnableDPIAwareness();
+        
+        Logger.Log("Loading player configuration.");
+        if (!IConfig.TryGetConfig(PlayerConfig.ConfigName, out Config))
+        {
+            Logger.Log("   ... Failed: Creating new config.");
+            Config = new PlayerConfig();
+            IConfig.WriteConfig(PlayerConfig.ConfigName, Config);
+        }
         
         _sdl = Sdl.GetApi();
         _sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
@@ -52,15 +66,80 @@ public static class Glimpse
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer();
+        Player = new AudioPlayer(new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
 
         if (!IConfig.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
             IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
         }
-        
         Database.Refresh();
+        
+        Logger.Log("Searching for 'Plugins' directory.");
+        if (Directory.Exists("Plugins"))
+        {
+            _pluginsContext = new AssemblyLoadContext("Plugins");
+
+            Plugins = [];
+
+            string pluginsLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Plugins");
+            
+            Logger.Log($"Searching for plugins in {pluginsLocation}");
+            foreach (string file in Directory.GetFiles(pluginsLocation, "*.dll", SearchOption.AllDirectories))
+            {
+                try
+                {
+                    Logger.Log($"Loading assembly from {file}");
+                    _pluginsContext.LoadFromAssemblyPath(file);
+                }
+                catch (BadImageFormatException e)
+                {
+                    Logger.Log($"Failed to load DLL: {e}");
+                    // If this is thrown then it's likely a native DLL.
+                }
+            }
+
+            AssemblyName currentName = Assembly.GetAssembly(typeof(AudioPlayer))?.GetName();
+            
+            foreach (Assembly assembly in _pluginsContext.Assemblies)
+            {
+                foreach (AssemblyName name in assembly.GetReferencedAssemblies())
+                {
+                    if (name.Name == currentName.Name)
+                    {
+                        if (name.Version != currentName.Version)
+                            Console.WriteLine("WARNING: Plugin requires different version of Glimpse. It may cause errors.");
+                        
+                        goto ASSEMBLY_GOOD;
+                    }
+                }
+                
+                continue;
+                
+                ASSEMBLY_GOOD: ;
+                
+                Logger.Log($"Plugin {assembly} loaded.");
+                
+                foreach (Type type in assembly.GetTypes().Where(type => type.IsAssignableTo(typeof(Plugin))))
+                {
+                    Logger.Log($"Initializing plugin {type}");
+                    
+                    Plugin plugin = (Plugin) Activator.CreateInstance(type);
+                    if (plugin == null)
+                        continue;
+
+                    string assemblyName = assembly.GetName().Name;
+
+                    if (Config.EnabledPlugins.Contains(assemblyName))
+                    {
+                        Logger.Log("    ... Initialize()");
+                        plugin.Initialize(this);
+                    }
+
+                    Plugins.Add(assemblyName, plugin);
+                }
+            }
+        }
         
         AddWindow(window);
         

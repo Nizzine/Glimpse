@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
+using Glimpse.Audio;
+using Glimpse.Configs;
 using Glimpse.Graphics;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
-using Glimpse.Player.Plugins;
+using Glimpse.Plugins;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;

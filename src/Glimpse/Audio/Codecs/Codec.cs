@@ -1,4 +1,4 @@
-﻿namespace Glimpse.Player.Codecs;
+﻿namespace Glimpse.Audio.Codecs;
 
 public abstract class Codec
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Glimpse.Player.Configs;
+﻿namespace Glimpse.Configs;
 
 public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
 {

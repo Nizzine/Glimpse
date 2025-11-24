@@ -1,7 +1,6 @@
-﻿using System;
-using MixrSharp;
+﻿using MixrSharp;
 
-namespace Glimpse.Player.Codecs.Flac;
+namespace Glimpse.Audio.Codecs.Flac;
 
 public class FlacStream : CodecStream
 {

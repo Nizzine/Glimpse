@@ -1,7 +1,6 @@
-﻿using System;
-using MixrSharp;
+﻿using MixrSharp;
 
-namespace Glimpse.Player.Codecs.Wav;
+namespace Glimpse.Audio.Codecs.Wav;
 
 public class WavStream : CodecStream
 {

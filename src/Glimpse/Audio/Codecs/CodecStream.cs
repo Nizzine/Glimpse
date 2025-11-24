@@ -1,7 +1,6 @@
-﻿using System;
-using MixrSharp;
+﻿using MixrSharp;
 
-namespace Glimpse.Player.Codecs;
+namespace Glimpse.Audio.Codecs;
 
 public abstract class CodecStream : IDisposable
 {

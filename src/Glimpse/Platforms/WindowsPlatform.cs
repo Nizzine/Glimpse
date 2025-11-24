@@ -1,5 +1,5 @@
 ﻿using Windows.Media;
-using Glimpse.Player;
+using Glimpse.Audio;
 using TerraFX.Interop.Windows;
 
 namespace Glimpse.Platforms;

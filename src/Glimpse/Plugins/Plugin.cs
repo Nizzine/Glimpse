@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Glimpse.Audio;
 
-namespace Glimpse.Player.Plugins;
+namespace Glimpse.Plugins;
 
 public abstract class Plugin : IDisposable
 {
