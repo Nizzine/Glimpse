@@ -11,22 +11,10 @@ public class ConfigManager : IConfigManager
     {
         _logger = logger;
     }
-    
-    public string BaseDir
-    {
-        get
-        {
-#if DEBUG
-            return "Config";
-#else
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Glimpse");
-#endif
-        }
-    }
 
     public bool TryGetConfig<T>(string name, out T config) where T : IConfig
     {
-        string fullPath = Path.Combine(BaseDir, $"{name}.json");
+        string fullPath = Path.Combine(IConfigManager.BaseDir, $"{name}.json");
         _logger.Log($"Trying to load config {fullPath}.");
 
         if (!File.Exists(fullPath))
@@ -47,7 +35,7 @@ public class ConfigManager : IConfigManager
 
     public void WriteConfig(string name, IConfig config)
     {
-        string fullPath = Path.Combine(BaseDir, $"{name}.json");
+        string fullPath = Path.Combine(IConfigManager.BaseDir, $"{name}.json");
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
         

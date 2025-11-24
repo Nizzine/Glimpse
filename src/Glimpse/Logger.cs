@@ -13,9 +13,9 @@ public class Logger : ILogger
 #if !DEBUG
         if (_writer == null)
         {
-            Directory.CreateDirectory(IConfig.BaseDir);
+            Directory.CreateDirectory(IConfigManager.BaseDir);
             
-            string fileLocation = Path.Combine(IConfig.BaseDir, "LastSession.log");
+            string fileLocation = Path.Combine(IConfigManager.BaseDir, "LastSession.log");
 
             Console.WriteLine($"Initializing log file {fileLocation}");
             _writer = new StreamWriter(fileLocation)

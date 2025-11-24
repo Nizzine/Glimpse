@@ -2,7 +2,17 @@
 
 public interface IConfigManager
 {
-    public string BaseDir { get; }
+    public static string BaseDir
+    {
+        get
+        {
+#if DEBUG
+            return "Config";
+#else
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Glimpse");
+#endif
+        }
+    }
 
     public bool TryGetConfig<T>(string name, out T config) where T : IConfig;
     
