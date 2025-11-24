@@ -7,6 +7,8 @@ public abstract class Popup : IDisposable
 {
     public bool IsRemoved;
 
+    public Glimpse Glimpse;
+
     public Renderer Renderer;
 
     public float Scale;

@@ -1,13 +1,9 @@
-﻿using System.Reflection;
-using System.Runtime.Loader;
-using Glimpse.API;
+﻿using Glimpse.API;
 using Glimpse.Audio.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
 using Glimpse.Audio.Codecs.Vorbis;
 using Glimpse.Audio.Codecs.Wav;
-using Glimpse.Configs;
-using Glimpse.Plugins;
 using MixrSharp;
 
 namespace Glimpse.Audio;
@@ -17,7 +13,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public event IAudioPlayer.OnTrackChanged TrackChanged = delegate { };
     
     public event IAudioPlayer.OnStateChanged StateChanged = delegate { };
-    
+
+    private readonly Logger _logger;
     private readonly Context _context;
     private readonly AudioDevice _device;
     
@@ -46,18 +43,18 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public string CurrentTrackPath => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
 
-    public AudioPlayer(PlayerSettings settings)
+    public AudioPlayer(Logger logger, PlayerSettings settings)
     {
-        Logger.Log("Creating context.");
-        _context = new Context(Config.SampleRate);
-        _context.MasterVolume = Config.Volume;
+        _logger = logger;
         
-        Logger.Log("Creating device.");
-        _device = new AudioDevice(_context, Config.SampleRate);
+        _logger.Log("Creating context.");
+        _context = new Context(Settings.SampleRate);
+        _context.MasterVolume = Settings.Volume;
         
-        _defaultTrackInfo = TrackInfo.Null;
+        _logger.Log("Creating device.");
+        _device = new AudioDevice(_context, Settings.SampleRate);
 
-        Logger.Log("Initializing codecs.");
+        _logger.Log("Initializing codecs.");
         Codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
 
         QueuedTracks = new List<string>();
@@ -70,7 +67,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     /// <param name="slot">The <see cref="QueueSlot"/> to insert the track at.</param>
     public void QueueTrack(string path, QueueSlot slot, bool autoPlay = true)
     {
-        Logger.Log($"Queueing track {path}");
+        _logger.Log($"Queueing track {path}");
 
         bool isFirstQueue = autoPlay && QueuedTracks.Count == 0;
 
@@ -108,63 +105,72 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public void ChangeTrack(int queueIndex)
     {
-        Logger.Log($"Changing to track {queueIndex}.");
+        _logger.Log($"Changing to track {queueIndex}.");
         
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
             throw new Exception("Cannot queue track that is not in the queue.");
         
-        //Logger.Log("  Locking device.");
+        //_logger.Log("  Locking device.");
         //_device.Lock();
         Track oldTrack = _activeTrack;
 
         string path = QueuedTracks[queueIndex];
         _currentTrackIndex = queueIndex;
         
-        Logger.Log($"  Creating codec stream from file {path}");
+        _logger.Log($"  Creating codec stream from file {path}");
         CodecStream stream = CreateStreamFromFile(path);
         TrackInfo info = stream.TrackInfo;
 
-        Logger.Log("  Creating track.");
-        _activeTrack = new Track(_context, stream, info, Config, OnTrackFinish);
+        _logger.Log("  Creating track.");
+        _activeTrack = new Track(_context, stream, info, Settings, OnTrackFinish, _logger);
 
         TrackChanged(info, path);
         
-        if (Config.AutoPlay)
+        if (Settings.AutoPlay)
             Play();
         
-        Logger.Log("  Disposing the old track.");
+        _logger.Log("  Disposing the old track.");
         oldTrack?.Dispose();
         
-        //Logger.Log("  Unlocking device.");
+        //_logger.Log("  Unlocking device.");
         //_device.Unlock();
     }
 
     public void Play()
     {
-        Logger.Log("Start playback.");
+        if (_activeTrack == null)
+            return;
+        
+        _logger.Log("Start playback.");
         _activeTrack.Play();
         StateChanged(TrackState.Playing);
-        Logger.Log("  Playing device.");
+        _logger.Log("  Playing device.");
         _device.Play();
     }
     
     public void Pause()
     {
+        if (_activeTrack == null)
+            return;
+        
         _activeTrack.Pause();
         StateChanged(TrackState.Paused);
     }
 
     public void Stop()
     {
-        Logger.Log("Stopping.");
+        if (_activeTrack == null)
+            return;
         
-        Logger.Log("  Pausing device.");
+        _logger.Log("Stopping.");
+        
+        _logger.Log("  Pausing device.");
         _device.Pause();
-        Logger.Log("  Disposing active track.");
-        _activeTrack?.Dispose();
+        _logger.Log("  Disposing active track.");
+        _activeTrack.Dispose();
         _activeTrack = null;
         
-        Logger.Log("  Clearing queued tracks.");
+        _logger.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
         _currentTrackIndex = 0;
         StateChanged(TrackState.Stopped);
@@ -208,11 +214,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public TrackInfo GetTrackInfoForFile(string path)
     {
-        Logger.Log("Checking for codec support.");
+        _logger.Log("Checking for codec support.");
         if (!FileIsSupported(path, out Codec codec))
             throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
         
-        Logger.Log("  Getting track info.");
+        _logger.Log("  Getting track info.");
         return codec.GetTrackInfo(path);
     }
     
@@ -234,10 +240,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private CodecStream CreateStreamFromFile(string path)
     {
-        Logger.Log("Checking for codec support.");
+        _logger.Log("Checking for codec support.");
         if (FileIsSupported(path, out Codec codec))
         {
-            Logger.Log("  Creating stream.");
+            _logger.Log("  Creating stream.");
             return codec.CreateStream(path);
         }
 
@@ -246,7 +252,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private void InsertTrackAtIndex(int index, string path)
     {
-        Logger.Log($"Inserting track '{path}' at index {index}.");
+        _logger.Log($"Inserting track '{path}' at index {index}.");
         if (index >= QueuedTracks.Count)
             QueuedTracks.Add(path);
         else
@@ -260,21 +266,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public void Dispose()
     {
-        if (Plugins != null)
-        {
-            Logger.Log("Disposing all plugins.");
-            foreach ((string name, Plugin plugin) in Plugins)
-            {
-                Logger.Log($"Disposing plugin {name}");
-                plugin.Dispose();
-            }
-        }
-
-        Logger.Log("Disposing track.");
+        _logger.Log("Disposing track.");
         _activeTrack?.Dispose();
-        Logger.Log("Disposing device.");
+        _logger.Log("Disposing device.");
         _device.Dispose();
-        Logger.Log("Disposing context.");
+        _logger.Log("Disposing context.");
         _context.Dispose();
     }
 }

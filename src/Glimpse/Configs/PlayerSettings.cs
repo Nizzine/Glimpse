@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Configs;
+﻿using Glimpse.API;
+
+namespace Glimpse.Configs;
 
 public struct PlayerConfig : IConfig, IEquatable<PlayerConfig>
 {

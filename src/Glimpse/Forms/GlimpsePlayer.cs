@@ -208,7 +208,7 @@ public class GlimpsePlayer : Window
             ImGuiDir dir = ImGuiDir.Down;
             float sizeRatio = 0.18f;
 
-            if (Glimpse.Player.Config.SwapTransportControls)
+            if (Glimpse.Config.SwapTransportControls)
             {
                 dir = ImGuiDir.Up;
                 sizeRatio = 0.19f;
@@ -246,9 +246,9 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.Text(EscapeString(player.TrackInfo.Title) ?? "Unknown Track");
-                ImGui.Text(EscapeString(player.TrackInfo.Artist) ?? "Unknown Artist");
-                ImGui.Text(EscapeString(player.TrackInfo.Album) ?? "Unknown Album");
+                ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? "Unknown Track");
+                ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? "Unknown Artist");
+                ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? "Unknown Album");
 
                 ImGui.EndChild();
             }
@@ -391,7 +391,7 @@ public class GlimpsePlayer : Window
                         
                         if (ImGui.Selectable("Remove from Library..."))
                             AddPopup(new RemovePopup(name, true, false));
-                        if (Glimpse.Player.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
+                        if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
                             AddPopup(new RemovePopup(name, true, true));
                         
                         ImGui.EndPopup();
@@ -498,7 +498,7 @@ public class GlimpsePlayer : Window
                         
                         ImGui.TableHeadersRow();
 
-                        string currentTrackPath = Glimpse.Player.CurrentTrack;
+                        string currentTrackPath = Glimpse.Player.CurrentTrackPath;
                         int songEntryHeight = (int) (25 * Scale);
 
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
@@ -548,7 +548,7 @@ public class GlimpsePlayer : Window
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable("Remove from Library..."))
                                         AddPopup(new RemovePopup(path, false, false));
-                                    if (Glimpse.Player.Config.EnableFileDeletion && ImGui.Selectable("Delete file..."))
+                                    if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete file..."))
                                         AddPopup(new RemovePopup(path, false, true));
 
                                     ImGui.EndPopup();
@@ -629,11 +629,11 @@ public class GlimpsePlayer : Window
             !_hasIncrementedPlayCount)
         {
             _hasIncrementedPlayCount = true;
-            if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrack, out Track track))
+            if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrackPath, out Track track))
             {
                 track.PlayCount++;
                 track.LastPlayed = DateTime.Now;
-                Glimpse.Database.Tracks[player.CurrentTrack] = track;
+                Glimpse.Database.Tracks[player.CurrentTrackPath] = track;
             }
         }
     }
@@ -656,7 +656,7 @@ public class GlimpsePlayer : Window
     
     private void PlayerOnStateChanged(TrackState state)
     {
-        Glimpse.Platform.SetPlayState(state, Glimpse.Player.TrackInfo);
+        Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack);
         
         if (state != TrackState.Stopped)
             return;
@@ -698,6 +698,9 @@ public class GlimpsePlayer : Window
 
     private async Task CheckForNewerVersion()
     {
+        Logger logger = Glimpse.Logger;
+        logger.Log("Checking for update...");
+        
         try
         {
             using HttpClient client = new();
@@ -722,7 +725,7 @@ public class GlimpsePlayer : Window
 
             if (newVersion <= thisVersion)
             {
-                Logger.Log("Glimpse is up to date.");
+                logger.Log("Glimpse is up to date.");
                 return;
             }
 
@@ -732,11 +735,11 @@ public class GlimpsePlayer : Window
 
             _newVersion = newVersion;
             _newVersionURL = newVersionUrl;
-            Logger.Log($"Version {_newVersion} is available!");
+            logger.Log($"Version {_newVersion} is available!");
         }
         catch (Exception e)
         {
-            Logger.Log($"Error occurred while checking for update: {e}");
+            logger.Log($"Error occurred while checking for update: {e}");
         }
     }
 

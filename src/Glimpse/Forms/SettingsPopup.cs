@@ -1,8 +1,8 @@
 ﻿using System.Numerics;
+using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Graphics;
-using Glimpse.Plugins;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
@@ -16,8 +16,8 @@ public class SettingsPopup : Popup
 
     public override void Open()
     {
-        _currentConfig = Glimpse.Player.Config;
-        _currentConfig.EnabledPlugins = new HashSet<string>(Glimpse.Player.Config.EnabledPlugins);
+        _currentConfig = Glimpse.Config;
+        _currentConfig.EnabledPlugins = new HashSet<string>(Glimpse.Config.EnabledPlugins);
     }
 
     public override void Update()
@@ -26,7 +26,7 @@ public class SettingsPopup : Popup
             ImGui.OpenPopup("Settings");
 
         ImGuiWindowFlags flags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize;
-        if (Glimpse.Player.Config != _currentConfig)
+        if (Glimpse.Config != _currentConfig)
             flags |= ImGuiWindowFlags.UnsavedDocument;
         
         if (ImGui.BeginPopupModal("Settings", flags))
@@ -87,7 +87,7 @@ public class SettingsPopup : Popup
 
                     if (ImGui.BeginTabItem("Plugins"))
                     {
-                        foreach ((string name, Plugin plugin) in Glimpse.Player.Plugins)
+                        foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
                         {
                             ImGui.BeginChild("PluginsList", new Vector2(150, 0));
                             {
@@ -113,7 +113,7 @@ public class SettingsPopup : Popup
                                     }
 
                                     ImGui.Separator();
-                                    Glimpse.Player.Plugins[_currentPlugin].DisplayGui();
+                                    Glimpse.Plugins[_currentPlugin].DisplayGui();
                                 }
 
                                 ImGui.EndChild();
@@ -173,34 +173,36 @@ public class SettingsPopup : Popup
 
     private void Apply()
     {
-        PlayerConfig oldConfig = Glimpse.Player.Config;
+        PlayerConfig oldConfig = Glimpse.Config;
         if (oldConfig == _currentConfig)
             return;
+
+        Logger logger = Glimpse.Logger;
         
-        Logger.Log("Saving and applying config changes.");
+        logger.Log("Saving and applying config changes.");
         Glimpse.Player.Stop();
         
-        Glimpse.Player.Config = _currentConfig;
-        IConfig.WriteConfig(PlayerConfig.ConfigName, Glimpse.Player.Config);
+        Glimpse.Config = _currentConfig;
+        Glimpse.ConfigManager.WriteConfig(PlayerConfig.ConfigName, Glimpse.Config);
         
         //((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
-        if (Glimpse.Player.Plugins == null)
+        if (Glimpse.Plugins == null)
             return;
         
-        foreach ((string name, Plugin plugin) in Glimpse.Player.Plugins)
+        foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
         {
             // Plugin has been disabled
             if (oldConfig.EnabledPlugins.Contains(name) && !_currentConfig.EnabledPlugins.Contains(name))
             {
-                Logger.Log($"Disabling plugin {name}");
+                logger.Log($"Disabling plugin {name}");
                 plugin.Dispose();
             }
             // Plugin has been enabled
             else if (_currentConfig.EnabledPlugins.Contains(name) && !oldConfig.EnabledPlugins.Contains(name))
             {
-                Logger.Log($"Enabling plugin {name}");
-                plugin.Initialize(Glimpse.Player);
+                logger.Log($"Enabling plugin {name}");
+                plugin.Initialize(Glimpse);
             }
         }
     }

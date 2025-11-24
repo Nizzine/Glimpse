@@ -1,11 +1,18 @@
-﻿using Glimpse.Audio;
+﻿using Glimpse.API;
 using Newtonsoft.Json;
 
-namespace Glimpse.Configs;
+namespace Glimpse;
 
-public interface IConfig
+public class ConfigManager : IConfigManager
 {
-    public static string BaseDir
+    private readonly Logger _logger;
+    
+    public ConfigManager(Logger logger)
+    {
+        _logger = logger;
+    }
+    
+    public string BaseDir
     {
         get
         {
@@ -17,14 +24,14 @@ public interface IConfig
         }
     }
 
-    public static bool TryGetConfig<T>(string name, out T config) where T : IConfig
+    public bool TryGetConfig<T>(string name, out T config) where T : IConfig
     {
         string fullPath = Path.Combine(BaseDir, $"{name}.json");
-        Logger.Log($"Trying to load config {fullPath}.");
+        _logger.Log($"Trying to load config {fullPath}.");
 
         if (!File.Exists(fullPath))
         {
-            Logger.Log("    ... failed.");
+            _logger.Log("    ... failed.");
             config = default;
             return false;
         }
@@ -33,12 +40,12 @@ public interface IConfig
 
         config = JsonConvert.DeserializeObject<T>(json);
         
-        Logger.Log("    ... loaded.");
+        _logger.Log("    ... loaded.");
 
         return config != null;
     }
 
-    public static void WriteConfig(string name, IConfig config)
+    public void WriteConfig(string name, IConfig config)
     {
         string fullPath = Path.Combine(BaseDir, $"{name}.json");
 

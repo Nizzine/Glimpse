@@ -52,7 +52,7 @@ public sealed class RemovePopup : Popup
                     {
                         foreach (string track in album.Tracks)
                         {
-                            if (track == player.CurrentTrack)
+                            if (track == player.CurrentTrackPath)
                                 player.Stop();
                             db.Tracks.Remove(track);
                             if (_delete)
@@ -62,7 +62,7 @@ public sealed class RemovePopup : Popup
                 }
                 else
                 {
-                    if (_nameOrPath == player.CurrentTrack)
+                    if (_nameOrPath == player.CurrentTrackPath)
                         player.Stop();
                     
                     if (db.Tracks.Remove(_nameOrPath, out Track track) && track.Album != null)

@@ -6,21 +6,24 @@ using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Database;
 using Glimpse.Platforms;
-using Glimpse.Plugins;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
 using Version = System.Version;
 
 namespace Glimpse;
 
-public class Glimpse : IGlimpse
+public class Glimpse : IGlimpse, IDisposable
 {
     private Sdl _sdl;
     private List<Window> _windows;
     private Dictionary<uint, Window> _windowIds;
     private AssemblyLoadContext _pluginsContext;
 
+    public Logger Logger;
+    
     public Version Version;
+
+    public ConfigManager ConfigManager;
 
     public PlayerConfig Config;
 
@@ -28,14 +31,15 @@ public class Glimpse : IGlimpse
 
     public AudioPlayer Player;
 
-    public MusicDatabase Database;
+    public MusicDatabase? Database;
     
-    public Dictionary<string, Plugin> Plugins;
+    public Dictionary<string, IPlugin>? Plugins;
 
     public Window MainWindow => _windows[0];
 
     public void AddWindow(Window window)
     {
+        window.Glimpse = this;
         uint id = window.Create(_sdl, Platform);
         _windows.Add(window);
         _windowIds.Add(id, window);
@@ -43,19 +47,24 @@ public class Glimpse : IGlimpse
 
     public unsafe void Run(Window window, string[] args)
     {
+        Logger = new Logger();
+        
         Version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
         Logger.Log($"Glimpse {Version}");
+        
+        Logger.Log("Creating config manager.");
+        ConfigManager = new ConfigManager(Logger);
         
         Platform = Platform.AutoDetect();
         Logger.Log($"Detected platform {Platform.GetType()}");
         Platform.EnableDPIAwareness();
         
         Logger.Log("Loading player configuration.");
-        if (!IConfig.TryGetConfig(PlayerConfig.ConfigName, out Config))
+        if (!ConfigManager.TryGetConfig(PlayerConfig.ConfigName, out Config))
         {
             Logger.Log("   ... Failed: Creating new config.");
             Config = new PlayerConfig();
-            IConfig.WriteConfig(PlayerConfig.ConfigName, Config);
+            ConfigManager.WriteConfig(PlayerConfig.ConfigName, Config);
         }
         
         _sdl = Sdl.GetApi();
@@ -67,12 +76,12 @@ public class Glimpse : IGlimpse
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer(new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
+        Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
 
-        if (!IConfig.TryGetConfig(MusicDatabase.DatabaseName, out Database))
+        if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
-            IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
+            ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         }
         Database.Refresh();
         
@@ -121,11 +130,11 @@ public class Glimpse : IGlimpse
                 
                 Logger.Log($"Plugin {assembly} loaded.");
                 
-                foreach (Type type in assembly.GetTypes().Where(type => type.IsAssignableTo(typeof(Plugin))))
+                foreach (Type type in assembly.GetTypes().Where(type => type.IsAssignableTo(typeof(IPlugin))))
                 {
                     Logger.Log($"Initializing plugin {type}");
                     
-                    Plugin plugin = (Plugin) Activator.CreateInstance(type);
+                    IPlugin? plugin = (IPlugin?) Activator.CreateInstance(type);
                     if (plugin == null)
                         continue;
 
@@ -229,12 +238,6 @@ public class Glimpse : IGlimpse
                 wnd.Present();
             }
         }
-        
-        Player.Dispose();
-        IConfig.WriteConfig(MusicDatabase.DatabaseName, Database);
-        
-        _sdl.Quit();
-        _sdl.Dispose();
     }
 
     private ImGuiMouseButton SdlButtonToImGui(uint button)
@@ -247,6 +250,28 @@ public class Glimpse : IGlimpse
             _ => ImGuiMouseButton.Count
         };
     }
+    
+    public void Dispose()
+    {
+        if (Plugins != null)
+        {
+            Logger.Log("Disposing all plugins.");
+            foreach ((string name, IPlugin plugin) in Plugins)
+            {
+                Logger.Log($"Disposing plugin {name}");
+                plugin.Dispose();
+            }
+        }
+        
+        Player.Dispose();
+        ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
+        
+        _sdl.Quit();
+        _sdl.Dispose();
+    }
 
+    Version IGlimpse.Version => Version;
+    ILogger IGlimpse.Logger => Logger;
+    IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;
 }

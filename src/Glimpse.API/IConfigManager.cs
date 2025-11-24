@@ -2,7 +2,9 @@
 
 public interface IConfigManager
 {
-    public void SaveConfig(string name);
+    public string BaseDir { get; }
+
+    public bool TryGetConfig<T>(string name, out T config) where T : IConfig;
     
-    
+    public void WriteConfig(string name, IConfig config);
 }

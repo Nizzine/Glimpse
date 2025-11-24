@@ -89,7 +89,7 @@ public class AddFolderPopup : Popup
                 if (task.IsCompleted)
                 {
                     Glimpse.Database.AddIndexToDatabase(_result);
-                    IConfig.WriteConfig(MusicDatabase.DatabaseName, Glimpse.Database);
+                    Glimpse.ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Glimpse.Database);
                     _result = default;
                     Close();
                 }

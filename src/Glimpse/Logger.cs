@@ -1,13 +1,14 @@
 ﻿using System.Runtime.CompilerServices;
+using Glimpse.API;
 
 namespace Glimpse;
 
-public static class Logger
+public class Logger : ILogger
 {
-    private static StreamWriter _writer;
+    private StreamWriter _writer;
     
     //[Conditional("DEBUG")]
-    public static void Log(string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string file = "")
+    public void Log(string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string file = "")
     {
 #if !DEBUG
         if (_writer == null)
