@@ -1,20 +1,22 @@
 name: Create Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "The version of Glimpse"
-        required: true
-        type: string
-      pre-release:
-        description: "Is Pre-release?"
-        required: true
-        type: boolean
+  #workflow_dispatch:
+  #  inputs:
+  #    version:
+  #      description: "The version of Glimpse"
+  #      required: true
+  #      type: string
+  #    pre-release:
+  #      description: "Is Pre-release?"
+  #      required: true
+  #      type: boolean
+  release:
+    types: [created]
 
 jobs:
   publish:
-    name: "Publish Glimpse ${{ inputs.version }} ${{ matrix.runtime }}"
+    name: "Publish Glimpse ${{ github.event.release.tag_name }}"
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
@@ -29,10 +31,10 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: "Publish Windows"
-        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-win-x64" win-x64 ${{ inputs.version }}
+        run: ./glimpsebuild.sh "Glimpse-${{ github.event.release.tag_name }}-win-x64" win-x64 ${{ inputs.version }}
 
       - name: "Publish Linux"
-        run: ./glimpsebuild.sh "Glimpse-${{ inputs.version }}-linux-x64" linux-x64 ${{ inputs.version }}
+        run: ./glimpsebuild.sh "Glimpse-${{ github.event.release.tag_name }}-linux-x64" linux-x64 ${{ inputs.version }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1.20.0
@@ -40,7 +42,7 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: "*.zip,*.tar.gz"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ inputs.version }}
-          generateReleaseNotes: true
-          prerelease: ${{ inputs.prerelease }}
+          #token: ${{ secrets.GITHUB_TOKEN }}
+          #tag: ${{ inputs.version }}
+          #generateReleaseNotes: true
+          #prerelease: ${{ inputs.prerelease }}
