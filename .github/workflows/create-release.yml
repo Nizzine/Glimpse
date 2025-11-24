@@ -44,6 +44,10 @@ jobs:
           allowUpdates: true
           artifactErrorsFailBuild: true
           artifacts: "*.zip,*.tar.gz"
+          omitBodyDuringUpdate: true
+          omitDraftDuringUpdate: true
+          omitNameDuringUpdate: true
+          omitPrereleaseDuringUpdate: true
           #token: ${{ secrets.GITHUB_TOKEN }}
           #tag: ${{ inputs.version }}
           #generateReleaseNotes: true
