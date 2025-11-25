@@ -38,9 +38,9 @@ public class GlimpsePlayer : Window
     private Image _updateButton;
 
     private Image _defaultAlbumArt;
-    private Image _albumArt;
+    private Image? _albumArt;
 
-    private byte[] _newAlbumArt;
+    private byte[]? _newAlbumArt;
     private bool _shouldDeleteArt;
 
     private bool _hasIncrementedPlayCount;
@@ -159,7 +159,15 @@ public class GlimpsePlayer : Window
         if (_newAlbumArt != null)
         {
             _albumArt?.Dispose();
-            _albumArt = Renderer.CreateImage(_newAlbumArt);
+            try
+            {
+                _albumArt = Renderer.CreateImage(_newAlbumArt);
+            }
+            catch (Exception e)
+            {
+                Glimpse.Logger.Log($"Failed to load album art: {e}");
+            }
+
             _newAlbumArt = null;
         }
         else if (_shouldDeleteArt)
