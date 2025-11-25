@@ -67,8 +67,9 @@ rm -rf $PLUGINS_DIR_TEMP || exit 1
 
 if [[ $RUNTIME == "win"* ]]; then
   zip -r "$OUT_NAME.zip" "$BUILD_DIR_NAME/" || exit 1
+  makensis -DVERSION="$VERSION" -DPUBLISHDIR="$BUILD_DIR" ./packaging/windows/glimpse.nsi || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   tar -czvf "$OUT_NAME.tar.gz" "$BUILD_DIR_NAME/" || exit 1
 fi
 
-#rm -rf $BUILD_DIR
+rm -rf $BUILD_DIR || exit 1
