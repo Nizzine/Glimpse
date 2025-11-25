@@ -382,29 +382,40 @@ public class GlimpsePlayer : Window
                     switchToTrackList = true;
                 }
 
-                foreach ((string name, Album album) in Glimpse.Database.Albums)
-                {
-                    if (ImGui.Selectable(name, _currentAlbum == name))
-                    {
-                        _currentAlbum = name;
-                        switchToTrackList = true;
-                    }
+                Dictionary<string, Album> albums = Glimpse.Database.Albums;
+                ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                clipper.Begin(albums.Count);
 
-                    if (ImGui.BeginPopupContextItem())
+                while (clipper.Step())
+                {
+                    IEnumerable<KeyValuePair<string, Album>> albumsRange =
+                        albums.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                    
+                    foreach ((string name, Album album) in albumsRange)
                     {
-                        if (ImGui.Selectable("Add to queue"))
-                            player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
+                        if (ImGui.Selectable(name, _currentAlbum == name))
+                        {
+                            _currentAlbum = name;
+                            switchToTrackList = true;
+                        }
+
+                        if (ImGui.BeginPopupContextItem())
+                        {
+                            if (ImGui.Selectable("Add to queue"))
+                                player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
                         
-                        ImGui.Separator();
+                            ImGui.Separator();
                         
-                        if (ImGui.Selectable("Remove from Library..."))
-                            AddPopup(new RemovePopup(name, true, false));
-                        if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
-                            AddPopup(new RemovePopup(name, true, true));
+                            if (ImGui.Selectable("Remove from Library..."))
+                                AddPopup(new RemovePopup(name, true, false));
+                            if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
+                                AddPopup(new RemovePopup(name, true, true));
                         
-                        ImGui.EndPopup();
+                            ImGui.EndPopup();
+                        }
                     }
                 }
+                
                 ImGui.EndChild();
             }
 
