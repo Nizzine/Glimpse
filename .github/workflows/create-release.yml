@@ -46,7 +46,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: "*.zip,*.tar.gz,*.exe"
+          artifacts: "*.zip,*.tar.gz,packaging/windows/*.exe"
           omitBodyDuringUpdate: true
           omitDraftDuringUpdate: true
           omitNameDuringUpdate: true
