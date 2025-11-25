@@ -161,79 +161,24 @@ public class Glimpse : IGlimpse, IDisposable
             Player.Play();
         }
 
+
+        uint counter = 0;
+
         while (_windows.Count > 0)
         {
             Event winEvent;
-            while (_sdl.PollEvent(&winEvent) != 0)
+
+            WindowFlags flags = (WindowFlags) _sdl.GetWindowFlags(_sdl.GetWindowFromID(_windowIds.First().Key));
+            if ((flags & WindowFlags.Minimized) != 0 && _sdl.WaitEvent(&winEvent) != 0 ||
+                (flags & WindowFlags.InputFocus) == 0 && _sdl.WaitEventTimeout(&winEvent, 250) != 0)
             {
-                switch ((EventType) winEvent.Type)
-                {
-                    case EventType.Windowevent:
-                    {
-                        switch ((WindowEventID) winEvent.Window.Event)
-                        {
-                            case WindowEventID.Close:
-                            {
-                                Window wnd = _windowIds[winEvent.Window.WindowID];
-                                wnd.Dispose();
-                                _windowIds.Remove(winEvent.Window.WindowID);
-                                _windows.Remove(wnd);
-                                break;
-                            }
-
-                            case WindowEventID.Resized:
-                            {
-                                Window wnd = _windowIds[winEvent.Window.WindowID];
-                                Size newSize = new Size(winEvent.Window.Data1, winEvent.Window.Data2);
-                                wnd.SetActive();
-                                wnd.Renderer.Resize(newSize);
-                                
-                                break;
-                            }
-                        }
-
-                        break;
-                    }
-
-                    case EventType.Mousemotion:
-                    {
-                        Window wnd = _windowIds[winEvent.Motion.WindowID];
-                        ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
-                        
-                        ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X, winEvent.Motion.Y);
-                        break;
-                    }
-
-                    case EventType.Mousebuttondown:
-                    {
-                        Window wnd = _windowIds[winEvent.Button.WindowID];
-                        ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
-                        
-                        if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
-                            ImGui.GetIO().AddMouseButtonEvent((int) button, true);
-                        break;
-                    }
-                    
-                    case EventType.Mousebuttonup:
-                    {
-                        Window wnd = _windowIds[winEvent.Button.WindowID];
-                        ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
-                        
-                        if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
-                            ImGui.GetIO().AddMouseButtonEvent((int) button, false);
-                        break;
-                    }
-
-                    case EventType.Mousewheel:
-                    {
-                        Window wnd = _windowIds[winEvent.Button.WindowID];
-                        ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
-                        
-                        ImGui.GetIO().AddMouseWheelEvent(winEvent.Wheel.X, winEvent.Wheel.Y);
-                        break;
-                    }
-                }
+                ProcessEvent(winEvent);
             }
+
+            while (_sdl.PollEvent(&winEvent) != 0)
+                ProcessEvent(winEvent);
+            
+            Console.WriteLine(counter++);
 
             foreach (Window wnd in _windows)
             {
@@ -272,6 +217,77 @@ public class Glimpse : IGlimpse, IDisposable
         
         _sdl.Quit();
         _sdl.Dispose();
+    }
+
+    private void ProcessEvent(Event winEvent)
+    {
+        switch ((EventType) winEvent.Type)
+        {
+            case EventType.Windowevent:
+            {
+                switch ((WindowEventID) winEvent.Window.Event)
+                {
+                    case WindowEventID.Close:
+                    {
+                        Window wnd = _windowIds[winEvent.Window.WindowID];
+                        wnd.Dispose();
+                        _windowIds.Remove(winEvent.Window.WindowID);
+                        _windows.Remove(wnd);
+                        break;
+                    }
+
+                    case WindowEventID.Resized:
+                    {
+                        Window wnd = _windowIds[winEvent.Window.WindowID];
+                        Size newSize = new Size(winEvent.Window.Data1, winEvent.Window.Data2);
+                        wnd.SetActive();
+                        wnd.Renderer.Resize(newSize);
+                        
+                        break;
+                    }
+                }
+
+                break;
+            }
+
+            case EventType.Mousemotion:
+            {
+                Window wnd = _windowIds[winEvent.Motion.WindowID];
+                ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
+                
+                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X, winEvent.Motion.Y);
+                break;
+            }
+
+            case EventType.Mousebuttondown:
+            {
+                Window wnd = _windowIds[winEvent.Button.WindowID];
+                ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
+                
+                if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                    ImGui.GetIO().AddMouseButtonEvent((int) button, true);
+                break;
+            }
+            
+            case EventType.Mousebuttonup:
+            {
+                Window wnd = _windowIds[winEvent.Button.WindowID];
+                ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
+                
+                if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                    ImGui.GetIO().AddMouseButtonEvent((int) button, false);
+                break;
+            }
+
+            case EventType.Mousewheel:
+            {
+                Window wnd = _windowIds[winEvent.Button.WindowID];
+                ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
+                
+                ImGui.GetIO().AddMouseWheelEvent(winEvent.Wheel.X, winEvent.Wheel.Y);
+                break;
+            }
+        }
     }
 
     Version IGlimpse.Version => Version;
