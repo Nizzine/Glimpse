@@ -33,6 +33,7 @@ Section "Install Glimpse"
 
     File /r "${PUBLISHDIR}\*.*"
 
+    SetRegView 64
     WriteRegStr HKLM "SOFTWARE\Glimpse" "InstallDir" "$INSTDIR"
 
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "DisplayName" "Glimpse"
@@ -57,6 +58,7 @@ SectionEnd
 
 Section "Uninstall"
 
+    SetRegView 64
     DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse"
     DeleteRegKey HKLM "SOFTWARE\Glimpse"
 
