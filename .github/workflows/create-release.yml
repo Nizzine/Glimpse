@@ -26,6 +26,9 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          
+      - name: "Install deps"
+        run: sudo apt update && sudo apt install zip nsis
 
       - name: "Install .NET"
         uses: actions/setup-dotnet@v4
@@ -43,7 +46,7 @@ jobs:
         with:
           allowUpdates: true
           artifactErrorsFailBuild: true
-          artifacts: "*.zip,*.tar.gz"
+          artifacts: "*.zip,*.tar.gz,packaging/windows/*.exe"
           omitBodyDuringUpdate: true
           omitDraftDuringUpdate: true
           omitNameDuringUpdate: true
