@@ -55,6 +55,21 @@ public interface IAudioPlayer
     public string CurrentTrackPath { get; }
 
     /// <summary>
+    /// Queue a track at the given slot.
+    /// </summary>
+    /// <param name="path">The path to the track file.</param>
+    /// <param name="slot">The <see cref="QueueSlot"/> to insert the track at.</param>
+    /// <param name="autoPlay">If true, the track will start playing immediately.</param>
+    public void QueueTrack(string path, QueueSlot slot, bool autoPlay = true);
+
+    /// <summary>
+    /// Queue tracks at the given slot.
+    /// </summary>
+    /// <param name="paths">The paths to the track files.</param>
+    /// <param name="slot">The <see cref="QueueSlot"/> to insert the tracks at.</param>
+    public void QueueTracks(IEnumerable<string> paths, QueueSlot slot);
+    
+    /// <summary>
     /// Change to the given queue index. If auto play is enabled, the track will play immediately.
     /// </summary>
     /// <param name="index">The index in the queue to change to.</param>
