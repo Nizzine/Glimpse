@@ -14,6 +14,9 @@ public interface IAudioPlayer
     /// </summary>
     public event OnStateChanged StateChanged;
     
+    /// <summary>
+    /// Get the list of currently registered codecs.
+    /// </summary>
     public IReadOnlyList<ICodec> Codecs { get; }
     
     /// <summary>

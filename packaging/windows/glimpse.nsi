@@ -6,6 +6,7 @@ Unicode true
 RequestExecutionLevel admin
 
 InstallDir "$PROGRAMFILES\Glimpse"
+InstallDirRegKey HKLM "SOFTWARE\Glimpse" "InstallDir"
 
 !define MUI_WELCOMEPAGE_TEXT "Install Glimpse <version>"
 !define MUI_FINISHPAGE_TEXT "Glimpse is installed."
@@ -18,8 +19,11 @@ InstallDir "$PROGRAMFILES\Glimpse"
 
 !insertmacro MUI_LANGUAGE "English"
 
-Section "Glimpse"
+Section "Install Glimpse"
 
-    
+    SectionIn RO
+    SetOutPath $INSTDIR
+
+    File /r *.*
 
 SectionEnd

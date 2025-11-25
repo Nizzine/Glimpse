@@ -11,7 +11,7 @@ public class Mp3Codec : ICodec
     }
 
     public TrackInfo GetTrackInfo(string path)
-        => TrackInfo.FromFile(path);
+        => CodecUtils.TrackInfoFromFile(path);
 
     public ICodecStream CreateStream(string path)
     {

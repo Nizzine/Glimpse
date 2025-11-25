@@ -18,7 +18,7 @@ public class Mp3Stream : ICodecStream
     public Mp3Stream(string path)
     {
         _mp3 = new MixrSharp.Stream.Mp3(path);
-        TrackInfo = TrackInfo.FromFile(path);
+        TrackInfo = CodecUtils.TrackInfoFromFile(path);
     }
     
     public ulong GetBuffer(Span<byte> buffer)

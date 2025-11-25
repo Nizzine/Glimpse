@@ -18,7 +18,7 @@ public class VorbisStream : ICodecStream
     public VorbisStream(string path)
     {
         _vorbis = new MixrSharp.Stream.Vorbis(path);
-        TrackInfo = TrackInfo.FromFile(path);
+        TrackInfo = CodecUtils.TrackInfoFromFile(path);
     }
     
     public ulong GetBuffer(Span<byte> buffer)

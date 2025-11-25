@@ -1,4 +1,7 @@
-﻿using Glimpse.API.Codecs;
+﻿using Glimpse.API;
+using Glimpse.API.Codecs;
+using TagLib;
+using File = TagLib.File;
 
 namespace Glimpse.Audio.Codecs;
 
@@ -32,5 +35,26 @@ public static class CodecUtils
         };
 
         return new AudioFormat(dataType, format.SampleRate, format.Channels);
+    }
+    
+    public static TrackInfo TrackInfoFromFile(string path)
+    {
+        using File file = File.Create(path);
+
+        uint trackNumber = file.Tag.Track;
+        string title = file.Tag.Title;
+        string artist = file.Tag.FirstPerformer;
+        string album = file.Tag.Album;
+        TimeSpan length = file.Properties.Duration;
+        string genre = file.Tag.FirstGenre;
+        
+        TrackInfo.Image albumArt = null;
+        if (file.Tag.Pictures is { Length: > 0 })
+        {
+            IPicture picture = file.Tag.Pictures[0];
+            albumArt = new TrackInfo.Image(picture.Data?.Data, picture.Filename);
+        }
+
+        return new TrackInfo(trackNumber, title, artist, album, length, genre, albumArt);
     }
 }
