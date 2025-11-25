@@ -18,7 +18,7 @@ rm -rf $BUILD_DIR || exit 1
 mkdir -p $BUILD_DIR || exit 1
 
 # Publish main glimpse program.
-dotnet publish -c Release -r $RUNTIME -o $BUILD_DIR -p:Version="$VERSION" src/Glimpse || exit 1
+dotnet publish -c Release -r $RUNTIME -o $BUILD_DIR -p:Version="$VERSION" --self-contained src/Glimpse || exit 1
 
 # As glimpse uses MixrSharp as a project reference rather than a nuget, we must delete the library file that doesn't
 # match the output runtime.
@@ -71,4 +71,4 @@ elif [[ $RUNTIME == "linux"* ]]; then
   tar -czvf "$OUT_NAME.tar.gz" "$BUILD_DIR_NAME/" || exit 1
 fi
 
-rm -rf $BUILD_DIR
+#rm -rf $BUILD_DIR
