@@ -95,6 +95,8 @@ public abstract unsafe class Window : IDisposable
         _sdl.GLSetAttribute(GLattr.ContextMajorVersion, 3);
         _sdl.GLSetAttribute(GLattr.ContextMinorVersion, 3);
         _sdl.GLSetAttribute(GLattr.ContextProfileMask, (int) GLprofile.Core);
+        _sdl.GLSetAttribute(GLattr.DepthSize, 0);
+        _sdl.GLSetAttribute(GLattr.AlphaSize, 0);
         
         const WindowFlags flags = WindowFlags.Opengl | WindowFlags.Resizable | WindowFlags.AllowHighdpi | WindowFlags.Hidden;
 

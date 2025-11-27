@@ -161,9 +161,6 @@ public class Glimpse : IGlimpse, IDisposable
             Player.Play();
         }
 
-
-        uint counter = 0;
-
         while (_windows.Count > 0)
         {
             Event winEvent;
@@ -177,8 +174,6 @@ public class Glimpse : IGlimpse, IDisposable
 
             while (_sdl.PollEvent(&winEvent) != 0)
                 ProcessEvent(winEvent);
-            
-            Console.WriteLine(counter++);
 
             foreach (Window wnd in _windows)
             {
