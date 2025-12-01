@@ -644,7 +644,7 @@ public class GlimpsePlayer : Window
             ImGui.End();
         }
 
-        if (player.TrackState == TrackState.Playing && player.SecondsConsumed >= int.Min(30, player.TrackLength) &&
+        if (player.TrackState == TrackState.Playing && player.SecondsConsumed >= double.Max(30, player.TrackLength * 0.6) &&
             !_hasIncrementedPlayCount)
         {
             _hasIncrementedPlayCount = true;
