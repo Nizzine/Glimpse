@@ -89,9 +89,9 @@ public partial class DiscordPresence : IPlugin
         // This saves queries to musicbrainz.
         if (info.Album is { } albumName)
         {
-            Console.WriteLine($"AlbumName: {albumName}");
+            _glimpse.Logger.Log($"AlbumName: {albumName}");
             albumName = RemoveDiscNumberRegex().Replace(albumName, "");
-            Console.WriteLine(albumName);
+           _glimpse.Logger.Log($"Sanitized album name: {albumName}");
 
             if (Config.AlbumArt.TryGetValue(albumName, out _currentUrl))
             {

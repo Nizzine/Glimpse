@@ -3,7 +3,7 @@ using Glimpse.Audio;
 
 namespace Glimpse.Platforms;
 
-public abstract class Platform
+public abstract class Platform : IDisposable
 {
     public event OnButtonPressed ButtonPressed = delegate { };
 
@@ -16,6 +16,8 @@ public abstract class Platform
     public abstract void OpenFileInExplorer(string path);
 
     public abstract void SetPlayState(TrackState state, TrackInfo? info);
+
+    public abstract void Dispose();
 
     protected void InvokeButtonPressed(TransportButton button)
     {

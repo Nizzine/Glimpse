@@ -1,11 +1,16 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using Glimpse.API;
-using Glimpse.Audio;
+using Glimpse.Platforms.Empress;
+using Silk.NET.Core.Native;
 
 namespace Glimpse.Platforms;
 
-public class LinuxPlatform : Platform
+public unsafe class LinuxPlatform : Platform
 {
+    private readonly Context* _context;
+    private readonly Empress.Empress.ButtonPressedCallback _callback;
+    
     public readonly string DefaultFileManager;
     
     public LinuxPlatform()
@@ -22,7 +27,7 @@ public class LinuxPlatform : Platform
         };
         process.Start();
         process.WaitForExit();
-        string fileManager = process.StandardOutput.ReadLine();
+        string? fileManager = process.StandardOutput.ReadLine();
 
         if (fileManager == null)
             return;
@@ -33,6 +38,28 @@ public class LinuxPlatform : Platform
             DefaultFileManager = "nautilus";
         else if (fileManager.Contains("dolphin"))
             DefaultFileManager = "dolphin";
+
+
+        fixed (byte* pAppUniqueName = "glimpse"u8)
+        fixed (byte* pAppFriendlyName = "Glimpse"u8)
+        {
+            ApplicationInfo appInfo = new()
+            {
+                AppUniqueName = (sbyte*) pAppUniqueName,
+                AppFriendlyName = (sbyte*) pAppFriendlyName
+            };
+            Result result = Empress.Empress.Create(&appInfo, out _context);
+            if (result != Result.Ok)
+                throw new Exception($"{result}");
+        }
+
+        _callback = ButtonPressedCallback;
+        Empress.Empress.SetCanPlay(_context, true);
+        Empress.Empress.SetCanPause(_context, true);
+        Empress.Empress.SetCanSeek(_context, false);
+        Empress.Empress.SetCanGoNext(_context, true);
+        Empress.Empress.SetCanGoPrevious(_context, true);
+        Empress.Empress.SetButtonPressedCallback(_context, _callback);
     }
     
     // This shouldn't be necessary on Linux platforms.
@@ -71,5 +98,65 @@ public class LinuxPlatform : Platform
         process.Dispose();
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo? info) { }
+    public override void SetPlayState(TrackState state, TrackInfo? info)
+    {
+        if (info == null)
+            Empress.Empress.ClearTrackMetadata(_context);
+        else
+        {
+            nint pTitle = SilkMarshal.StringToPtr(info.Title);
+            nint pArtist = info.Artist == null ? 0 : SilkMarshal.StringArrayToPtr([info.Artist]);
+            nint pAlbum = SilkMarshal.StringToPtr(info.Album);
+            nuint length = (nuint?) info.Length?.TotalSeconds ?? 0;
+            nint pGenre = info.Genre == null ? 0 : SilkMarshal.StringArrayToPtr([info.Genre]);
+
+            TrackMetadata metadata = new()
+            {
+                Title = (sbyte*) pTitle,
+                NumArtists = info.Artist == null ? 0 : 1,
+                Artists = (sbyte**) pArtist,
+                Album = (sbyte*) pAlbum,
+                Length = length,
+                NumGenres = info.Genre == null ? 0 : 1,
+                Genres = (sbyte**) pGenre
+            };
+            
+            Empress.Empress.SetTrackMetadata(_context, &metadata);
+
+            SilkMarshal.Free(pGenre);
+            SilkMarshal.FreeString(pAlbum);
+            SilkMarshal.Free(pArtist);
+            SilkMarshal.FreeString(pTitle);
+        }
+        
+        PlayState playState = state switch
+        {
+            TrackState.Stopped => PlayState.Stopped,
+            TrackState.Paused => PlayState.Paused,
+            TrackState.Playing => PlayState.Playing,
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+        
+        Empress.Empress.SetPlayState(_context, playState);
+    }
+
+    private void ButtonPressedCallback(Context* context, Button button)
+    {
+        TransportButton transportButton = button switch
+        {
+            Button.Play => TransportButton.Play,
+            Button.Pause => TransportButton.Pause,
+            Button.Stop => throw new NotImplementedException(),
+            Button.Next => TransportButton.Next,
+            Button.Previous => TransportButton.Previous,
+            _ => throw new ArgumentOutOfRangeException(nameof(button), button, null)
+        };
+        
+        InvokeButtonPressed(transportButton);
+    }
+    
+    public override void Dispose()
+    {
+        Empress.Empress.Destroy(_context);
+    }
 }

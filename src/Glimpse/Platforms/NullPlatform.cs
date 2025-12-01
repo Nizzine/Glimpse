@@ -14,4 +14,6 @@ public class NullPlatform : Platform
     public override void OpenFileInExplorer(string path) { }
 
     public override void SetPlayState(TrackState state, TrackInfo info) { }
+    
+    public override void Dispose() { }
 }

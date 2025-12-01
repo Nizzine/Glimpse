@@ -115,4 +115,6 @@ public unsafe class WindowsPlatform : Platform
         
         _transportControls.DisplayUpdater.Update();
     }
+
+    public override void Dispose() { }
 }

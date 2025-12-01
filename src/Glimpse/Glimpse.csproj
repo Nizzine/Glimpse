@@ -21,7 +21,6 @@
       <PackageReference Include="StbImageSharp" Version="2.27.14" />
       <PackageReference Include="TagLibSharp" Version="2.3.0" />
       <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.26100" />
-      <PackageReference Include="Tmds.DBus" Version="0.20.0" />
     </ItemGroup>
     
     <ItemGroup>
@@ -46,6 +45,12 @@
     <ItemGroup>
       <ProjectReference Include="..\Glimpse.API\Glimpse.API.csproj" />
       <ProjectReference Include="..\..\MixrSharp\MixrSharp\MixrSharp.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Update="libempress.so">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

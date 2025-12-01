@@ -4,3 +4,6 @@
 [submodule "Plugins/OpenMPT.NET"]
 	path = Plugins/OpenMPT.NET
 	url = https://github.com/aquagoose/OpenMPT.NET
+[submodule "empress"]
+	path = empress
+	url = https://github.com/aquagoose/empress

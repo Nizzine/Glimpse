@@ -209,6 +209,7 @@ public class Glimpse : IGlimpse, IDisposable
         
         Player.Dispose();
         ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
+        Platform.Dispose();
         
         _sdl.Quit();
         _sdl.Dispose();
