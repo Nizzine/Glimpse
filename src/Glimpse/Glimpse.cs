@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.Loader;
 using Glimpse.API;
@@ -82,8 +83,17 @@ public class Glimpse : IGlimpse, IDisposable
         Player = new AudioPlayer(Logger,
             new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
 
-        //Locale = Locale.LoadLocale("English.json");
-        Locale = Locale.LoadLocale("Finnish.json");
+        const string defaultCulture = "en-gb";
+        string currentCulture = CultureInfo.CurrentUICulture.Name.ToLower();
+        try
+        {
+            Locale = Locale.LoadLocale($"{currentCulture}.json");
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"Could not load locale! Using default: {defaultCulture}");
+            Locale = Locale.LoadLocale($"{defaultCulture}.json");
+        }
         //Locale = Locale.LoadLocale("None.json");
 
         if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))

@@ -1,0 +1,73 @@
+// DISCLOSURE: NOT A HUMAN TRANSLATION - TRANSLATED BY CLAUDE
+// If a real human wants to provide the localization, please do!
+{
+    "ID": "ru-ru",
+    "DisplayName": "Русский",
+    "Strings": {
+        "Glimpse": "Glimpse",
+        "UnknownTrack": "Неизвестная композиция",
+        "UnknownArtist": "Неизвестный исполнитель",
+        "UnknownAlbum": "Неизвестный альбом",
+        "SampleRate": "Частота дискретизации",
+        "Track": "Композиция",
+        "Title": "Название",
+        "Artist": "Исполнитель",
+        "Album": "Альбом",
+        "Length": "Длительность",
+        "Plays": "Воспроизведения",
+        "Rating": "Рейтинг",
+        "LastPlayed": "Последнее воспроизведение",
+        "FileName": "Имя файла",
+        
+        "Player.UpdateAvailable": "Доступна версия {0}!",
+        "Player.ReportBug": "Сообщить об ошибке",
+        "Player.Settings": "Настройки",
+        "Player.AddDirs": "Добавить папку",
+        "Player.Tab.Tracks": "Композиции",
+        "Player.Tab.Queue": "Очередь",
+        "Player.Albums.ShowAll": "Показать все",
+        
+        "Menu.AddToQueue": "Добавить в очередь",
+        "Menu.PlayNext": "Воспроизвести следующим",
+        "Menu.AddToEnd": "Добавить в конец",
+        "Menu.RemoveFromLibrary": "Удалить из библиотеки...",
+        "Menu.ShowInExplorer": "Показать файл в проводнике",
+        "Menu.DeleteAlbum": "Удалить альбом...",
+        "Menu.DeleteFile": "Удалить файл...",
+
+        "Button.Yes": "Да",
+        "Button.Save": "Сохранить",
+        "Button.Add": "Добавить",
+        "Button.Cancel": "Отмена",
+        "Button.No": "Нет",
+        "Checkbox.Enabled": "Включено",
+        
+        "Popup.Settings.Name": "Настройки",
+        "Popup.Settings.Tab.General": "Общие",
+        "Popup.Settings.Tab.General.TransportLocation": "Расположение панели управления",
+        "Popup.Settings.Tab.General.TransportLocation.Up": "Вверху",
+        "Popup.Settings.Tab.General.TransportLocation.Down": "Внизу",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Установить расположение панели управления. ПОЖАЛУЙСТА, ПЕРЕЗАПУСТИТЕ после сохранения!",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile": "Включить пункт контекстного меню \"удалить файл\"",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip": "Включает пункт контекстного меню \"удалить файл\", позволяющий навсегда удалять файлы с вашего компьютера.",
+        "Popup.Settings.Tab.Player": "Плеер",
+        "Popup.Settings.Tab.Player.PlaybackHeading": "Воспроизведение",
+        "Popup.Settings.Tab.Player.Volume": "Громкость",
+        "Popup.Settings.Tab.Player.DeviceHeading": "Устройство",
+        "Popup.Settings.Tab.Plugins": "Плагины",
+        "Popup.Settings.Tab.Plugins.NoneAvailable": "Нет доступных плагинов.",
+        "Popup.Settings.Tab.About": "О программе",
+        "Popup.Settings.Tab.About.AppName": "Glimpse {0}",
+        "Popup.Settings.Tab.About.Copyright": "2025 aquagoose",
+        "Popup.Settings.Tab.About.Credits": "Создатель: aquagoose\nТема: Nizzine",
+        "Popup.Settings.Tab.About.OpenSourceLibraries": "Библиотеки с открытым исходным кодом",
+        
+        "Popup.AddDirs.Name": "Добавить папки",
+        
+        "Popup.Remove.Name": "Удалить",
+        "Popup.Remove.Confirmation": "Удалить {0} из библиотеки?",
+        "Popup.Remove.SongsConfirmation": "Также удалить песни из библиотеки?",
+        "Popup.Remove.Menu.DeleteAlbumWarning": "НАВСЕГДА УДАЛИТЬ {0} и ВСЕ ПЕСНИ с вашего компьютера?\nПРИМЕЧАНИЕ: Это НЕ удалит папки альбома с вашего компьютера.",
+        "Popup.Remove.DeleteTrackWarning": "НАВСЕГДА УДАЛИТЬ {0} с вашего компьютера?"
+    }
+}

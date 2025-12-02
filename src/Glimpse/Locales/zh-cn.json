@@ -1,0 +1,73 @@
+// DISCLOSURE: NOT A HUMAN TRANSLATION - TRANSLATED BY CLAUDE
+// If a real human wants to provide the localization, please do!
+{
+    "ID": "zh-cn",
+    "DisplayName": "中文",
+    "Strings": {
+        "Glimpse": "Glimpse",
+        "UnknownTrack": "未知曲目",
+        "UnknownArtist": "未知艺术家",
+        "UnknownAlbum": "未知专辑",
+        "SampleRate": "采样率",
+        "Track": "曲目",
+        "Title": "标题",
+        "Artist": "艺术家",
+        "Album": "专辑",
+        "Length": "时长",
+        "Plays": "播放次数",
+        "Rating": "评分",
+        "LastPlayed": "上次播放",
+        "FileName": "文件名",
+        
+        "Player.UpdateAvailable": "版本 {0} 可用!",
+        "Player.ReportBug": "报告错误",
+        "Player.Settings": "设置",
+        "Player.AddDirs": "添加文件夹",
+        "Player.Tab.Tracks": "曲目",
+        "Player.Tab.Queue": "队列",
+        "Player.Albums.ShowAll": "显示全部",
+        
+        "Menu.AddToQueue": "添加到队列",
+        "Menu.PlayNext": "下一首播放",
+        "Menu.AddToEnd": "添加到末尾",
+        "Menu.RemoveFromLibrary": "从媒体库中移除...",
+        "Menu.ShowInExplorer": "在资源管理器中显示文件",
+        "Menu.DeleteAlbum": "删除专辑...",
+        "Menu.DeleteFile": "删除文件...",
+
+        "Button.Yes": "是",
+        "Button.Save": "保存",
+        "Button.Add": "添加",
+        "Button.Cancel": "取消",
+        "Button.No": "否",
+        "Checkbox.Enabled": "已启用",
+        
+        "Popup.Settings.Name": "设置",
+        "Popup.Settings.Tab.General": "常规",
+        "Popup.Settings.Tab.General.TransportLocation": "控制栏位置",
+        "Popup.Settings.Tab.General.TransportLocation.Up": "上",
+        "Popup.Settings.Tab.General.TransportLocation.Down": "下",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "设置控制栏的位置。保存后请重启!",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile": "启用\"删除文件\"上下文菜单项",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip": "启用\"删除文件\"上下文菜单项,允许从计算机中永久删除文件。",
+        "Popup.Settings.Tab.Player": "播放器",
+        "Popup.Settings.Tab.Player.PlaybackHeading": "播放",
+        "Popup.Settings.Tab.Player.Volume": "音量",
+        "Popup.Settings.Tab.Player.DeviceHeading": "设备",
+        "Popup.Settings.Tab.Plugins": "插件",
+        "Popup.Settings.Tab.Plugins.NoneAvailable": "没有可用的插件。",
+        "Popup.Settings.Tab.About": "关于",
+        "Popup.Settings.Tab.About.AppName": "Glimpse {0}",
+        "Popup.Settings.Tab.About.Copyright": "2025 aquagoose",
+        "Popup.Settings.Tab.About.Credits": "制作者: aquagoose\n主题设计: Nizzine",
+        "Popup.Settings.Tab.About.OpenSourceLibraries": "开源库",
+        
+        "Popup.AddDirs.Name": "添加文件夹",
+        
+        "Popup.Remove.Name": "移除",
+        "Popup.Remove.Confirmation": "从媒体库中移除 {0}?",
+        "Popup.Remove.SongsConfirmation": "同时从媒体库中移除歌曲?",
+        "Popup.Remove.Menu.DeleteAlbumWarning": "从计算机中永久删除 {0} 和所有歌曲?\n注意: 这不会删除计算机中的专辑文件夹。",
+        "Popup.Remove.DeleteTrackWarning": "从计算机中永久删除 {0}?"
+    }
+}

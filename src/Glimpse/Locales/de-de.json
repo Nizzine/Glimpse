@@ -1,0 +1,73 @@
+// DISCLOSURE: NOT A HUMAN TRANSLATION - TRANSLATED BY CLAUDE
+// If a real human wants to provide the localization, please do!
+{
+    "ID": "de-de",
+    "DisplayName": "Deutsch",
+    "Strings": {
+        "Glimpse": "Glimpse",
+        "UnknownTrack": "Unbekannter Titel",
+        "UnknownArtist": "Unbekannter Künstler",
+        "UnknownAlbum": "Unbekanntes Album",
+        "SampleRate": "Abtastrate",
+        "Track": "Titel",
+        "Title": "Titel",
+        "Artist": "Künstler",
+        "Album": "Album",
+        "Length": "Länge",
+        "Plays": "Wiedergaben",
+        "Rating": "Bewertung",
+        "LastPlayed": "Zuletzt gespielt",
+        "FileName": "Dateiname",
+        
+        "Player.UpdateAvailable": "Version {0} ist verfügbar!",
+        "Player.ReportBug": "Fehler melden",
+        "Player.Settings": "Einstellungen",
+        "Player.AddDirs": "Ordner hinzufügen",
+        "Player.Tab.Tracks": "Titel",
+        "Player.Tab.Queue": "Warteschlange",
+        "Player.Albums.ShowAll": "Alle anzeigen",
+        
+        "Menu.AddToQueue": "Zur Warteschlange hinzufügen",
+        "Menu.PlayNext": "Als Nächstes abspielen",
+        "Menu.AddToEnd": "Am Ende hinzufügen",
+        "Menu.RemoveFromLibrary": "Aus Bibliothek entfernen...",
+        "Menu.ShowInExplorer": "Datei im Explorer anzeigen",
+        "Menu.DeleteAlbum": "Album löschen...",
+        "Menu.DeleteFile": "Datei löschen...",
+
+        "Button.Yes": "Ja",
+        "Button.Save": "Speichern",
+        "Button.Add": "Hinzufügen",
+        "Button.Cancel": "Abbrechen",
+        "Button.No": "Nein",
+        "Checkbox.Enabled": "Aktiviert",
+        
+        "Popup.Settings.Name": "Einstellungen",
+        "Popup.Settings.Tab.General": "Allgemein",
+        "Popup.Settings.Tab.General.TransportLocation": "Position der Steuerungsleiste",
+        "Popup.Settings.Tab.General.TransportLocation.Up": "Oben",
+        "Popup.Settings.Tab.General.TransportLocation.Down": "Unten",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Legen Sie die Position der Steuerungsleiste fest. BITTE NEUSTARTEN nach dem Speichern!",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile": "Kontextmenüeintrag \"Datei löschen\" aktivieren",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip": "Aktiviert den Kontextmenüeintrag \"Datei löschen\", mit dem Dateien dauerhaft von Ihrem Computer gelöscht werden können.",
+        "Popup.Settings.Tab.Player": "Player",
+        "Popup.Settings.Tab.Player.PlaybackHeading": "Wiedergabe",
+        "Popup.Settings.Tab.Player.Volume": "Lautstärke",
+        "Popup.Settings.Tab.Player.DeviceHeading": "Gerät",
+        "Popup.Settings.Tab.Plugins": "Plugins",
+        "Popup.Settings.Tab.Plugins.NoneAvailable": "Keine Plugins verfügbar.",
+        "Popup.Settings.Tab.About": "Über",
+        "Popup.Settings.Tab.About.AppName": "Glimpse {0}",
+        "Popup.Settings.Tab.About.Copyright": "2025 aquagoose",
+        "Popup.Settings.Tab.About.Credits": "Erstellt von aquagoose\nDesign von Nizzine",
+        "Popup.Settings.Tab.About.OpenSourceLibraries": "Open-Source-Bibliotheken",
+        
+        "Popup.AddDirs.Name": "Ordner hinzufügen",
+        
+        "Popup.Remove.Name": "Entfernen",
+        "Popup.Remove.Confirmation": "{0} aus der Bibliothek entfernen?",
+        "Popup.Remove.SongsConfirmation": "Songs auch aus der Bibliothek entfernen?",
+        "Popup.Remove.Menu.DeleteAlbumWarning": "{0} und ALLE SONGS DAUERHAFT von Ihrem Computer löschen?\nHINWEIS: Dies löscht NICHT die Ordner des Albums von Ihrem Computer.",
+        "Popup.Remove.DeleteTrackWarning": "{0} DAUERHAFT von Ihrem Computer löschen?"
+    }
+}
