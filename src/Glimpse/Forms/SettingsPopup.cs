@@ -54,12 +54,14 @@ public class SettingsPopup : Popup
                             
                             ImGui.EndCombo();
                         }
-                        
-                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.TransportLocation"), _currentConfig.SwapTransportControls ? "Up" : "Down"))
+
+                        string up = locale.GetString("Popup.Settings.Tab.General.TransportLocation.Up");
+                        string down = locale.GetString("Popup.Settings.Tab.General.TransportLocation.Down");
+                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.TransportLocation"), _currentConfig.SwapTransportControls ? up : down))
                         {
-                            if (ImGui.Selectable(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Up"), _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
+                            if (ImGui.Selectable(up, _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
                                 _currentConfig.SwapTransportControls = true;
-                            if (ImGui.Selectable(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Down"), !_currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
+                            if (ImGui.Selectable(down, !_currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
                                 _currentConfig.SwapTransportControls = false;
                             
                             ImGui.EndCombo();
