@@ -64,7 +64,7 @@ public class Track : IDisposable
         }
     }
     
-    internal Track(Context context, ICodecStream stream, TrackInfo info, PlayerSettings settings, Action onFinish, Logger logger)
+    internal Track(Context context, ICodecStream stream, TrackInfo info, Action onFinish, Logger logger)
     {
         _stream = stream;
         _onFinish = onFinish;
@@ -102,9 +102,8 @@ public class Track : IDisposable
             _buffers[i] = context.CreateBuffer(new ReadOnlySpan<byte>(_audioBuffer, 0, (int) amount));
             _source.SubmitBuffer(_buffers[i]);
         }
-
-        _source.Volume = settings.Volume;
-        _source.Speed = settings.SpeedAdjust;
+        
+        //TODO: _source.Speed = settings.SpeedAdjust;
         
         _source.BufferFinished += BufferFinished;
         _source.StateChanged += StateChanged;

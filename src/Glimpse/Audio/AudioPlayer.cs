@@ -12,7 +12,7 @@ namespace Glimpse.Audio;
 public class AudioPlayer : IAudioPlayer, IDisposable
 {
     public event IAudioPlayer.OnTrackChanged TrackChanged = delegate { };
-    
+
     public event IAudioPlayer.OnStateChanged StateChanged = delegate { };
 
     private readonly Logger _logger;
@@ -30,6 +30,12 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public readonly List<string> QueuedTracks;
 
     public IReadOnlyList<ICodec> Codecs => _codecs;
+
+    public float Volume
+    {
+        get => _context.MasterVolume;
+        set => _context.MasterVolume = value;
+    }
     
     public int ElapsedSeconds => _activeTrack?.ElapsedSeconds ?? 0;
 
@@ -52,7 +58,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         _logger.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
-        _context.MasterVolume = _settings.Volume;
+        Volume = _settings.Volume;
         
         _logger.Log("Creating device.");
         _device = new AudioDevice(_context, _settings.SampleRate);
@@ -125,7 +131,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         TrackInfo info = stream.TrackInfo;
 
         _logger.Log("  Creating track.");
-        _activeTrack = new Track(_context, stream, info, _settings, OnTrackFinish, _logger);
+        _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
 
         TrackChanged(info, path);
         

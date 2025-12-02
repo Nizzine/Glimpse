@@ -35,7 +35,7 @@ public class SettingsPopup : Popup
             {
                 if (ImGui.BeginTabBar("SettingsTab"))
                 {
-                    if (ImGui.BeginTabItem("Theme"))
+                    if (ImGui.BeginTabItem("Glimpse"))
                     {
                         if (ImGui.BeginCombo("Transport Location", _currentConfig.SwapTransportControls ? "Up" : "Down"))
                         {
@@ -61,18 +61,19 @@ public class SettingsPopup : Popup
                         ref float volume = ref _currentConfig.Volume;
                         ref bool autoPlay = ref _currentConfig.AutoPlay;
                         ref uint sampleRate = ref _currentConfig.SampleRate;
-                        float speed = (float) _currentConfig.SpeedAdjust;
+                        //float speed = (float) _currentConfig.SpeedAdjust;
 
                         ImGui.SeparatorText("Playback");
+
+                        if (ImGui.SliderFloat("Volume", ref volume, 0, 1, "%.3f"))
+                            Glimpse.Player.Volume = volume;
                         
-                        ImGui.SliderFloat("Volume", ref volume, 0, 1, "%.3f", ImGuiSliderFlags.Logarithmic);
-                        
-                        ImGui.Checkbox("Auto Play", ref autoPlay);
+                        /*ImGui.Checkbox("Auto Play", ref autoPlay);
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Start playing when a track is selected or added to queue.");
+                            ImGui.SetTooltip("Start playing when a track is selected or added to queue.");*/
                         
-                        if (ImGui.DragFloat("Speed Adjustment", ref speed, 0.01f, 0.01f, 10))
-                            _currentConfig.SpeedAdjust = speed;
+                        //if (ImGui.DragFloat("Speed Adjustment", ref speed, 0.01f, 0.01f, 10))
+                        //    _currentConfig.SpeedAdjust = speed;
                         
                         ImGui.SeparatorText("Device");
                         ImGui.BeginDisabled();
@@ -87,39 +88,46 @@ public class SettingsPopup : Popup
 
                     if (ImGui.BeginTabItem("Plugins"))
                     {
-                        foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
+                        if (Glimpse.Plugins == null)
                         {
-                            ImGui.BeginChild("PluginsList", new Vector2(150, 0));
+                            ImGui.Text("No Plugins Available.");
+                        }
+                        else
+                        {
+                            foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
                             {
-                                if (ImGui.Selectable(plugin.Name, name == _currentPlugin))
-                                    _currentPlugin = name;
-                                
-                                ImGui.EndChild();
-                            }
-                            
-                            ImGui.SameLine();
-
-                            ImGui.BeginChild("PluginSettings");
-                            {
-                                if (name == _currentPlugin)
+                                ImGui.BeginChild("PluginsList", new Vector2(150, 0));
                                 {
-                                    bool enabled = _currentConfig.EnabledPlugins.Contains(_currentPlugin);
-                                    if (ImGui.Checkbox("Enabled", ref enabled))
-                                    {
-                                        if (enabled)
-                                            _currentConfig.EnabledPlugins.Add(_currentPlugin);
-                                        else
-                                            _currentConfig.EnabledPlugins.Remove(_currentPlugin);
-                                    }
+                                    if (ImGui.Selectable(plugin.Name, name == _currentPlugin))
+                                        _currentPlugin = name;
 
-                                    ImGui.Separator();
-                                    Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                    ImGui.EndChild();
                                 }
 
-                                ImGui.EndChild();
+                                ImGui.SameLine();
+
+                                ImGui.BeginChild("PluginSettings");
+                                {
+                                    if (name == _currentPlugin)
+                                    {
+                                        bool enabled = _currentConfig.EnabledPlugins.Contains(_currentPlugin);
+                                        if (ImGui.Checkbox("Enabled", ref enabled))
+                                        {
+                                            if (enabled)
+                                                _currentConfig.EnabledPlugins.Add(_currentPlugin);
+                                            else
+                                                _currentConfig.EnabledPlugins.Remove(_currentPlugin);
+                                        }
+
+                                        ImGui.Separator();
+                                        Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                    }
+
+                                    ImGui.EndChild();
+                                }
                             }
                         }
-                        
+
                         ImGui.EndTabItem();
                     }
 
@@ -135,7 +143,7 @@ public class SettingsPopup : Popup
 
                         ImGui.SameLine();
                         
-                        if (ImGui.BeginChild("GlimpseText"))
+                        if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
                             ImGui.Text($"Glimpse {Glimpse.Version}");
                             ImGui.Text("2025 aquagoose");
@@ -146,6 +154,29 @@ public class SettingsPopup : Popup
                             
                             ImGui.EndChild();
                         }
+
+                        ImGui.SeparatorText("Open-Source Libraries");
+                        
+                        if (ImGui.TextLink("mixr"))
+                            GlimpsePlayer.OpenLink("https://github.com/Aquatic-Games/mixr");
+                        if (ImGui.TextLink("Hexa.NET.ImGui"))
+                            GlimpsePlayer.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
+                        if (ImGui.TextLink("Silk.NET"))
+                            GlimpsePlayer.OpenLink("https://github.com/dotnet/Silk.NET");
+                        if (ImGui.TextLink("TagLibSharp"))
+                            GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
+                        if (ImGui.TextLink("StbImageSharp"))
+                            GlimpsePlayer.OpenLink("https://github.com/StbSharp/StbImageSharp");
+                        if (ImGui.TextLink("DiscordRichPresence"))
+                            GlimpsePlayer.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
+                        if (ImGui.TextLink("MetaBrainz.MusicBrainz"))
+                            GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
+                        if (ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt"))
+                            GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
+                        if (ImGui.TextLink("TerraFX.Interop.Windows"))
+                            GlimpsePlayer.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
+                        if (ImGui.TextLink("Newtonsoft.Json"))
+                            GlimpsePlayer.OpenLink("https://github.com/JamesNK/Newtonsoft.Json");
 
                         ImGui.EndTabItem();
                     }
@@ -180,7 +211,7 @@ public class SettingsPopup : Popup
         Logger logger = Glimpse.Logger;
         
         logger.Log("Saving and applying config changes.");
-        Glimpse.Player.Stop();
+        //Glimpse.Player.Stop();
         
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);

@@ -15,6 +15,11 @@ public interface IAudioPlayer
     public event OnStateChanged StateChanged;
     
     /// <summary>
+    /// The master volume. A value of 1.0 is full volume. 0.0 is muted. -1.0 is just weird, don't try that (inverted output).
+    /// </summary>
+    public float Volume { get; set; }
+    
+    /// <summary>
     /// Get the list of currently registered codecs.
     /// </summary>
     public IReadOnlyList<ICodec> Codecs { get; }

@@ -762,7 +762,7 @@ public class GlimpsePlayer : Window
         }
     }
 
-    private static void OpenLink(string link)
+    public static void OpenLink(string link)
     {
         Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
     }
