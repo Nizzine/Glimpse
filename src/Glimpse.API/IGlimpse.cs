@@ -9,4 +9,6 @@ public interface IGlimpse
     public IConfigManager ConfigManager { get; }
     
     public IAudioPlayer Player { get; }
+    
+    public ILocale? Locale { get; }
 }

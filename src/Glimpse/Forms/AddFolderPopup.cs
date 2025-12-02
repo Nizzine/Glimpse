@@ -1,5 +1,6 @@
 ﻿using Glimpse.Configs;
 using Glimpse.Database;
+using Glimpse.Locales;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
@@ -17,7 +18,10 @@ public class AddFolderPopup : Popup
     
     public override void Update()
     {
-        if (!ImGui.IsPopupOpen("Add Folder"))
+        Locale locale = Glimpse.Locale;
+        string popupName = locale.GetString("Popup.AddDirs.Name");
+        
+        if (!ImGui.IsPopupOpen(popupName))
         {
             _baseDirectory = new DirectorySource(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
             {
@@ -39,10 +43,10 @@ public class AddFolderPopup : Popup
             Selected = "";
             _lockObj = new object();
             
-            ImGui.OpenPopup("Add Folder");
+            ImGui.OpenPopup(popupName);
         }
         
-        if (ImGui.BeginPopupModal("Add Folder", ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove))
+        if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove))
         {
             if (ImGui.BeginChild("FoldersList", ScaleVec(500, 300), ImGuiWindowFlags.HorizontalScrollbar))
             {
@@ -55,10 +59,8 @@ public class AddFolderPopup : Popup
 
             ImGui.BeginDisabled(string.IsNullOrWhiteSpace(Selected) || _currentTask != null);
             
-            if (ImGui.Button("Add"))
+            if (ImGui.Button(locale.GetString("Button.Add")))
             {
-                ImGui.OpenPopup("Adding Folders...");
-                
                 Glimpse.Player.Stop();
 
                 _currentTask = Task.Run(() =>
@@ -73,7 +75,7 @@ public class AddFolderPopup : Popup
             
             ImGui.BeginDisabled(_currentTask != null);
             
-            if (ImGui.Button("Cancel"))
+            if (ImGui.Button(locale.GetString("Button.Cancel")))
                 Close();
             
             ImGui.EndDisabled();

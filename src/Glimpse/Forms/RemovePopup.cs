@@ -1,5 +1,6 @@
 using Glimpse.Audio;
 using Glimpse.Database;
+using Glimpse.Locales;
 using Hexa.NET.ImGui;
 using Track = Glimpse.Database.Track;
 
@@ -23,28 +24,30 @@ public sealed class RemovePopup : Popup
     
     public override void Update()
     {
-        if (!ImGui.IsPopupOpen("Remove"))
-            ImGui.OpenPopup("Remove");
+        Locale locale = Glimpse.Locale;
+        string popupName = locale.GetString("Popup.Remove.Name");
+        
+        if (!ImGui.IsPopupOpen(popupName))
+            ImGui.OpenPopup(popupName);
 
-        if (ImGui.BeginPopupModal("Remove", ImGuiWindowFlags.AlwaysAutoResize))
+        if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize))
         {
             MusicDatabase db = Glimpse.Database;
             AudioPlayer player = Glimpse.Player;
             
-            string name = _isAlbum ? _nameOrPath : (db.Tracks[_nameOrPath].Title ?? "Unknown Track");
+            string name = _isAlbum ? _nameOrPath : (db.Tracks[_nameOrPath].Title ?? locale.GetString("UnknownTrack"));
 
             if (_delete)
             {
-                ImGui.Text(
-                    $"PERMANENTLY DELETE \"{name}\"{(_isAlbum ? " and ALL SONGS" : "")} from your computer?{(_isAlbum ? "\nNOTE: This will NOT delete the Album's folder(s) from your computer." : "")}");
+                ImGui.Text(locale.GetString(_isAlbum ? "Popup.Remove.Menu.DeleteAlbumWarning" : "Popup.Remove.DeleteTrackWarning", name));
             }
             else
-                ImGui.Text($"Remove \"{name}\" from library?");
+                ImGui.Text(locale.GetString("Popup.Remove.Confirmation"));
 
             if (_isAlbum && !_delete)
-                ImGui.Checkbox("Also remove songs from library?", ref _removeSongs);
+                ImGui.Checkbox(locale.GetString("Popup.Remove.SongsConfirmation"), ref _removeSongs);
 
-            if (ImGui.Button("Yes"))
+            if (ImGui.Button(locale.GetString("Button.Yes")))
             {
                 if (_isAlbum)
                 {
@@ -78,7 +81,7 @@ public sealed class RemovePopup : Popup
             
             ImGui.SameLine();
             
-            if (ImGui.Button("No"))
+            if (ImGui.Button(locale.GetString("Button.No")))
                 Close();
             
             ImGui.EndPopup();

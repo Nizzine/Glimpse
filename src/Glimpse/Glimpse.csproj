@@ -28,9 +28,8 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Content Include="Assets/**/*">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
+        <Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
+        <Content Include="Locales/**/*.json" CopyToOutputDirectory="PreserveNewest" />
         <Content Remove="Assets/Icons/Glimpse-Dbg.png" />
     </ItemGroup>
     

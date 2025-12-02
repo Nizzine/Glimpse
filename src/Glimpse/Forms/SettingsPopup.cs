@@ -3,6 +3,7 @@ using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Graphics;
+using Glimpse.Locales;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
@@ -22,50 +23,53 @@ public class SettingsPopup : Popup
 
     public override void Update()
     {
-        if (!ImGui.IsPopupOpen("Settings"))
-            ImGui.OpenPopup("Settings");
+        Locale locale = Glimpse.Locale;
+        string popupName = locale.GetString("Popup.Settings.Name");
+        
+        if (!ImGui.IsPopupOpen(popupName))
+            ImGui.OpenPopup(popupName);
 
         ImGuiWindowFlags flags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize;
         if (Glimpse.Config != _currentConfig)
             flags |= ImGuiWindowFlags.UnsavedDocument;
         
-        if (ImGui.BeginPopupModal("Settings", flags))
+        if (ImGui.BeginPopupModal(popupName, flags))
         {
             if (ImGui.BeginChild("SettingsItems", ScaleVec(500, 350)))
             {
                 if (ImGui.BeginTabBar("SettingsTab"))
                 {
-                    if (ImGui.BeginTabItem("Glimpse"))
+                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.General")))
                     {
-                        if (ImGui.BeginCombo("Transport Location", _currentConfig.SwapTransportControls ? "Up" : "Down"))
+                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.TransportLocation"), _currentConfig.SwapTransportControls ? "Up" : "Down"))
                         {
-                            if (ImGui.Selectable("Up", _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
+                            if (ImGui.Selectable(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Up"), _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
                                 _currentConfig.SwapTransportControls = true;
-                            if (ImGui.Selectable("Down", !_currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
+                            if (ImGui.Selectable(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Down"), !_currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
                                 _currentConfig.SwapTransportControls = false;
                             
                             ImGui.EndCombo();
                         }
-                        ImGui.SetItemTooltip("Set the location of the transport bar. PLEASE RESTART after saving!");
+                        ImGui.SetItemTooltip(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Tooltip"));
                         
                         ImGui.Separator();
                         
-                        ImGui.Checkbox("Enable \"delete file\" context menu item", ref _currentConfig.EnableFileDeletion);
-                        ImGui.SetItemTooltip("Enables the \"delete file\" context menu item, allowing files to be permanently deleted from your computer.");
+                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableMenu.DeleteFile"), ref _currentConfig.EnableFileDeletion);
+                        ImGui.SetItemTooltip("Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip");
                         
                         ImGui.EndTabItem();
                     }
 
-                    if (ImGui.BeginTabItem("Player"))
+                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Player")))
                     {
                         ref float volume = ref _currentConfig.Volume;
                         ref bool autoPlay = ref _currentConfig.AutoPlay;
                         ref uint sampleRate = ref _currentConfig.SampleRate;
                         //float speed = (float) _currentConfig.SpeedAdjust;
 
-                        ImGui.SeparatorText("Playback");
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Player.PlaybackHeading"));
 
-                        if (ImGui.SliderFloat("Volume", ref volume, 0, 1, "%.3f"))
+                        if (ImGui.SliderFloat(locale.GetString("Popup.Settings.Tab.Player.Volume"), ref volume, 0, 1, "%.3f"))
                             Glimpse.Player.Volume = volume;
                         
                         /*ImGui.Checkbox("Auto Play", ref autoPlay);
@@ -75,9 +79,9 @@ public class SettingsPopup : Popup
                         //if (ImGui.DragFloat("Speed Adjustment", ref speed, 0.01f, 0.01f, 10))
                         //    _currentConfig.SpeedAdjust = speed;
                         
-                        ImGui.SeparatorText("Device");
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Player.DeviceHeading"));
                         ImGui.BeginDisabled();
-                        if (ImGui.BeginCombo("Sample Rate", sampleRate.ToString()))
+                        if (ImGui.BeginCombo(locale.GetString("SampleRate"), sampleRate.ToString()))
                         {
                             ImGui.EndCombo();
                         }
@@ -86,11 +90,11 @@ public class SettingsPopup : Popup
                         ImGui.EndTabItem();
                     }
 
-                    if (ImGui.BeginTabItem("Plugins"))
+                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Plugins")))
                     {
                         if (Glimpse.Plugins == null)
                         {
-                            ImGui.Text("No Plugins Available.");
+                            ImGui.Text(locale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
                         }
                         else
                         {
@@ -111,7 +115,7 @@ public class SettingsPopup : Popup
                                     if (name == _currentPlugin)
                                     {
                                         bool enabled = _currentConfig.EnabledPlugins.Contains(_currentPlugin);
-                                        if (ImGui.Checkbox("Enabled", ref enabled))
+                                        if (ImGui.Checkbox(locale.GetString("Checkbox.Enabled"), ref enabled))
                                         {
                                             if (enabled)
                                                 _currentConfig.EnabledPlugins.Add(_currentPlugin);
@@ -131,7 +135,7 @@ public class SettingsPopup : Popup
                         ImGui.EndTabItem();
                     }
 
-                    if (ImGui.BeginTabItem("About"))
+                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.About")))
                     {
                         _glimpseLogo ??= Renderer.CreateImage("Assets/Icons/Glimpse.png");
 
@@ -145,17 +149,16 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
-                            ImGui.Text($"Glimpse {Glimpse.Version}");
-                            ImGui.Text("2025 aquagoose");
+                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
+                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.Copyright"));
 
                             ImGui.Spacing();
-                            ImGui.Text("Made by aquagoose");
-                            ImGui.Text("Themed by Nizzine");
+                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.Credits"));
                             
                             ImGui.EndChild();
                         }
 
-                        ImGui.SeparatorText("Open-Source Libraries");
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries"));
                         
                         if (ImGui.TextLink("mixr"))
                             GlimpsePlayer.OpenLink("https://github.com/Aquatic-Games/mixr");
@@ -186,7 +189,7 @@ public class SettingsPopup : Popup
                     ImGui.EndChild();
                 }
 
-                if (ImGui.Button("Save"))
+                if (ImGui.Button(locale.GetString("Button.Save")))
                 {
                     Apply();
                     Close();
@@ -194,7 +197,7 @@ public class SettingsPopup : Popup
                 
                 ImGui.SameLine();
                 
-                if (ImGui.Button("Cancel"))
+                if (ImGui.Button(locale.GetString("Button.Cancel")))
                     Close();
             }
             

@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Database;
+using Glimpse.Locales;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using Newtonsoft.Json.Linq;
@@ -156,6 +157,8 @@ public class GlimpsePlayer : Window
 
     protected override unsafe void Update()
     {
+        Locale locale = Glimpse.Locale;
+        
         if (_newAlbumArt != null)
         {
             _albumArt?.Dispose();
@@ -254,9 +257,9 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? "Unknown Track");
-                ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? "Unknown Artist");
-                ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? "Unknown Album");
+                ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? locale.GetString("UnknownTrack"));
+                ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? locale.GetString("UnknownArtist"));
+                ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? locale.GetString("UnknownAlbum"));
 
                 ImGui.EndChild();
             }
@@ -376,7 +379,7 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
             {
-                if (ImGui.Selectable("Show All", _currentAlbum == ShowAllString))
+                if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == ShowAllString))
                 {
                     _currentAlbum = ShowAllString;
                     switchToTrackList = true;
@@ -401,14 +404,14 @@ public class GlimpsePlayer : Window
 
                         if (ImGui.BeginPopupContextItem())
                         {
-                            if (ImGui.Selectable("Add to queue"))
+                            if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
                                 player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
                         
                             ImGui.Separator();
                         
-                            if (ImGui.Selectable("Remove from Library..."))
+                            if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                 AddPopup(new RemovePopup(name, true, false));
-                            if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete album..."))
+                            if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
                                 AddPopup(new RemovePopup(name, true, true));
                         
                             ImGui.EndPopup();
@@ -453,7 +456,7 @@ public class GlimpsePlayer : Window
                         if (ImGui.ImageButton("Update", _updateButton.ID, ScaleVec(16)))
                             OpenLink(_newVersionURL);
                         
-                        ImGui.SetItemTooltip($"Version {_newVersion} is available!");
+                        ImGui.SetItemTooltip(locale.GetString("Player.UpdateAvailable", _newVersion));
                         
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
@@ -467,19 +470,19 @@ public class GlimpsePlayer : Window
                     
                     if (ImGui.ImageButton("ReportBug", _bugButton.ID, ScaleVec(16)))
                         OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
-                    ImGui.SetItemTooltip("Report Bug");
+                    ImGui.SetItemTooltip(locale.GetString("Player.ReportBug"));
                     
                     ImGui.SameLine();
                     
                     if (ImGui.ImageButton("Settings", _cogButton.ID, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
-                    ImGui.SetItemTooltip("Settings");
+                    ImGui.SetItemTooltip(locale.GetString("Player.Settings"));
             
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton.ID, ScaleVec(16)))
                         AddPopup(new AddFolderPopup());
-                    ImGui.SetItemTooltip("Add Folders");
+                    ImGui.SetItemTooltip(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
                 }
@@ -489,7 +492,7 @@ public class GlimpsePlayer : Window
                 ImGuiTabItemFlags trackFlags =
                     switchToTrackList ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
                 
-                if (ImGui.BeginTabItem("Tracks", trackFlags))
+                if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Tracks"), trackFlags))
                 {
                     ICollection<string> trackList;
 
@@ -503,15 +506,15 @@ public class GlimpsePlayer : Window
 
                     if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
-                        ImGui.TableSetupColumn("Track", ImGuiTableColumnFlags.WidthFixed,  40.0f * Scale);
-                        ImGui.TableSetupColumn("Title", ImGuiTableColumnFlags.WidthFixed, 280.0f * Scale);
-                        ImGui.TableSetupColumn("Artist", ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
-                        ImGui.TableSetupColumn("Album", ImGuiTableColumnFlags.WidthFixed, 240.0f * Scale);
-                        ImGui.TableSetupColumn("Length", ImGuiTableColumnFlags.WidthFixed, 48.0f * Scale);
-                        ImGui.TableSetupColumn("Plays", ImGuiTableColumnFlags.WidthFixed, 40.0f * Scale);
-                        ImGui.TableSetupColumn("Rating", ImGuiTableColumnFlags.WidthFixed, 60.0f * Scale);
-                        ImGui.TableSetupColumn("Last Played", ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
-                        ImGui.TableSetupColumn("File Name", ImGuiTableColumnFlags.WidthFixed, 300.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Track"), ImGuiTableColumnFlags.WidthFixed,  40.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Title"), ImGuiTableColumnFlags.WidthFixed, 280.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Artist"), ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Album"), ImGuiTableColumnFlags.WidthFixed, 240.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Length"), ImGuiTableColumnFlags.WidthFixed, 48.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Plays"), ImGuiTableColumnFlags.WidthFixed, 40.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Rating"), ImGuiTableColumnFlags.WidthFixed, 60.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("LastPlayed"), ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("FileName"), ImGuiTableColumnFlags.WidthFixed, 300.0f * Scale);
                         
                         ImGui.TableSetupScrollFreeze(0, 1);
                         
@@ -541,9 +544,9 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
 
-                                string title = EscapeString(track.Title) ?? "Unknown Track";
-                                string artist = EscapeString(track.Artist) ?? "Unknown Artist";
-                                string album = EscapeString(track.Album) ?? "Unknown Album";
+                                string title = EscapeString(track.Title) ?? locale.GetString("UnknownTrack");
+                                string artist = EscapeString(track.Artist) ?? locale.GetString("UnknownArtist");
+                                string album = EscapeString(track.Album) ?? locale.GetString("UnknownAlbum");
                                 string escapedPath = EscapeString(path);
 
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
@@ -554,20 +557,20 @@ public class GlimpsePlayer : Window
 
                                 if (ImGui.BeginPopupContextItem())
                                 {
-                                    if (ImGui.Selectable("Add to queue"))
+                                    if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
                                         player.QueueTrack(path, QueueSlot.Queue);
-                                    if (ImGui.Selectable("Play next"))
+                                    if (ImGui.Selectable(locale.GetString("Menu.PlayNext")))
                                         player.QueueTrack(path, QueueSlot.NextTrack);
-                                    if (ImGui.Selectable("Add to end"))
+                                    if (ImGui.Selectable(locale.GetString("Menu.AddToEnd")))
                                         player.QueueTrack(path, QueueSlot.AtEnd);
 
                                     ImGui.Separator();
 
-                                    if (ImGui.Selectable("Show File In Explorer"))
+                                    if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer")))
                                         Glimpse.Platform.OpenFileInExplorer(path);
-                                    if (ImGui.Selectable("Remove from Library..."))
+                                    if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                         AddPopup(new RemovePopup(path, false, false));
-                                    if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable("Delete file..."))
+                                    if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
                                         AddPopup(new RemovePopup(path, false, true));
 
                                     ImGui.EndPopup();
@@ -605,7 +608,7 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem("Queue"))
+                if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Queue")))
                 {
                     ImGui.BeginChild("QueuedTracks");
                     {

@@ -8,6 +8,7 @@ using Glimpse.Database;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using Silk.NET.SDL;
+using Locale = Glimpse.Locales.Locale;
 using Version = System.Version;
 
 namespace Glimpse;
@@ -30,6 +31,8 @@ public class Glimpse : IGlimpse, IDisposable
     public Platform Platform;
 
     public AudioPlayer Player;
+
+    public Locale Locale;
 
     public MusicDatabase? Database;
     
@@ -76,7 +79,12 @@ public class Glimpse : IGlimpse, IDisposable
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
+        Player = new AudioPlayer(Logger,
+            new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
+
+        //Locale = Locale.LoadLocale("English.json");
+        Locale = Locale.LoadLocale("Finnish.json");
+        //Locale = Locale.LoadLocale("None.json");
 
         if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
@@ -290,4 +298,5 @@ public class Glimpse : IGlimpse, IDisposable
     ILogger IGlimpse.Logger => Logger;
     IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;
+    ILocale? IGlimpse.Locale => Locale;
 }

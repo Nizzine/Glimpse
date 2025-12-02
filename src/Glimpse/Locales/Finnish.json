@@ -1,0 +1,73 @@
+﻿// DISCLOSURE: NOT A HUMAN TRANSLATION - TRANSLATED BY CLAUDE
+// If a real human wants to provide the localization, please do!
+{
+    "ID": "fi-fi",
+    "DisplayName": "Suomi",
+    "Strings": {
+        "Glimpse": "Glimpse",
+        "UnknownTrack": "Tuntematon kappale",
+        "UnknownArtist": "Tuntematon artisti",
+        "UnknownAlbum": "Tuntematon albumi",
+        "SampleRate": "Näytteenottotaajuus",
+        "Track": "Kappale",
+        "Title": "Nimi",
+        "Artist": "Artisti",
+        "Album": "Albumi",
+        "Length": "Kesto",
+        "Plays": "Toistot",
+        "Rating": "Arvostelu",
+        "LastPlayed": "Viimeksi soitettu",
+        "FileName": "Tiedostonimi",
+
+        "Player.UpdateAvailable": "Versio {0} on saatavilla!",
+        "Player.ReportBug": "Ilmoita virheestä",
+        "Player.Settings": "Asetukset",
+        "Player.AddDirs": "Lisää kansio",
+        "Player.Tab.Tracks": "Kappaleet",
+        "Player.Tab.Queue": "Jono",
+        "Player.Albums.ShowAll": "Näytä kaikki",
+
+        "Menu.AddToQueue": "Lisää jonoon",
+        "Menu.PlayNext": "Soita seuraavaksi",
+        "Menu.AddToEnd": "Lisää loppuun",
+        "Menu.RemoveFromLibrary": "Poista kirjastosta...",
+        "Menu.ShowInExplorer": "Näytä tiedosto Resurssienhallinnassa",
+        "Menu.DeleteAlbum": "Poista albumi...",
+        "Menu.DeleteFile": "Poista tiedosto...",
+
+        "Button.Yes": "Kyllä",
+        "Button.Save": "Tallenna",
+        "Button.Add": "Lisää",
+        "Button.Cancel": "Peruuta",
+        "Button.No": "Ei",
+        "Checkbox.Enabled": "Käytössä",
+
+        "Popup.Settings.Name": "Asetukset",
+        "Popup.Settings.Tab.General": "Yleiset",
+        "Popup.Settings.Tab.General.TransportLocation": "Ohjainpalkin sijainti",
+        "Popup.Settings.Tab.General.TransportLocation.Up": "Ylös",
+        "Popup.Settings.Tab.General.TransportLocation.Down": "Alas",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Aseta ohjainpalkin sijainti. OLE HYVÄ JA KÄYNNISTÄ UUDELLEEN tallennuksen jälkeen!",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile": "Ota käyttöön \"poista tiedosto\" -valikkokohta",
+        "Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip": "Ottaa käyttöön \"poista tiedosto\" -valikkokohdan, joka mahdollistaa tiedostojen pysyvän poistamisen tietokoneeltasi.",
+        "Popup.Settings.Tab.Player": "Soitin",
+        "Popup.Settings.Tab.Player.PlaybackHeading": "Toisto",
+        "Popup.Settings.Tab.Player.Volume": "Äänenvoimakkuus",
+        "Popup.Settings.Tab.Player.DeviceHeading": "Laite",
+        "Popup.Settings.Tab.Plugins": "Laajennukset",
+        "Popup.Settings.Tab.Plugins.NoneAvailable": "Ei saatavilla olevia laajennuksia.",
+        "Popup.Settings.Tab.About": "Tietoja",
+        "Popup.Settings.Tab.About.AppName": "Glimpse {0}",
+        "Popup.Settings.Tab.About.Copyright": "2025 aquagoose",
+        "Popup.Settings.Tab.About.Credits": "Tehnyt aquagoose\nTeeman tehnyt Nizzine",
+        "Popup.Settings.Tab.About.OpenSourceLibraries": "Avoimen lähdekoodin kirjastot",
+
+        "Popup.AddDirs.Name": "Lisää kansioita",
+
+        "Popup.Remove.Name": "Poista",
+        "Popup.Remove.Confirmation": "Poista {0} kirjastosta?",
+        "Popup.Remove.SongsConfirmation": "Poistetaanko myös kappaleet kirjastosta?",
+        "Popup.Remove.Menu.DeleteAlbumWarning": "POISTA PYSYVÄSTI {0} ja KAIKKI KAPPALEET tietokoneeltasi?\nHUOM: Tämä EI poista albumin kansioita tietokoneeltasi.",
+        "Popup.Remove.DeleteTrackWarning": "POISTA PYSYVÄSTI {0} tietokoneeltasi?"
+    }
+}
