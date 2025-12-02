@@ -1,5 +1,6 @@
 ﻿using Glimpse.API;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Glimpse.Locales;
 
@@ -34,11 +35,28 @@ public class Locale : ILocale
         return string.Format(localeString, format);
     }
 
-    public static Locale LoadLocale(string path)
+    public static readonly Dictionary<string, (string path, string name)> AvailableLocales;
+
+    static Locale()
     {
-        string fullPath = Path.Combine(AppContext.BaseDirectory, "Locales", path);
-        string json = File.ReadAllText(fullPath);
+        AvailableLocales = [];
+    }
+
+    public static Locale LoadLocale(string id)
+    {
+        string json = File.ReadAllText(AvailableLocales[id].path);
         return JsonConvert.DeserializeObject<Locale>(json);
+    }
+
+    public static void LoadAvailableLocales()
+    {
+        // TODO: There must be a better way to do this. This feels very inefficient.
+        //       I'd normally just load the entire locale in at once, but that feels even more inefficient...
+        foreach (string path in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "Locales"), "*.json"))
+        {
+            Locale locale = JsonConvert.DeserializeObject<Locale>(File.ReadAllText(path));
+            AvailableLocales.Add(locale.ID, (path, locale.DisplayName));
+        }
     }
 
     IReadOnlyDictionary<string, string> ILocale.Strings => Strings;

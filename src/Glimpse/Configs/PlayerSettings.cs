@@ -6,6 +6,8 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 {
     public const string ConfigName = "Player";
 
+    public string? Language;
+
     public bool SwapTransportControls;
     
     public uint SampleRate;
@@ -22,6 +24,7 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public GlimpseConfig()
     {
+        Language = null;
         SwapTransportControls = false;
         SampleRate = 48000;
         Volume = 1.0f;
@@ -33,9 +36,10 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public bool Equals(GlimpseConfig other)
     {
-        return SwapTransportControls == other.SwapTransportControls && SampleRate == other.SampleRate &&
-               Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) && AutoPlay == other.AutoPlay &&
-               EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion;
+        return Language == other.Language && SwapTransportControls == other.SwapTransportControls &&
+               SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) &&
+               AutoPlay == other.AutoPlay && EnabledPlugins.SetEquals(other.EnabledPlugins) && 
+               EnableFileDeletion == other.EnableFileDeletion;
     }
 
     public override bool Equals(object obj)

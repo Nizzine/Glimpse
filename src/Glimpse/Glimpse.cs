@@ -83,18 +83,23 @@ public class Glimpse : IGlimpse, IDisposable
         Player = new AudioPlayer(Logger,
             new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
 
-        const string defaultCulture = "en-gb";
-        string currentCulture = CultureInfo.CurrentUICulture.Name.ToLower();
-        try
+        Logger.Log("Loading locales.");
+        Locale.LoadAvailableLocales();
+        
+        const string defaultLocale = "en-gb";
+        string requestedLocale = Config.Language ?? CultureInfo.CurrentUICulture.Name.ToLower();
+        Logger.Log($"Requesting locale '{requestedLocale}'.");
+        if (Locale.AvailableLocales.ContainsKey(requestedLocale))
         {
-            Locale = Locale.LoadLocale($"{currentCulture}.json");
+            Locale = Locale.LoadLocale(requestedLocale);
+            Config.Language = requestedLocale;
         }
-        catch (Exception e)
+        else
         {
-            Logger.Log($"Could not load locale! Using default: {defaultCulture}");
-            Locale = Locale.LoadLocale($"{defaultCulture}.json");
+            Logger.Log($"Requested locale '{requestedLocale}' is not available. Loading default locale '{defaultLocale}'.");
+            Locale = Locale.LoadLocale(defaultLocale);
+            Config.Language = defaultLocale;
         }
-        //Locale = Locale.LoadLocale("None.json");
 
         if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
@@ -215,6 +220,8 @@ public class Glimpse : IGlimpse, IDisposable
     
     public void Dispose()
     {
+        ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
+        
         if (Plugins != null)
         {
             Logger.Log("Disposing all plugins.");

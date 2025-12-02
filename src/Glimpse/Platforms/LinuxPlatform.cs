@@ -40,7 +40,11 @@ public unsafe class LinuxPlatform : Platform
             DefaultFileManager = "dolphin";
 
 
+#if DEBUG
+        fixed (byte* pAppUniqueName = "glimpse.dbg"u8)
+#else
         fixed (byte* pAppUniqueName = "glimpse"u8)
+#endif
         fixed (byte* pAppFriendlyName = "Glimpse"u8)
         {
             ApplicationInfo appInfo = new()

@@ -41,6 +41,20 @@ public class SettingsPopup : Popup
                 {
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.General")))
                     {
+                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.Language"), locale.DisplayName))
+                        {
+                            foreach ((string id, (_, string name)) in Locale.AvailableLocales)
+                            {
+                                if (ImGui.Selectable(name, locale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
+                                {
+                                    _currentConfig.Language = id;
+                                    Glimpse.Locale = Locale.LoadLocale(id);
+                                }
+                            }
+                            
+                            ImGui.EndCombo();
+                        }
+                        
                         if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.TransportLocation"), _currentConfig.SwapTransportControls ? "Up" : "Down"))
                         {
                             if (ImGui.Selectable(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Up"), _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
@@ -54,8 +68,8 @@ public class SettingsPopup : Popup
                         
                         ImGui.Separator();
                         
-                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableMenu.DeleteFile"), ref _currentConfig.EnableFileDeletion);
-                        ImGui.SetItemTooltip("Popup.Settings.Tab.General.EnableMenu.DeleteFile.Tooltip");
+                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"), ref _currentConfig.EnableFileDeletion);
+                        ImGui.SetItemTooltip(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
                         
                         ImGui.EndTabItem();
                     }
@@ -92,7 +106,7 @@ public class SettingsPopup : Popup
 
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Plugins")))
                     {
-                        if (Glimpse.Plugins == null)
+                        if (Glimpse.Plugins == null || Glimpse.Plugins.Count == 0)
                         {
                             ImGui.Text(locale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
                         }
@@ -159,27 +173,32 @@ public class SettingsPopup : Popup
                         }
 
                         ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries"));
-                        
-                        if (ImGui.TextLink("mixr"))
-                            GlimpsePlayer.OpenLink("https://github.com/Aquatic-Games/mixr");
-                        if (ImGui.TextLink("Hexa.NET.ImGui"))
-                            GlimpsePlayer.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
-                        if (ImGui.TextLink("Silk.NET"))
-                            GlimpsePlayer.OpenLink("https://github.com/dotnet/Silk.NET");
-                        if (ImGui.TextLink("TagLibSharp"))
-                            GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
-                        if (ImGui.TextLink("StbImageSharp"))
-                            GlimpsePlayer.OpenLink("https://github.com/StbSharp/StbImageSharp");
-                        if (ImGui.TextLink("DiscordRichPresence"))
-                            GlimpsePlayer.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
-                        if (ImGui.TextLink("MetaBrainz.MusicBrainz"))
-                            GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
-                        if (ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt"))
-                            GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
-                        if (ImGui.TextLink("TerraFX.Interop.Windows"))
-                            GlimpsePlayer.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
-                        if (ImGui.TextLink("Newtonsoft.Json"))
-                            GlimpsePlayer.OpenLink("https://github.com/JamesNK/Newtonsoft.Json");
+
+                        ImGui.BeginChild("OSLibraries");
+                        {
+                            if (ImGui.TextLink("mixr"))
+                                GlimpsePlayer.OpenLink("https://github.com/Aquatic-Games/mixr");
+                            if (ImGui.TextLink("Hexa.NET.ImGui"))
+                                GlimpsePlayer.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
+                            if (ImGui.TextLink("Silk.NET"))
+                                GlimpsePlayer.OpenLink("https://github.com/dotnet/Silk.NET");
+                            if (ImGui.TextLink("TagLibSharp"))
+                                GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
+                            if (ImGui.TextLink("StbImageSharp"))
+                                GlimpsePlayer.OpenLink("https://github.com/StbSharp/StbImageSharp");
+                            if (ImGui.TextLink("DiscordRichPresence"))
+                                GlimpsePlayer.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
+                            if (ImGui.TextLink("MetaBrainz.MusicBrainz"))
+                                GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
+                            if (ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt"))
+                                GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
+                            if (ImGui.TextLink("TerraFX.Interop.Windows"))
+                                GlimpsePlayer.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
+                            if (ImGui.TextLink("Newtonsoft.Json"))
+                                GlimpsePlayer.OpenLink("https://github.com/JamesNK/Newtonsoft.Json");
+                            
+                            ImGui.EndChild();
+                        }
 
                         ImGui.EndTabItem();
                     }
