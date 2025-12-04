@@ -28,12 +28,16 @@ public class GlimpsePlayer : Window
     
     private string _currentAlbum;
     private int _seekPosition;
+    private int _currentRowHover;
+    private int _currentRatingHover;
 
     private Image _playButton;
     private Image _pauseButton;
     private Image _skipButton;
     private Image _stopButton;
     private Image _plusButton;
+    private Image _star;
+    private Image _starFilled;
     private Image _cogButton;
     private Image _bugButton;
     private Image _updateButton;
@@ -63,6 +67,8 @@ public class GlimpsePlayer : Window
         _skipButton = Renderer.CreateImage("Assets/Icons/SkipButton.png");
         _stopButton = Renderer.CreateImage("Assets/Icons/StopButton.png");
         _plusButton = Renderer.CreateImage("Assets/Icons/Plus.png");
+        _star = Renderer.CreateImage("Assets/Icons/Star.png");
+        _starFilled = Renderer.CreateImage("Assets/Icons/Star-Filled.png");
         _cogButton = Renderer.CreateImage("Assets/Icons/Cog.png");
         _bugButton = Renderer.CreateImage("Assets/Icons/Bug.png");
         _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
@@ -508,13 +514,14 @@ public class GlimpsePlayer : Window
 
                     if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
+                        const int ratingColumn = 6;
                         ImGui.TableSetupColumn(locale.GetString("Track"), ImGuiTableColumnFlags.WidthFixed,  40.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("Title"), ImGuiTableColumnFlags.WidthFixed, 280.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("Artist"), ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("Album"), ImGuiTableColumnFlags.WidthFixed, 240.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("Length"), ImGuiTableColumnFlags.WidthFixed, 48.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("Plays"), ImGuiTableColumnFlags.WidthFixed, 40.0f * Scale);
-                        ImGui.TableSetupColumn(locale.GetString("Rating"), ImGuiTableColumnFlags.WidthFixed, 60.0f * Scale);
+                        ImGui.TableSetupColumn(locale.GetString("Rating"), ImGuiTableColumnFlags.WidthFixed, 85.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("LastPlayed"), ImGuiTableColumnFlags.WidthFixed, 160.0f * Scale);
                         ImGui.TableSetupColumn(locale.GetString("FileName"), ImGuiTableColumnFlags.WidthFixed, 300.0f * Scale);
                         
@@ -537,6 +544,7 @@ public class GlimpsePlayer : Window
                                 Track track = Glimpse.Database.Tracks[path];
 
                                 ImGui.TableNextRow(songEntryHeight);
+                                int currentRow = ImGui.TableGetRowIndex();
 
                                 //Console.WriteLine(song);
 
@@ -551,7 +559,11 @@ public class GlimpsePlayer : Window
                                 string album = EscapeString(track.Album) ?? locale.GetString("UnknownAlbum");
                                 string escapedPath = EscapeString(path);
 
-                                if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, ImGuiSelectableFlags.SpanAllColumns))
+                                // In order to allow the rating buttons to be clicked, we tell the selectable to ignore
+                                // the ratings column (otherwise the buttons won't click and instead the song will play)
+                                // To do this we just disable the SpanAllColumns flag when the rating column is hovered.
+                                bool isRatingHovered = ImGui.TableGetHoveredColumn() == ratingColumn;
+                                if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, isRatingHovered ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.SpanAllColumns))
                                 {
                                     player.QueueTracks(trackList, QueueSlot.Clear);
                                     player.ChangeTrack(song);
@@ -587,11 +599,35 @@ public class GlimpsePlayer : Window
                                 ImGui.TableNextColumn();
                                 ImGui.Text(track.PlayCount.ToString());
                                 ImGui.TableNextColumn();
+                                int rating = isRatingHovered && _currentRowHover == currentRow ? _currentRatingHover : track.Rating;
+                                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
+                                ImGui.PushStyleColor(ImGuiCol.Button, 0);
+                                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+                                ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
                                 for (int i = 0; i < 5; i++)
                                 {
-                                    ImGui.Text(i < track.Rating ? "*" : "-");
-                                    ImGui.SameLine(0, 7);
+                                    if (ImGui.ImageButton($"{path}rating{i}", i < rating ? _starFilled : _star, ScaleVec(16)))
+                                    {
+                                        track.Rating = (byte) (i + 1);
+                                        Glimpse.Database.Tracks[path] = track;
+                                    }
+
+                                    if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
+                                    {
+                                        track.Rating = 0;
+                                        Glimpse.Database.Tracks[path] = track;
+                                    }
+
+                                    if (ImGui.IsItemHovered())
+                                    {
+                                        _currentRowHover = currentRow;
+                                        _currentRatingHover = i + 1;
+                                    }
+
+                                    ImGui.SameLine(0, 0);
                                 }
+                                ImGui.PopStyleColor(3);
+                                ImGui.PopStyleVar();
 
                                 ImGui.NewLine();
                                 ImGui.TableNextColumn();
