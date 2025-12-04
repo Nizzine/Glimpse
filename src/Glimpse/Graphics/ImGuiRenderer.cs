@@ -58,23 +58,28 @@ public class ImGuiRenderer : IDisposable
         io.DisplayFramebufferScale = new Vector2(scale, scale);
         io.IniFilename = null;
         io.LogFilename = null;
-        
-        io.Fonts.AddFontDefault();
-        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
-        io.FontGlobalScale = 1.0f;
+        //io.Fonts.AddFontDefault();
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasTextures;
 
         ImGui.GetStyle().ScaleAllSizes(scale);
-        
-        RecreateFontTexture();
 
         Fonts = new Dictionary<string, ImFontPtr>();
     }
 
-    public ImFontPtr AddFont(string path, uint size, string name)
+    public unsafe ImFontPtr AddFont(string path, uint size, string name)
     {
-        ImFontPtr font = ImGui.GetIO().Fonts.AddFontFromFileTTF(path, (uint) (size * _scale));
+        ImFontAtlasPtr fonts = ImGui.GetIO().Fonts;
+        
+        ImFontConfig config = new()
+        {
+            MergeMode = (byte) (fonts.Fonts.Size > 0 ? 1 : 0),
+            FontDataOwnedByAtlas = 1,
+            RasterizerDensity = 1,
+            RasterizerMultiply = 1,
+            GlyphMaxAdvanceX = float.MaxValue
+        };
+        ImFontPtr font = fonts.AddFontFromFileTTF(path, (uint) (size * _scale), &config);
         Fonts.Add(name, font);
-        RecreateFontTexture();
 
         return font;
     }
@@ -131,6 +136,14 @@ public class ImGuiRenderer : IDisposable
         _gl.UnmapBuffer(BufferTargetARB.ArrayBuffer);
         _gl.UnmapBuffer(BufferTargetARB.ElementArrayBuffer);
 
+        ref ImVector<ImTextureDataPtr> textures = ref drawData.Textures;
+        for (int i = 0; i < textures.Size; i++)
+        {
+            ImTextureDataPtr texture = textures[i];
+            if (texture.Status != ImTextureStatus.Ok)
+                UpdateTexture(texture);
+        }
+
         _bufferSet.SetMatrix4x4("uProjection",
             Matrix4x4.CreateOrthographicOffCenter(drawData.DisplayPos.X, drawData.DisplayPos.X + drawData.DisplaySize.X,
                 drawData.DisplayPos.Y + drawData.DisplaySize.Y, drawData.DisplayPos.Y, -1, 1));
@@ -152,7 +165,7 @@ public class ImGuiRenderer : IDisposable
                     continue;
                 
                 _gl.ActiveTexture(TextureUnit.Texture0);
-                _gl.BindTexture(TextureTarget.Texture2D, (uint) drawCmd.TextureId.Handle);
+                _gl.BindTexture(TextureTarget.Texture2D, (uint) drawCmd.GetTexID());
 
                 Vector2 clipMin = new Vector2(drawCmd.ClipRect.X - clipOff.X, drawCmd.ClipRect.Y - clipOff.Y);
                 Vector2 clipMax = new Vector2(drawCmd.ClipRect.Z - clipOff.X, drawCmd.ClipRect.W - clipOff.Y);
@@ -179,7 +192,7 @@ public class ImGuiRenderer : IDisposable
         ImGui.GetIO().DisplaySize = new Vector2(size.Width, size.Height);
     }
     
-    private unsafe void RecreateFontTexture()
+    /*private unsafe void RecreateFontTexture()
     {
         if (_gl.IsTexture(_imGuiTexture))
             _gl.DeleteTexture(_imGuiTexture);
@@ -200,10 +213,78 @@ public class ImGuiRenderer : IDisposable
         //_gl.GenerateMipmap(TextureTarget.Texture2D);
         
         io.Fonts.SetTexID(_imGuiTexture);
+    }*/
+
+    private unsafe void UpdateTexture(ImTextureDataPtr textureData)
+    {
+        Console.WriteLine(textureData.Status);
+
+        int currentUnpackAlignment = _gl.GetInteger(GetPName.UnpackAlignment);
+        int currentUnpackRowLength = _gl.GetInteger(GetPName.UnpackRowLength);
+        
+        switch (textureData.Status)
+        {
+            case ImTextureStatus.WantCreate:
+            {
+                uint texture = _gl.GenTexture();
+                _gl.PixelStore(GLEnum.UnpackAlignment, 1);
+                _gl.PixelStore(GLEnum.UnpackRowLength, 0);
+                _gl.BindTexture(TextureTarget.Texture2D, texture);
+                _gl.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba, (uint) textureData.Width,
+                    (uint) textureData.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, textureData.Pixels);
+                
+                _gl.TexParameter(TextureTarget.Texture2D, GLEnum.TextureMinFilter, (int) TextureMinFilter.Linear);
+                _gl.TexParameter(TextureTarget.Texture2D, GLEnum.TextureMagFilter, (int) TextureMagFilter.Linear);
+
+                textureData.TexID = texture;
+                textureData.Status = ImTextureStatus.Ok;
+                
+                break;
+            }
+            
+            case ImTextureStatus.WantUpdates:
+            {
+                _gl.BindTexture(TextureTarget.Texture2D, (uint) textureData.TexID);
+                _gl.PixelStore(GLEnum.UnpackAlignment, 1);
+                _gl.PixelStore(GLEnum.UnpackRowLength, textureData.Width);
+                ref ImVector<ImTextureRect> updates = ref textureData.Updates; 
+                for (int i = 0; i < updates.Size; i++)
+                {
+                    ImTextureRect rect = updates[i];
+                    _gl.TexSubImage2D(TextureTarget.Texture2D, 0, rect.X, rect.Y, rect.W, rect.H, PixelFormat.Rgba,
+                        PixelType.UnsignedByte, textureData.GetPixelsAt(rect.X, rect.Y));
+
+                    textureData.Status = ImTextureStatus.Ok;
+                }
+
+                break;
+            }
+
+            case ImTextureStatus.WantDestroy:
+            {
+                _gl.DeleteTexture((uint) textureData.TexID);
+                textureData.TexID = ImTextureID.Null;
+                textureData.Status = ImTextureStatus.Destroyed;
+                break;
+            }
+            
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+        _gl.PixelStore(PixelStoreParameter.UnpackAlignment, currentUnpackAlignment);
+        _gl.PixelStore(PixelStoreParameter.UnpackRowLength, currentUnpackRowLength);
     }
     
     public void Dispose()
     {
+        ref ImVector<ImTextureDataPtr> textures = ref ImGui.GetPlatformIO().Textures;
+        for (int i = 0; i < textures.Size; i++)
+        {
+            textures[i].Status = ImTextureStatus.Destroyed;
+            UpdateTexture(textures[i]);
+        }
+        
         ImGui.DestroyContext(_context);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Silk.NET.OpenGL;
+﻿using Hexa.NET.ImGui;
+using Silk.NET.OpenGL;
 
 namespace Glimpse.Graphics;
 
@@ -11,6 +12,8 @@ public class Image : IDisposable
     public readonly uint Width;
 
     public readonly uint Height;
+
+    public unsafe ImTextureRef TexRef => new ImTextureRef(texId: ID);
     
     internal unsafe Image(GL gl, byte[] data, uint width, uint height)
     {
@@ -38,4 +41,7 @@ public class Image : IDisposable
     {
         _gl.DeleteTexture(ID);
     }
+    
+    public static implicit operator ImTextureRef(Image img)
+        => img.TexRef;
 }

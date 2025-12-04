@@ -73,10 +73,12 @@ public class GlimpsePlayer : Window
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
         
-        ImFontPtr roboto = Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", 18, "Roboto-20px");
+        ImFontPtr roboto = Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", 18, "Roboto");
+        ImFontPtr notoJP = Renderer.ImGui.AddFont("Assets/Fonts/NotoSansJP-Regular.ttf", 18, "NotoJP");
+        ImFontPtr notoSC = Renderer.ImGui.AddFont("Assets/Fonts/NotoSansSC-Regular.ttf", 18, "NotoSC");
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-        io.FontDefault = roboto;
+        //io.FontDefault = roboto;
 
         ImGuiStylePtr style = ImGui.GetStyle();
         int rounding = (int) (5 * Scale);
@@ -246,7 +248,7 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y));
             {
-                ImGui.Image(_albumArt?.ID ?? _defaultAlbumArt.ID, new Vector2(winSize.Y));
+                ImGui.Image(_albumArt ?? _defaultAlbumArt, new Vector2(winSize.Y));
                 
                 ImGui.EndChild();
             }
@@ -281,7 +283,7 @@ public class GlimpsePlayer : Window
                 ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                 ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
                 
-                if (ImGui.ImageButton("BackwardButton", _skipButton.ID, ScaleVec(32), new Vector2(1, 0), new Vector2(0, 1)))
+                if (ImGui.ImageButton("BackwardButton", _skipButton, ScaleVec(32), new Vector2(1, 0), new Vector2(0, 1)))
                 {
                     player.Previous();
                 }
@@ -290,24 +292,24 @@ public class GlimpsePlayer : Window
                 
                 if (player.TrackState == TrackState.Playing)
                 {
-                    if (ImGui.ImageButton("PauseButton", _pauseButton.ID, ScaleVec(32)))
+                    if (ImGui.ImageButton("PauseButton", _pauseButton, ScaleVec(32)))
                         player.Pause();
                 }
                 else
                 {
-                    if (ImGui.ImageButton("PlayButton", _playButton.ID, ScaleVec(32)))
+                    if (ImGui.ImageButton("PlayButton", _playButton, ScaleVec(32)))
                         player.Play();
                 }
                 
                 ImGui.SameLine();
 
-                if (ImGui.ImageButton("ForwardButton", _skipButton.ID, ScaleVec(32)))
+                if (ImGui.ImageButton("ForwardButton", _skipButton, ScaleVec(32)))
                 {
                     player.Next();
                 }
 
                 ImGui.SameLine();
-                if (ImGui.ImageButton("StopButton", _stopButton.ID, ScaleVec(32)))
+                if (ImGui.ImageButton("StopButton", _stopButton, ScaleVec(32)))
                 {
                     player.Stop();
                 }
@@ -453,7 +455,7 @@ public class GlimpsePlayer : Window
                         float amount = (float.Sin(_newVersionBlinker) + 1) / 2;
                         
                         ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Lerp(buttonColor, highlightColor, amount));
-                        if (ImGui.ImageButton("Update", _updateButton.ID, ScaleVec(16)))
+                        if (ImGui.ImageButton("Update", _updateButton, ScaleVec(16)))
                             OpenLink(_newVersionURL);
                         
                         ImGui.SetItemTooltip(locale.GetString("Player.UpdateAvailable", _newVersion));
@@ -468,19 +470,19 @@ public class GlimpsePlayer : Window
                             _newVersionBlinker -= float.Pi * 2;
                     }
                     
-                    if (ImGui.ImageButton("ReportBug", _bugButton.ID, ScaleVec(16)))
+                    if (ImGui.ImageButton("ReportBug", _bugButton, ScaleVec(16)))
                         OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
                     ImGui.SetItemTooltip(locale.GetString("Player.ReportBug"));
                     
                     ImGui.SameLine();
                     
-                    if (ImGui.ImageButton("Settings", _cogButton.ID, ScaleVec(16)))
+                    if (ImGui.ImageButton("Settings", _cogButton, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
                     ImGui.SetItemTooltip(locale.GetString("Player.Settings"));
             
                     ImGui.SameLine();
             
-                    if (ImGui.ImageButton("AddDirs", _plusButton.ID, ScaleVec(16)))
+                    if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16)))
                         AddPopup(new AddFolderPopup());
                     ImGui.SetItemTooltip(locale.GetString("Player.AddDirs"));
                     

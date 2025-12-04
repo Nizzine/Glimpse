@@ -157,7 +157,7 @@ public class SettingsPopup : Popup
 
                         if (ImGui.BeginChild("GlimpseLogo", ImGuiChildFlags.AlwaysAutoResize | ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
-                            ImGui.Image(_glimpseLogo.ID, ScaleVec(128, 128));
+                            ImGui.Image(_glimpseLogo, ScaleVec(128, 128));
                             ImGui.EndChild();
                         }
 
