@@ -211,9 +211,12 @@ public class GlimpsePlayer : Window
 #endif*/
         
         //ImGui.ShowStyleEditor();
-        
-        uint id = ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | (ImGuiDockNodeFlags) (1 << 12));
-        //ImGui.SetNextWindowDockID(id, ImGuiCond.Once);
+
+        const uint centralNode = 1 << 11;
+        const uint noTabBar = 1 << 12;
+
+        uint id = ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(),
+            ImGuiDockNodeFlags.PassthruCentralNode | (ImGuiDockNodeFlags) noTabBar);
         
         if (!_init)
         {
@@ -222,28 +225,34 @@ public class GlimpsePlayer : Window
             ImGuiP.DockBuilderRemoveNode(id);
             ImGuiP.DockBuilderAddNode(id, ImGuiDockNodeFlags.NoUndocking);
 
-            uint outId = id;
-
-            ImGuiDir dir = ImGuiDir.Down;
-            float sizeRatio = 0.18f;
-
-            if (Glimpse.Config.SwapTransportControls)
-            {
-                dir = ImGuiDir.Up;
-                sizeRatio = 0.19f;
-            }
+            ImGuiDir dir = Glimpse.Config.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
             
             uint transportId;
-            uint transportDock = ImGuiP.DockBuilderSplitNode(outId, dir, sizeRatio, &transportId, &outId);
+            uint albumsSongsId;
+            ImGuiP.DockBuilderSplitNode(id, dir, 0, &transportId, &albumsSongsId);
 
-            ImGuiDockNodePtr node = ImGuiP.DockBuilderGetNode(transportId);
-            node.LocalFlags |= ImGuiDockNodeFlags.NoResize;
+            ImGuiDockNodePtr transportNode = ImGuiP.DockBuilderGetNode(transportId);
+            transportNode.LocalFlags = ImGuiDockNodeFlags.NoResize;
+            transportNode.SizeRef = new Vector2(1100, 122);
             
-            uint foldersDock = ImGuiP.DockBuilderSplitNode(outId, ImGuiDir.Left, 0.3f, null, &outId);
+            uint albumsId;
+            uint songsId;
+            ImGuiP.DockBuilderSplitNode(albumsSongsId, ImGuiDir.Left, 0, &albumsId, &songsId);
+
+            ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
+            albumsNode.SizeRef = new Vector2(327, 650);
+
+            ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
+            songsNode.SizeRef = new Vector2(772, 650);
+            songsNode.LocalFlags = (ImGuiDockNodeFlags) centralNode;
             
-            ImGuiP.DockBuilderDockWindow("Transport", transportDock);
-            ImGuiP.DockBuilderDockWindow("Albums", foldersDock);
-            ImGuiP.DockBuilderDockWindow("Songs", outId);
+            Console.WriteLine(albumsId.ToString("x8"));
+            Console.WriteLine(albumsId.ToString("x8"));
+            Console.WriteLine(transportId.ToString("x8"));
+            
+            ImGuiP.DockBuilderDockWindow("Transport", transportId);
+            ImGuiP.DockBuilderDockWindow("Albums", albumsId);
+            ImGuiP.DockBuilderDockWindow("Songs", songsId);
         
             ImGuiP.DockBuilderFinish(id);
         }
