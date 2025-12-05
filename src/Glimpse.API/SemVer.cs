@@ -178,6 +178,12 @@ public struct SemVer : IEquatable<SemVer>, IComparable<SemVer>
                 return buildComparison;
         }
 
+        // Versions without a suffix are greater than versions with a suffix
+        if (Suffix != null && other.Suffix == null)
+            return -1;
+        if (Suffix == null && other.Suffix != null)
+            return 1;
+        
         return string.CompareOrdinal(Suffix, other.Suffix);
     }
     
