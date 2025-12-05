@@ -12,8 +12,8 @@ public class SettingsPopup : Popup
 {
     private GlimpseConfig _currentConfig;
     
-    private Image _glimpseLogo;
-    private string _currentPlugin;
+    private Image? _glimpseLogo;
+    private string? _currentPlugin;
 
     public override void Open()
     {
@@ -165,7 +165,9 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
+                            ImGui.PushFont(null, 34 * Scale);
                             ImGui.Text(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
+                            ImGui.PopFont();
                             ImGui.Text(locale.GetString("Popup.Settings.Tab.About.Copyright"));
 
                             ImGui.Spacing();

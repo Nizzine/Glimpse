@@ -233,17 +233,17 @@ public class GlimpsePlayer : Window
 
             ImGuiDockNodePtr transportNode = ImGuiP.DockBuilderGetNode(transportId);
             transportNode.LocalFlags = ImGuiDockNodeFlags.NoResize;
-            transportNode.SizeRef = new Vector2(1100, 122);
+            transportNode.SizeRef = ScaleVec(1100, 122);
             
             uint albumsId;
             uint songsId;
             ImGuiP.DockBuilderSplitNode(albumsSongsId, ImGuiDir.Left, 0, &albumsId, &songsId);
 
             ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
-            albumsNode.SizeRef = new Vector2(327, 650);
+            albumsNode.SizeRef = ScaleVec(327, 650);
 
             ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
-            songsNode.SizeRef = new Vector2(772, 650);
+            songsNode.SizeRef = ScaleVec(772, 650);
             songsNode.LocalFlags = (ImGuiDockNodeFlags) centralNode;
             
             Console.WriteLine(albumsId.ToString("x8"));
@@ -274,9 +274,18 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? locale.GetString("UnknownTrack"));
-                ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? locale.GetString("UnknownArtist"));
-                ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? locale.GetString("UnknownAlbum"));
+                if (player.TrackState == TrackState.Stopped)
+                {
+                    ImGui.Text(locale.GetString("Glimpse"));
+                    ImGui.Text("");
+                    ImGui.Text("");
+                }
+                else
+                {
+                    ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? locale.GetString("UnknownTrack"));
+                    ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? locale.GetString("UnknownArtist"));
+                    ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? locale.GetString("UnknownAlbum"));
+                }
 
                 ImGui.EndChild();
             }
