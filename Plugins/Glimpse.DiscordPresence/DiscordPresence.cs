@@ -89,15 +89,17 @@ public partial class DiscordPresence : IPlugin
     {
         _glimpse.Logger.Log($"Set discord presence to track: {info.Artist} - {info.Title}");
         _currentUrl = "glimpse";
-        
+
         DateTime now = DateTime.UtcNow;
+        TimeSpan current = TimeSpan.FromSeconds(currentSecond);
+        TimeSpan total = TimeSpan.FromSeconds(totalSeconds);
         
         RichPresence presence = new RichPresence()
             .WithType(ActivityType.Listening)
             .WithStatusDisplay(StatusDisplayType.State)
             .WithDetails(info.Title)
             .WithState(info.Artist)
-            .WithTimestamps(new Timestamps(now - TimeSpan.FromSeconds(currentSecond), now + TimeSpan.FromSeconds(totalSeconds)))
+            .WithTimestamps(new Timestamps(now - current, now + (total - current)))
             .WithAssets(new Assets() { LargeImageText = info.Album, LargeImageKey = _currentUrl });
         
         Client.SetPresence(presence);

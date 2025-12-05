@@ -74,6 +74,7 @@ public class Glimpse : IGlimpse, IDisposable
         _sdl = Sdl.GetApi();
         _sdl.SetHint(Sdl.HintMouseFocusClickthrough, "1");
         _sdl.SetHint(Sdl.HintVideoAllowScreensaver, "1");
+        _sdl.SetHint(Sdl.HintAppName, "Glimpse");
         
         if (_sdl.Init(Sdl.InitVideo | Sdl.InitEvents) < 0)
             throw new Exception("Failed to initialize SDL.");
