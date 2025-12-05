@@ -122,7 +122,7 @@ public partial class DiscordPresence : IPlugin
             {
                 const string app = "GlimpseAudioPlayer";
                 const string contact = "https://github.com/aquagoose";
-                const string version = "0.0.0-dev";
+                string version = _glimpse.Version.ToString();
 
                 using Query query = new Query(app, version, contact);
                 var releases = query.FindReleases(albumName, 5);

@@ -2,7 +2,7 @@
 
 public interface IGlimpse
 {
-    public Version Version { get; }
+    public SemVer Version { get; }
     
     public ILogger Logger { get; }
     

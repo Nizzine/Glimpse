@@ -190,6 +190,8 @@ public class SettingsPopup : Popup
                                 GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
                             if (ImGui.TextLink("StbImageSharp"))
                                 GlimpsePlayer.OpenLink("https://github.com/StbSharp/StbImageSharp");
+                            if (ImGui.TextLink("empress"))
+                                GlimpsePlayer.OpenLink("https://github.com/aquagoose/empress");
                             if (ImGui.TextLink("DiscordRichPresence"))
                                 GlimpsePlayer.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
                             if (ImGui.TextLink("MetaBrainz.MusicBrainz"))

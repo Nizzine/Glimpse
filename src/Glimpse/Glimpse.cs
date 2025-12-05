@@ -22,9 +22,9 @@ public class Glimpse : IGlimpse, IDisposable
     private AssemblyLoadContext _pluginsContext;
 
     public Logger Logger;
-    
-    public Version Version;
 
+    public SemVer Version;
+    
     public ConfigManager ConfigManager;
 
     public GlimpseConfig Config;
@@ -52,8 +52,39 @@ public class Glimpse : IGlimpse, IDisposable
     public unsafe void Run(Window window, string[] args)
     {
         Logger = new Logger();
-        
-        Version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(0, 0, 0);
+
+        // get the ass
+        Assembly? ass = Assembly.GetEntryAssembly();
+        // no ass
+        if (ass == null)
+            Version = new SemVer();
+        else
+        {
+            // i love as- no nevermind
+            AssemblyInformationalVersionAttribute? infoVersion =
+                ass.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+
+#if !DEBUG
+            try
+            {
+#endif
+                Version = new SemVer(infoVersion!.InformationalVersion);
+#if !DEBUG
+            }
+            catch (Exception e)
+            {
+                Logger.Log($"Could not parse version number! Using fallback. {e}.");
+
+                Version? assVersion = ass.GetName().Version;
+                // ass does not have a version
+                if (assVersion == null)
+                    Version = new SemVer();
+                else
+                    Version = new SemVer(assVersion.Major, assVersion.Minor, assVersion.Build, assVersion.Revision);
+            }
+#endif
+        }
+            
         Logger.Log($"Glimpse {Version}");
         
         Logger.Log("Creating config manager.");
@@ -313,7 +344,7 @@ public class Glimpse : IGlimpse, IDisposable
         }
     }
 
-    Version IGlimpse.Version => Version;
+    SemVer IGlimpse.Version => Version;
     ILogger IGlimpse.Logger => Logger;
     IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;

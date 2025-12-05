@@ -22,7 +22,7 @@ public class GlimpsePlayer : Window
     
     private bool _init;
 
-    private Version? _newVersion;
+    private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
     
@@ -791,15 +791,12 @@ public class GlimpsePlayer : Window
             string json = await response.Content.ReadAsStringAsync();
             JObject obj = JObject.Parse(json);
 
-            Version thisVersion = Glimpse.Version;
+            SemVer thisVersion = Glimpse.Version;
 
             string? newVersionString = (string?) obj["version"];
             if (newVersionString == null)
                 return;
-            int posOfSuffixDash = newVersionString.IndexOf('-');
-            if (posOfSuffixDash >= 0)
-                newVersionString = newVersionString.Remove(posOfSuffixDash);
-            Version newVersion = new Version(newVersionString);
+            SemVer newVersion = new SemVer(newVersionString);
 
             if (newVersion <= thisVersion)
             {
