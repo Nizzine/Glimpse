@@ -29,9 +29,9 @@ dotnet publish -c Release -r $RUNTIME -o $BUILD_DIR -p:Version="$VERSION" --self
 pushd $BUILD_DIR
 if [[ $RUNTIME == "win"* ]]; then
   rm libmixr.so || exit 1
+  rm Glimpse.desktop || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   rm mixr.dll || exit 1
-  rm Glimpse.desktop || exit 1
 fi
 popd
 
