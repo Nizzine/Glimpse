@@ -49,7 +49,7 @@ public unsafe class WindowsPlatform : Platform
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        InvokeButtonPressed(button);
+        InvokeButtonPressed(button, null);
     }
 
     public override void EnableDPIAwareness()
@@ -73,7 +73,7 @@ public unsafe class WindowsPlatform : Platform
         }
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo? info)
+    public override void SetPlayState(TrackState state, TrackInfo? info, int position)
     {
         switch (state)
         {

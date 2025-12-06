@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Builds glimpse for release.
+# Commented because I almost always immediately forget how to read and write bash scripts.
+# I swear this stuff is black magic... And then I look at winetricks and I just think HOW?? and WHY??
+
 if [ $# -ne 3 ]; then
   echo "Usage: glimpsebuild <out_name> <runtime> <version>"
   exit 2
@@ -27,6 +31,7 @@ if [[ $RUNTIME == "win"* ]]; then
   rm libmixr.so || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   rm mixr.dll || exit 1
+  rm Glimpse.desktop || exit 1
 fi
 popd
 

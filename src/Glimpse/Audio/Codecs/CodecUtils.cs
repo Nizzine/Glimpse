@@ -52,7 +52,7 @@ public static class CodecUtils
         if (file.Tag.Pictures is { Length: > 0 })
         {
             IPicture picture = file.Tag.Pictures[0];
-            albumArt = new TrackInfo.Image(picture.Data?.Data, picture.Filename);
+            albumArt = new TrackInfo.Image(picture.Data?.Data, picture.Filename, picture.MimeType);
         }
 
         return new TrackInfo(trackNumber, title, artist, album, length, genre, albumArt);

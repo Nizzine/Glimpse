@@ -734,7 +734,7 @@ public class GlimpsePlayer : Window
     
     private void PlayerOnStateChanged(TrackState state)
     {
-        Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack);
+        Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack, Glimpse.Player.ElapsedSeconds);
         
         if (state != TrackState.Stopped)
             return;
@@ -742,27 +742,33 @@ public class GlimpsePlayer : Window
         _shouldDeleteArt = true;
     }
     
-    private void PlatformOnButtonPressed(TransportButton button)
+    private void PlatformOnButtonPressed(TransportButton? button, int? position)
     {
         AudioPlayer player = Glimpse.Player;
-        
-        switch (button)
+
+        if (button is { } transportButton)
         {
-            case TransportButton.Play:
-                player.Play();
-                break;
-            case TransportButton.Pause:
-                player.Pause();
-                break;
-            case TransportButton.Next:
-                player.Next();
-                break;
-            case TransportButton.Previous:
-                player.Previous();
-                break;
-            default:
-                throw new ArgumentOutOfRangeException(nameof(button), button, null);
+            switch (transportButton)
+            {
+                case TransportButton.Play:
+                    player.Play();
+                    break;
+                case TransportButton.Pause:
+                    player.Pause();
+                    break;
+                case TransportButton.Next:
+                    player.Next();
+                    break;
+                case TransportButton.Previous:
+                    player.Previous();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(button), button, null);
+            }
         }
+        
+        if (position is { } pos)
+            player.Seek(pos);
     }
 
     private Vector2 ScaleVec(float x, float y)

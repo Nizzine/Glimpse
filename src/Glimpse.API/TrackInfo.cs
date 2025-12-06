@@ -29,13 +29,15 @@ public class TrackInfo
 
     public class Image
     {
-        public byte[] Data;
-        public string Location;
+        public byte[]? Data;
+        public string? Location;
+        public string? MimeType;
 
-        public Image(byte[] data, string location)
+        public Image(byte[]? data, string? location, string? mimeType)
         {
             Data = data;
             Location = location;
+            MimeType = mimeType;
         }
     }
 }

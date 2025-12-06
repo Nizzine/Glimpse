@@ -21,6 +21,9 @@ public static unsafe class Empress
     [DllImport(DllName, EntryPoint = "empSetSeekCallback")]
     public static extern void SetSeekCallback(Context* context, SeekCallback callback);
 
+    [DllImport(DllName, EntryPoint = "empSetPlayPosition")]
+    public static extern void SetPlayPosition(Context* context, nuint position);
+    
     [DllImport(DllName, EntryPoint = "empSetPlayState")]
     public static extern void SetPlayState(Context* context, PlayState state);
 

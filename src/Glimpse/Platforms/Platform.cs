@@ -15,13 +15,13 @@ public abstract class Platform : IDisposable
 
     public abstract void OpenFileInExplorer(string path);
 
-    public abstract void SetPlayState(TrackState state, TrackInfo? info);
+    public abstract void SetPlayState(TrackState state, TrackInfo? info, int position);
 
     public abstract void Dispose();
 
-    protected void InvokeButtonPressed(TransportButton button)
+    protected void InvokeButtonPressed(TransportButton? button, int? position)
     {
-        ButtonPressed(button);
+        ButtonPressed(button, position);
     }
 
     public static Platform AutoDetect()
@@ -35,5 +35,5 @@ public abstract class Platform : IDisposable
         return new NullPlatform();
     }
 
-    public delegate void OnButtonPressed(TransportButton button);
+    public delegate void OnButtonPressed(TransportButton? button, int? position);
 }
