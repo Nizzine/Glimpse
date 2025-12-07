@@ -144,13 +144,12 @@ public class Glimpse : IGlimpse, IDisposable
         Database!.Refresh();
         
         Logger.Log("Searching for 'Plugins' directory.");
-        if (Directory.Exists("Plugins"))
+        string pluginsLocation = GetPath("Plugins");
+        if (Directory.Exists(pluginsLocation))
         {
             _pluginsContext = new AssemblyLoadContext("Plugins");
 
             Plugins = [];
-
-            string pluginsLocation = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Plugins");
             
             Logger.Log($"Searching for plugins in {pluginsLocation}");
             foreach (string file in Directory.GetFiles(pluginsLocation, "*.dll", SearchOption.AllDirectories))
@@ -342,6 +341,11 @@ public class Glimpse : IGlimpse, IDisposable
                 break;
             }
         }
+    }
+
+    public static string GetPath(string path)
+    {
+        return Path.Combine(AppContext.BaseDirectory, path);
     }
 
     SemVer IGlimpse.Version => Version;

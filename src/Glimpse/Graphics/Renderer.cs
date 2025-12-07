@@ -71,7 +71,7 @@ public unsafe class Renderer : IDisposable
 
     public Image CreateImage(string path)
     {
-        using FileStream stream = File.OpenRead(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path));
+        using FileStream stream = File.OpenRead(Glimpse.GetPath(path));
         ImageResult result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 
         return new Image(GL, result.Data, (uint) result.Width, (uint) result.Height);

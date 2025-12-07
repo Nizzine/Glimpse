@@ -112,7 +112,7 @@ public abstract unsafe class Window : IDisposable
         if (_window == null)
             throw new Exception($"Failed to open window: {_sdl.GetErrorS()}");
         
-        ImageResult result = ImageResult.FromMemory(File.ReadAllBytes("Assets/Icons/Glimpse.png"));
+        ImageResult result = ImageResult.FromMemory(File.ReadAllBytes(Glimpse.GetPath("Assets/Icons/Glimpse.png")));
         Surface* surface;
         fixed (byte* pData = result.Data)
         {

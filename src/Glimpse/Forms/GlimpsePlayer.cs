@@ -79,9 +79,9 @@ public class GlimpsePlayer : Window
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
         
-        ImFontPtr roboto = Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", 18, "Roboto");
-        ImFontPtr notoJP = Renderer.ImGui.AddFont("Assets/Fonts/NotoSansJP-Regular.ttf", 18, "NotoJP");
-        ImFontPtr notoSC = Renderer.ImGui.AddFont("Assets/Fonts/NotoSansSC-Regular.ttf", 18, "NotoSC");
+        ImFontPtr roboto = Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), 18, "Roboto");
+        ImFontPtr notoJP = Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansJP-Regular.ttf"), 18, "NotoJP");
+        ImFontPtr notoSC = Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansSC-Regular.ttf"), 18, "NotoSC");
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
         //io.FontDefault = roboto;
