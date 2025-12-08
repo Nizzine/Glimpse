@@ -48,7 +48,7 @@ public class AddFolderPopup : Popup
         
         if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove))
         {
-            if (ImGui.BeginChild("FoldersList", ScaleVec(500, 300), ImGuiWindowFlags.HorizontalScrollbar))
+            if (ImGui.BeginChild("FoldersList", ScaleVec(600, 500), ImGuiWindowFlags.HorizontalScrollbar))
             {
                 _baseDirectory.Update(ref Selected);
                 ImGui.EndChild();

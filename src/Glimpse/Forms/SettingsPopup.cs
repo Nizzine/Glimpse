@@ -35,7 +35,7 @@ public class SettingsPopup : Popup
         
         if (ImGui.BeginPopupModal(popupName, flags))
         {
-            if (ImGui.BeginChild("SettingsItems", ScaleVec(500, 350)))
+            if (ImGui.BeginChild("SettingsItems", ScaleVec(600, 500)))
             {
                 if (ImGui.BeginTabBar("SettingsTab"))
                 {
@@ -138,9 +138,15 @@ public class SettingsPopup : Popup
                                             else
                                                 _currentConfig.EnabledPlugins.Remove(_currentPlugin);
                                         }
-
-                                        ImGui.Separator();
-                                        Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                        
+                                        // TODO: Hack - ideally would display the GUI for all plugins even if disabled
+                                        //       Need some sort of API to ensure the plugins always know the config is
+                                        //       valid before displaying the GUI?
+                                        if (enabled)
+                                        {
+                                            ImGui.Separator();
+                                            Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                        }
                                     }
 
                                     ImGui.EndChild();
