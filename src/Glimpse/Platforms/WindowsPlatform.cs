@@ -52,17 +52,6 @@ public unsafe class WindowsPlatform : Platform
         InvokeButtonPressed(button, null);
     }
 
-    public override void EnableDPIAwareness()
-    {
-        TerraFX.Interop.Windows.Windows.SetProcessDPIAware();
-    }
-
-    public override void EnableDarkWindow(nint hwnd)
-    {
-        BOOL value = true;
-        TerraFX.Interop.Windows.Windows.DwmSetWindowAttribute((HWND) hwnd, 20, &value, (uint) sizeof(BOOL));
-    }
-
     public override void OpenFileInExplorer(string path)
     {
         fixed (char* pPath = path)

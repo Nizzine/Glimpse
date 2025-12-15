@@ -8,10 +8,6 @@ public abstract class Platform : IDisposable
     public event OnButtonPressed ButtonPressed = delegate { };
 
     public abstract void InitializeMainWindow(nint hwnd);
-    
-    public abstract void EnableDPIAwareness();
-
-    public abstract void EnableDarkWindow(nint hwnd);
 
     public abstract void OpenFileInExplorer(string path);
 

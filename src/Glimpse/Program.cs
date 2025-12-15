@@ -1,6 +1,5 @@
 ﻿using Glimpse.API;
 using Glimpse.Forms;
-using Silk.NET.SDL;
 
 namespace Glimpse;
 
