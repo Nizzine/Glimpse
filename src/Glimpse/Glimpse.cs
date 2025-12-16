@@ -293,7 +293,7 @@ public class Glimpse : IGlimpse, IDisposable
                 Window wnd = _windowIds[winEvent.Motion.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                 
-                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X, winEvent.Motion.Y);
+                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X * MainWindow.Scale, winEvent.Motion.Y * MainWindow.Scale);
                 break;
             }
 

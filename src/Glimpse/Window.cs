@@ -51,7 +51,7 @@ public abstract unsafe class Window : IDisposable
             if (!_isCreated)
                 return _size;
             
-            SDL.GetWindowSize(_window, out int w, out int h);
+            SDL.GetWindowSizeInPixels(_window, out int w, out int h);
 
             return new Size(w, h);
         }
@@ -122,11 +122,11 @@ public abstract unsafe class Window : IDisposable
         SDL.SetWindowIcon(_window, surface);
 
         _glContext = SDL.GLCreateContext(_window);
+        
+        _isCreated = true;
 
         SDL.GLMakeCurrent(_window, _glContext);
-        Renderer = new Renderer(GL.GetApi(s => Marshal.GetFunctionPointerForDelegate(SDL.GLGetProcAddress(s))), _size, _scale);
-
-        _isCreated = true;
+        Renderer = new Renderer(GL.GetApi(s => Marshal.GetFunctionPointerForDelegate(SDL.GLGetProcAddress(s))), Size, _scale);
         
         Initialize();
         
