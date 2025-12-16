@@ -10,6 +10,7 @@ using Glimpse.Locales;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using Newtonsoft.Json.Linq;
+using SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
 using Track = Glimpse.Database.Track;
@@ -826,7 +827,7 @@ public class GlimpsePlayer : Window
 
     public static void OpenLink(string link)
     {
-        Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+        SDL.OpenURL(link);
     }
 
     private static string? EscapeString(string? @string)
