@@ -7,6 +7,7 @@ public sealed unsafe class AudioDevice : IDisposable
 {
     private readonly Context _context;
     private readonly IntPtr _device;
+    private readonly SDL.AudioStreamCallback _callback;
 
     public AudioDevice(Context context, uint sampleRate)
     {
@@ -22,7 +23,8 @@ public sealed unsafe class AudioDevice : IDisposable
             Channels = 2
         };
 
-        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, in spec, AudioCallback, 0);
+        _callback = AudioCallback;
+        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, in spec, _callback, 0);
         if (_device == 0)
             throw new Exception($"Failed to open audio device: {SDL.GetError()}");
     }
@@ -54,7 +56,15 @@ public sealed unsafe class AudioDevice : IDisposable
     
     private void AudioCallback(IntPtr userData, IntPtr stream, int additionalAmount, int totalAmount)
     {
-        Span<float> buffer = new Span<float>((void*) stream, additionalAmount / 4);
-        _context.MixToStereoF32Buffer(buffer);
+        const int bufferSize = 512;
+        float* buffer = stackalloc float[bufferSize];
+        while (additionalAmount > 0)
+        {
+            int total = int.Min(additionalAmount, bufferSize);
+            Span<float> bufferSlice = new Span<float>(buffer, total / 4);
+            _context.MixToStereoF32Buffer(bufferSlice);
+            SDL.PutAudioStreamData(stream, (IntPtr) buffer, total);
+            additionalAmount -= total;
+        }
     }
 }
