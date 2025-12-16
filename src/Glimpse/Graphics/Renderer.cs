@@ -61,7 +61,7 @@ public unsafe class Renderer : IDisposable
         GL.EnableVertexAttribArray(2);
         GL.VertexAttribPointer(2, 4, VertexAttribPointerType.Float, false, (uint) sizeof(Vertex2D), (void*) 16);
 
-        ImGui = new ImGuiRenderer(GL, size, scale);
+        ImGui = new ImGuiRenderer(GL, size);
     }
 
     public Image CreateImage(byte[] data, uint width, uint height)

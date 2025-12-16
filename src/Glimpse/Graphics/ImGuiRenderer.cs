@@ -13,7 +13,6 @@ public class ImGuiRenderer : IDisposable
 {
     private GL _gl;
     private Size _size;
-    private float _scale;
     
     private readonly ImGuiContextPtr _context;
     
@@ -28,11 +27,10 @@ public class ImGuiRenderer : IDisposable
 
     public ImGuiContextPtr ImGuiContext => _context;
     
-    public unsafe ImGuiRenderer(GL gl, Size size, float scale)
+    public unsafe ImGuiRenderer(GL gl, Size size)
     {
         _gl = gl;
         _size = size;
-        _scale = scale;
         
         _context = ImGui.CreateContext();
         ImGui.SetCurrentContext(_context);
@@ -55,13 +53,11 @@ public class ImGuiRenderer : IDisposable
 
         ImGuiIOPtr io = ImGui.GetIO();
         io.DisplaySize = new Vector2(size.Width, size.Height);
-        io.DisplayFramebufferScale = new Vector2(scale, scale);
+        //io.DisplayFramebufferScale = new Vector2(scale, scale);
         io.IniFilename = null;
         io.LogFilename = null;
         //io.Fonts.AddFontDefault();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasTextures;
-
-        ImGui.GetStyle().ScaleAllSizes(scale);
 
         Fonts = new Dictionary<string, ImFontPtr>();
     }
@@ -78,7 +74,7 @@ public class ImGuiRenderer : IDisposable
             RasterizerMultiply = 1,
             GlyphMaxAdvanceX = float.MaxValue
         };
-        ImFontPtr font = fonts.AddFontFromFileTTF(path, (uint) (size * _scale), &config);
+        ImFontPtr font = fonts.AddFontFromFileTTF(path, size, &config);
         Fonts.Add(name, font);
 
         return font;

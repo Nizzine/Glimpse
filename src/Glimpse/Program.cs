@@ -1,6 +1,6 @@
 ﻿using Glimpse.API;
 using Glimpse.Forms;
-using Silk.NET.SDL;
+using SDL3;
 
 namespace Glimpse;
 
@@ -20,15 +20,13 @@ public static class Program
         {
             Logger logger = new Logger();
             logger.Log(e.ToString());
-            
-            Sdl sdl = Sdl.GetApi();
 
             const string title = "Glimpse";
             
             string logLocation = Path.Combine(IConfigManager.BaseDir, "LastSession.log");
             string message = $"Oops! Glimpse crashed.\nLog file at: {logLocation}\n\nPlease send log file + the following error to the developers:\n{e}";
 
-            sdl.ShowSimpleMessageBox((uint) MessageBoxFlags.Error, title, message, null);
+            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, title, message, IntPtr.Zero);
         }
 #endif
     }

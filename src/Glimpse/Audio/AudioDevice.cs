@@ -1,44 +1,42 @@
 using MixrSharp;
-using Silk.NET.SDL;
+using SDL3;
 
 namespace Glimpse.Audio;
 
 public sealed unsafe class AudioDevice : IDisposable
 {
     private readonly Context _context;
-    private readonly Sdl _sdl;
-    private readonly uint _device;
+    private readonly IntPtr _device;
+    private readonly SDL.AudioStreamCallback _callback;
 
     public AudioDevice(Context context, uint sampleRate)
     {
         _context = context;
+        
+        if (!SDL.Init(SDL.InitFlags.Audio))
+            throw new Exception($"Failed to initialize SDL: {SDL.GetError()}");
 
-        _sdl = Sdl.GetApi();
-        if (_sdl.Init(Sdl.InitAudio) < 0)
-            throw new Exception($"Failed to initialize SDL: {_sdl.GetErrorS()}");
-
-        AudioSpec spec = new AudioSpec
+        SDL.AudioSpec spec = new()
         {
             Freq = (int) sampleRate,
-            Format = Sdl.AudioF32,
-            Channels = 2,
-            Samples = 512,
-            Callback = new PfnAudioCallback(AudioCallback)
+            Format = SDL.AudioFormat.AudioF32LE,
+            Channels = 2
         };
 
-        _device = _sdl.OpenAudioDevice((byte*) null, 0, &spec, null, 0);
+        _callback = AudioCallback;
+        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, in spec, _callback, 0);
         if (_device == 0)
-            throw new Exception($"Failed to open audio device: {_sdl.GetErrorS()}");
+            throw new Exception($"Failed to open audio device: {SDL.GetError()}");
     }
 
     public void Play()
     {
-        _sdl.PauseAudioDevice(_device, 0);
+        SDL.ResumeAudioStreamDevice(_device);
     }
 
     public void Pause()
     {
-        _sdl.PauseAudioDevice(_device, 1);
+        SDL.PauseAudioStreamDevice(_device);
     }
 
     /*public void Lock()
@@ -53,12 +51,20 @@ public sealed unsafe class AudioDevice : IDisposable
     
     public void Dispose()
     {
-        _sdl.CloseAudioDevice(_device);
+        SDL.DestroyAudioStream(_device);
     }
     
-    private void AudioCallback(void* arg0, byte* arg1, int arg2)
+    private void AudioCallback(IntPtr userData, IntPtr stream, int additionalAmount, int totalAmount)
     {
-        Span<float> buffer = new Span<float>(arg1, arg2 / 4);
-        _context.MixToStereoF32Buffer(buffer);
+        const int bufferSize = 512;
+        float* buffer = stackalloc float[bufferSize];
+        while (additionalAmount > 0)
+        {
+            int total = int.Min(additionalAmount, bufferSize);
+            Span<float> bufferSlice = new Span<float>(buffer, total / 4);
+            _context.MixToStereoF32Buffer(bufferSlice);
+            SDL.PutAudioStreamData(stream, (IntPtr) buffer, total);
+            additionalAmount -= total;
+        }
     }
 }

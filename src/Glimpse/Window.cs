@@ -1,9 +1,10 @@
 ﻿using System.Drawing;
+using System.Runtime.InteropServices;
 using Glimpse.Forms;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
+using SDL3;
 using Silk.NET.OpenGL;
-using Silk.NET.SDL;
 using StbImageSharp;
 using Renderer = Glimpse.Graphics.Renderer;
 
@@ -16,9 +17,8 @@ public abstract unsafe class Window : IDisposable
     private Size _size;
     private float _scale;
     
-    private Sdl _sdl;
-    private Silk.NET.SDL.Window* _window;
-    private void* _glContext;
+    private IntPtr _window;
+    private IntPtr _glContext;
 
     private List<Popup> _popups;
 
@@ -33,14 +33,14 @@ public abstract unsafe class Window : IDisposable
             if (!_isCreated)
                 return _title;
 
-            return _sdl.GetWindowTitleS(_window);
+            return SDL.GetWindowTitle(_window);
         }
         set
         {
             if (!_isCreated)
                 _title = value;
             else
-                _sdl.SetWindowTitle(_window, value);
+                SDL.SetWindowTitle(_window, value);
         }
     }
 
@@ -50,9 +50,8 @@ public abstract unsafe class Window : IDisposable
         {
             if (!_isCreated)
                 return _size;
-
-            int w, h;
-            _sdl.GetWindowSize(_window, &w, &h);
+            
+            SDL.GetWindowSizeInPixels(_window, out int w, out int h);
 
             return new Size(w, h);
         }
@@ -61,7 +60,7 @@ public abstract unsafe class Window : IDisposable
             if (!_isCreated)
                 _size = value;
             else
-                _sdl.SetWindowSize(_window, value.Width, value.Height);
+                SDL.SetWindowSize(_window, value.Width, value.Height);
         }
     }
 
@@ -88,65 +87,81 @@ public abstract unsafe class Window : IDisposable
         _popups.Add(popup);
     }
 
-    internal uint Create(Sdl sdl, Platform platform)
+    protected virtual void OnScaleChanged() { }
+
+    public void NotifyScaleChanged()
     {
-        _sdl = sdl;
+        _scale = SDL.GetWindowDisplayScale(_window);
+        OnScaleChanged();
+    }
 
-        _sdl.GLSetAttribute(GLattr.ContextMajorVersion, 3);
-        _sdl.GLSetAttribute(GLattr.ContextMinorVersion, 3);
-        _sdl.GLSetAttribute(GLattr.ContextProfileMask, (int) GLprofile.Core);
-        _sdl.GLSetAttribute(GLattr.DepthSize, 0);
-        _sdl.GLSetAttribute(GLattr.AlphaSize, 0);
-        
-        const WindowFlags flags = WindowFlags.Opengl | WindowFlags.Resizable | WindowFlags.AllowHighdpi | WindowFlags.Hidden;
+    internal uint Create(Platform platform)
+    {
+        SDL.GLSetAttribute(SDL.GLAttr.ContextMajorVersion, 3);
+        SDL.GLSetAttribute(SDL.GLAttr.ContextMinorVersion, 3);
+        SDL.GLSetAttribute(SDL.GLAttr.ContextProfileMask, (int) SDL.GLProfile.Core);
+        SDL.GLSetAttribute(SDL.GLAttr.DepthSize, 0);
+        SDL.GLSetAttribute(SDL.GLAttr.AlphaSize, 0);
 
-        float dpi;
-        _sdl.GetDisplayDPI(0, &dpi, null, null);
-        _scale = dpi / 96.0f;
-        
-        _size = new Size((int) (_size.Width * _scale), (int) (_size.Height * _scale));
-        
-        _window = sdl.CreateWindow(_title, Sdl.WindowposCentered, Sdl.WindowposCentered, _size.Width, _size.Height,
-            (uint) flags);
+        uint windowProps = SDL.CreateProperties();
+        SDL.SetStringProperty(windowProps, SDL.Props.WindowCreateTitleString, _title);
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, _size.Width);
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, _size.Height);
+        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateOpenGLBoolean, true);
+        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
+        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
+        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
 
-        if (_window == null)
-            throw new Exception($"Failed to open window: {_sdl.GetErrorS()}");
+        // Attempt to set the window centered on the display the mouse cursor is on.
+        // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
+        SDL.GetGlobalMouseState(out float mouseX, out float mouseY);
+        uint display = SDL.GetDisplayForPoint(new SDL.Point { X = (int) mouseX, Y = (int) mouseY });
+        uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
+        
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
+        
+        _window = SDL.CreateWindowWithProperties(windowProps);
+
+        if (_window == IntPtr.Zero)
+            throw new Exception($"Failed to open window: {SDL.GetError()}");
+        
+        _scale = SDL.GetWindowDisplayScale(_window);
         
         ImageResult result = ImageResult.FromMemory(File.ReadAllBytes(Glimpse.GetPath("Assets/Icons/Glimpse.png")));
-        Surface* surface;
+        IntPtr surface;
         fixed (byte* pData = result.Data)
         {
-            surface = sdl.CreateRGBSurfaceWithFormatFrom(pData, result.Width, result.Height, 0, result.Width * 4,
-                Sdl.PixelformatAbgr8888);
+            surface = SDL.CreateSurfaceFrom(result.Width, result.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
+                result.Width * 4);
         }
 
-        sdl.SetWindowIcon(_window, surface);
+        SDL.SetWindowIcon(_window, surface);
 
-        _glContext = sdl.GLCreateContext(_window);
-
-        sdl.GLMakeCurrent(_window, _glContext);
-        Renderer = new Renderer(GL.GetApi(s => (nint) _sdl.GLGetProcAddress(s)), _size, _scale);
-
+        _glContext = SDL.GLCreateContext(_window);
+        
         _isCreated = true;
+
+        SDL.GLMakeCurrent(_window, _glContext);
+        Renderer = new Renderer(GL.GetApi(s => Marshal.GetFunctionPointerForDelegate(SDL.GLGetProcAddress(s))), Size, _scale);
         
         Initialize();
         
         if (OperatingSystem.IsWindows())
         {
-            SysWMInfo wmInfo = new SysWMInfo();
-            _sdl.GetWindowWMInfo(_window, &wmInfo);
-            platform.EnableDarkWindow(wmInfo.Info.Win.Hwnd);
-            platform.InitializeMainWindow(wmInfo.Info.Win.Hwnd);
+            uint props = SDL.GetWindowProperties(_window);
+            nint hwnd = SDL.GetPointerProperty(props, SDL.Props.WindowWin32HWNDPointer, 0);
+            platform.InitializeMainWindow(hwnd);
         }
         
-        _sdl.ShowWindow(_window);
+        SDL.ShowWindow(_window);
 
-        return _sdl.GetWindowID(_window);
+        return SDL.GetWindowID(_window);
     }
 
     internal void SetActive()
     {
-        _sdl.GLMakeCurrent(_window, _glContext);
+        SDL.GLMakeCurrent(_window, _glContext);
     }
 
     internal void UpdateWindow()
@@ -175,12 +190,12 @@ public abstract unsafe class Window : IDisposable
     internal void Present()
     {
         Renderer.ImGui.Render();
-        _sdl.GLSetSwapInterval(1);
-        _sdl.GLSwapWindow(_window);
+        SDL.GLSetSwapInterval(1);
+        SDL.GLSwapWindow(_window);
     }
 
     public void Dispose()
     {
-        _sdl.DestroyWindow(_window);
+        SDL.DestroyWindow(_window);
     }
 }
