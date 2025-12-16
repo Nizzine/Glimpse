@@ -103,6 +103,15 @@ public abstract unsafe class Window : IDisposable
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
+
+        // Attempt to set the window centered on the display the mouse cursor is on.
+        // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
+        SDL.GetGlobalMouseState(out float mouseX, out float mouseY);
+        uint display = SDL.GetDisplayForPoint(new SDL.Point { X = (int) mouseX, Y = (int) mouseY });
+        uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
+        
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
         
         _window = SDL.CreateWindowWithProperties(windowProps);
 
