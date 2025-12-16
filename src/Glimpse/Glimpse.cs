@@ -48,7 +48,7 @@ public class Glimpse : IGlimpse, IDisposable
         _windowIds.Add(id, window);
     }
 
-    public unsafe void Run(Window window, string[] args)
+    public void Run(Window window, string[] args)
     {
         Logger = new Logger();
 
@@ -292,8 +292,9 @@ public class Glimpse : IGlimpse, IDisposable
             {
                 Window wnd = _windowIds[winEvent.Motion.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
-                
-                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X * MainWindow.Scale, winEvent.Motion.Y * MainWindow.Scale);
+
+                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X * MainWindow.Scale,
+                    winEvent.Motion.Y * MainWindow.Scale);
                 break;
             }
 
