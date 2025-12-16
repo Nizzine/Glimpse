@@ -279,14 +279,23 @@ public class Glimpse : IGlimpse, IDisposable
                 _windows.Remove(wnd);
                 break;
             }
+            
             case SDL.EventType.WindowResized:
             {
                 Window wnd = _windowIds[winEvent.Window.WindowID];
-                Size newSize = new Size(winEvent.Window.Data1, winEvent.Window.Data2);
                 wnd.SetActive();
-                wnd.Renderer.Resize(newSize);
+                wnd.Renderer.Resize(wnd.Size);
                 break;
-            } 
+            }
+            
+            case SDL.EventType.WindowDisplayScaleChanged:
+            {
+                Window wnd = _windowIds[winEvent.Window.WindowID];
+                wnd.SetActive();
+                wnd.Renderer.Resize(wnd.Size);
+                wnd.NotifyScaleChanged();
+                break;
+            }
 
             case SDL.EventType.MouseMotion:
             {

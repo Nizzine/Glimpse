@@ -87,6 +87,14 @@ public abstract unsafe class Window : IDisposable
         _popups.Add(popup);
     }
 
+    protected virtual void OnScaleChanged() { }
+
+    public void NotifyScaleChanged()
+    {
+        _scale = SDL.GetWindowDisplayScale(_window);
+        OnScaleChanged();
+    }
+
     internal uint Create(Platform platform)
     {
         SDL.GLSetAttribute(SDL.GLAttr.ContextMajorVersion, 3);
