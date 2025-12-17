@@ -772,6 +772,7 @@ public class GlimpsePlayer : Window
     {
         ImGuiStylePtr style = ImGui.GetStyle();
         SetupStyle(style);
+        RefreshLayout();
     }
 
     private static string? EscapeString(string? @string)
