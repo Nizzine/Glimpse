@@ -48,7 +48,7 @@
         "Popup.Settings.Tab.General.TransportLocation": "控制栏位置",
         "Popup.Settings.Tab.General.TransportLocation.Up": "上",
         "Popup.Settings.Tab.General.TransportLocation.Down": "下",
-        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "设置控制栏的位置。保存后请重启!",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "设置控制栏的位置。",
         "Popup.Settings.Tab.General.EnableDeleteFile": "启用\"删除文件\"上下文菜单项",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "启用\"删除文件\"上下文菜单项,允许从计算机中永久删除文件。",
         "Popup.Settings.Tab.Player": "播放器",

@@ -48,7 +48,7 @@
         "Popup.Settings.Tab.General.TransportLocation": "Ubicación de la barra de control",
         "Popup.Settings.Tab.General.TransportLocation.Up": "Arriba",
         "Popup.Settings.Tab.General.TransportLocation.Down": "Abajo",
-        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Establece la ubicación de la barra de control. ¡POR FAVOR REINICIE después de guardar!",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Establece la ubicación de la barra de control.",
         "Popup.Settings.Tab.General.EnableDeleteFile": "Habilitar elemento de menú \"eliminar archivo\"",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "Habilita el elemento de menú \"eliminar archivo\", permitiendo eliminar archivos permanentemente de su computadora.",
         "Popup.Settings.Tab.Player": "Reproductor",

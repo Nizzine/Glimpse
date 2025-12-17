@@ -322,9 +322,8 @@ public class GlimpsePlayer : Window
             }
             
             ImGui.EndChild();
-            
-            ImGui.End();
         }
+        ImGui.End();
         
         bool switchToTrackList = false;
         
@@ -388,9 +387,8 @@ public class GlimpsePlayer : Window
                 
                 ImGui.EndChild();
             }
-
-            ImGui.End();
         }
+        ImGui.End();
         
         if (_currentAlbum != null && ImGui.Begin("Songs"))
         {
@@ -641,9 +639,8 @@ public class GlimpsePlayer : Window
                 
                 ImGui.EndTabBar();
             }
-            
-            ImGui.End();
         }
+        ImGui.End();
 
         if (player.TrackState == TrackState.Playing && player.SecondsConsumed >= double.Max(30, player.TrackLength * 0.6) &&
             !_hasIncrementedPlayCount)

@@ -253,7 +253,8 @@ public class SettingsPopup : Popup
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
-        //((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
+        if (_currentConfig.SwapTransportControls != oldConfig.SwapTransportControls)
+            ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
         if (Glimpse.Plugins == null)
             return;

@@ -48,7 +48,7 @@
         "Popup.Settings.Tab.General.TransportLocation": "Расположение панели управления",
         "Popup.Settings.Tab.General.TransportLocation.Up": "Вверху",
         "Popup.Settings.Tab.General.TransportLocation.Down": "Внизу",
-        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Установить расположение панели управления. ПОЖАЛУЙСТА, ПЕРЕЗАПУСТИТЕ после сохранения!",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Установить расположение панели управления.",
         "Popup.Settings.Tab.General.EnableDeleteFile": "Включить пункт контекстного меню \"удалить файл\"",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "Включает пункт контекстного меню \"удалить файл\", позволяющий навсегда удалять файлы с вашего компьютера.",
         "Popup.Settings.Tab.Player": "Плеер",

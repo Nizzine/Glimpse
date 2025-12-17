@@ -48,7 +48,7 @@
         "Popup.Settings.Tab.General.TransportLocation": "Ohjainpalkin sijainti",
         "Popup.Settings.Tab.General.TransportLocation.Up": "Ylös",
         "Popup.Settings.Tab.General.TransportLocation.Down": "Alas",
-        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Aseta ohjainpalkin sijainti. OLE HYVÄ JA KÄYNNISTÄ UUDELLEEN tallennuksen jälkeen!",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "Aseta ohjainpalkin sijainti.",
         "Popup.Settings.Tab.General.EnableDeleteFile": "Ota käyttöön \"poista tiedosto\" -valikkokohta",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "Ottaa käyttöön \"poista tiedosto\" -valikkokohdan, joka mahdollistaa tiedostojen pysyvän poistamisen tietokoneeltasi.",
         "Popup.Settings.Tab.Player": "Soitin",

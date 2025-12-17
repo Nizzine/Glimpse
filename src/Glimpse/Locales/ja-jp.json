@@ -48,7 +48,7 @@
         "Popup.Settings.Tab.General.TransportLocation": "コントロールバーの位置",
         "Popup.Settings.Tab.General.TransportLocation.Up": "上",
         "Popup.Settings.Tab.General.TransportLocation.Down": "下",
-        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "コントロールバーの位置を設定します。保存後に再起動してください!",
+        "Popup.Settings.Tab.General.TransportLocation.Tooltip": "コントロールバーの位置を設定します。",
         "Popup.Settings.Tab.General.EnableDeleteFile": "「ファイルを削除」コンテキストメニュー項目を有効にする",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "「ファイルを削除」コンテキストメニュー項目を有効にし、コンピュータからファイルを完全に削除できるようにします。",
         "Popup.Settings.Tab.Player": "プレーヤー",
