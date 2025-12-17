@@ -115,7 +115,8 @@ public abstract unsafe class Window : IDisposable
         // Attempt to set the window centered on the display the mouse cursor is on.
         // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
         SDL.GetGlobalMouseState(out float mouseX, out float mouseY);
-        uint display = SDL.GetDisplayForPoint(new SDL.Point { X = (int) mouseX, Y = (int) mouseY });
+        SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
+        uint display = SDL_GetDisplayForPoint(in mousePoint);
         uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
         
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
@@ -198,4 +199,8 @@ public abstract unsafe class Window : IDisposable
     {
         SDL.DestroyWindow(_window);
     }
+    
+    // Workaround because SDL3-CS doesn't use a pointer for this method when the ABI expects one, meaning it fails.
+    [DllImport("SDL3")]
+    private static extern uint SDL_GetDisplayForPoint(in SDL.Point point);
 }
