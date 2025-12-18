@@ -79,7 +79,6 @@ public class SettingsPopup : Popup
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Player")))
                     {
                         ref float volume = ref _currentConfig.Volume;
-                        ref bool autoPlay = ref _currentConfig.AutoPlay;
                         ref uint sampleRate = ref _currentConfig.SampleRate;
                         //float speed = (float) _currentConfig.SpeedAdjust;
 

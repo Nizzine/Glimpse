@@ -109,8 +109,7 @@ public class Glimpse : IGlimpse, IDisposable
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer(Logger,
-            new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust, Config.AutoPlay));
+        Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust));
 
         Logger.Log("Loading locales.");
         Locale.LoadAvailableLocales();

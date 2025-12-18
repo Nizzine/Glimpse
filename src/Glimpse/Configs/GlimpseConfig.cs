@@ -16,8 +16,6 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
     
     public double SpeedAdjust;
 
-    public bool AutoPlay;
-
     public HashSet<string> EnabledPlugins;
 
     public bool EnableFileDeletion;
@@ -29,7 +27,6 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
         SampleRate = 48000;
         Volume = 1.0f;
         SpeedAdjust = 1.0;
-        AutoPlay = true;
         EnabledPlugins = ["Glimpse.OpenMPT"];
         EnableFileDeletion = false;
     }
@@ -37,9 +34,8 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
     public bool Equals(GlimpseConfig other)
     {
         return Language == other.Language && SwapTransportControls == other.SwapTransportControls &&
-               SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) &&
-               AutoPlay == other.AutoPlay && EnabledPlugins.SetEquals(other.EnabledPlugins) && 
-               EnableFileDeletion == other.EnableFileDeletion;
+               SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) 
+               && EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion;
     }
 
     public override bool Equals(object obj)
@@ -49,7 +45,8 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(SampleRate, Volume, SpeedAdjust, AutoPlay, EnabledPlugins);
+        return HashCode.Combine(Language, SwapTransportControls, SampleRate, Volume, SpeedAdjust, EnabledPlugins,
+            EnableFileDeletion);
     }
 
     public static bool operator ==(GlimpseConfig left, GlimpseConfig right)

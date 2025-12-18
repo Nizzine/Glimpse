@@ -134,9 +134,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
 
         TrackChanged(info, path);
-        
-        if (_settings.AutoPlay)
-            Play();
+        Play();
         
         _logger.Log("  Disposing the old track.");
         oldTrack?.Dispose();
