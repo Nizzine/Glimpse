@@ -88,6 +88,7 @@ public class GlimpsePlayer : Window
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        io.ConfigInputTrickleEventQueue = false;
 
         ImGuiStylePtr style = ImGui.GetStyle();
         _defaultStyle = *style.Handle;
