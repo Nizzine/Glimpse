@@ -25,19 +25,19 @@ public interface IAudioPlayer
     public IReadOnlyList<ICodec> Codecs { get; }
     
     /// <summary>
-    /// The number of elapsed seconds that the current track has played for.
+    /// The amount of time that the current track has played for.
     /// </summary>
-    public int ElapsedSeconds { get; }
+    public TimeSpan ElapsedTime { get; }
     
     /// <summary>
-    /// The number of seconds that have played since the track was selected. This does not include seeking, etc.
+    /// The amount of time that has played since the track was selected. This does not include seeking, etc.
     /// </summary>
-    public int SecondsConsumed { get; }
+    public TimeSpan ConsumedTime { get; }
     
     /// <summary>
     /// The total length in seconds of the current track.
     /// </summary>
-    public int TrackLength { get; }
+    public TimeSpan TrackLength { get; }
     
     /// <summary>
     /// Information about the currently playing track, if any.

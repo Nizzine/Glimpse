@@ -11,7 +11,7 @@ public abstract class Platform : IDisposable
 
     public abstract void OpenFileInExplorer(string path);
 
-    public abstract void SetPlayState(TrackState state, TrackInfo? info, int position);
+    public abstract void SetPlayState(TrackState state, TrackInfo? info, TimeSpan position);
 
     public abstract void Dispose();
 

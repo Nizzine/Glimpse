@@ -75,7 +75,7 @@ public partial class DiscordPresence : IPlugin
         switch (state)
         {
             case TrackState.Playing:
-                SetPresence(player.CurrentTrack, player.ElapsedSeconds, player.TrackLength);
+                SetPresence(player.CurrentTrack, player.ElapsedTime, player.TrackLength);
                 break;
             
             case TrackState.Paused:
@@ -85,14 +85,12 @@ public partial class DiscordPresence : IPlugin
         }
     }
 
-    private void SetPresence(TrackInfo info, int currentSecond, int totalSeconds)
+    private void SetPresence(TrackInfo info, TimeSpan current, TimeSpan total)
     {
         _glimpse.Logger.Log($"Set discord presence to track: {info.Artist} - {info.Title}");
         _currentUrl = "glimpse";
 
         DateTime now = DateTime.UtcNow;
-        TimeSpan current = TimeSpan.FromSeconds(currentSecond);
-        TimeSpan total = TimeSpan.FromSeconds(totalSeconds);
         
         RichPresence presence = new RichPresence()
             .WithType(ActivityType.Listening)

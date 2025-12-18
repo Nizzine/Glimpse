@@ -295,8 +295,8 @@ public class GlimpsePlayer : Window
 
                 float align = ImGui.GetStyle().FramePadding.Y;
 
-                int position = player.ElapsedSeconds;
-                int length = player.TrackLength;
+                int position = (int) player.ElapsedTime.TotalSeconds; 
+                int length = (int) player.TrackLength.TotalSeconds;
                 
                 string elapsedText = $"{position / 60:0}:{position % 60:00}";
                 string lengthText = $"{length / 60:0}:{length % 60:00}";
@@ -643,7 +643,7 @@ public class GlimpsePlayer : Window
         }
         ImGui.End();
 
-        if (player.TrackState == TrackState.Playing && player.SecondsConsumed >= double.Max(30, player.TrackLength * 0.6) &&
+        if (player.TrackState == TrackState.Playing && player.ConsumedTime.TotalSeconds >= double.Max(30, player.TrackLength.TotalSeconds * 0.6) &&
             !_hasIncrementedPlayCount)
         {
             _hasIncrementedPlayCount = true;
@@ -674,7 +674,7 @@ public class GlimpsePlayer : Window
     
     private void PlayerOnStateChanged(TrackState state)
     {
-        Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack, Glimpse.Player.ElapsedSeconds);
+        Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack, Glimpse.Player.ElapsedTime);
         
         if (state != TrackState.Stopped)
             return;

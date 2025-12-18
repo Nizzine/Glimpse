@@ -36,12 +36,12 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         get => _context.MasterVolume;
         set => _context.MasterVolume = value;
     }
-    
-    public int ElapsedSeconds => _activeTrack?.ElapsedSeconds ?? 0;
 
-    public int SecondsConsumed => _activeTrack?.SecondsConsumed ?? 0;
+    public TimeSpan ElapsedTime => TimeSpan.FromSeconds(_activeTrack?.ElapsedSeconds ?? 0);
 
-    public int TrackLength => _activeTrack?.LengthInSeconds ?? 0;
+    public TimeSpan ConsumedTime => TimeSpan.FromSeconds(_activeTrack?.SecondsConsumed ?? 0);
+
+    public TimeSpan TrackLength => TimeSpan.FromSeconds(_activeTrack?.LengthInSeconds ?? 0);
 
     public TrackInfo? CurrentTrack => _activeTrack?.Info;
 

@@ -107,7 +107,7 @@ public unsafe class LinuxPlatform : Platform
         process.Dispose();
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo? info, int position)
+    public override void SetPlayState(TrackState state, TrackInfo? info, TimeSpan position)
     {
         if (info == null)
             Empress.Empress.ClearTrackMetadata(_context);
@@ -128,7 +128,7 @@ public unsafe class LinuxPlatform : Platform
             nint pTitle = SilkMarshal.StringToPtr(info.Title);
             nint pArtist = info.Artist == null ? 0 : SilkMarshal.StringArrayToPtr([info.Artist]);
             nint pAlbum = SilkMarshal.StringToPtr(info.Album);
-            nuint length = (nuint?) info.Length?.TotalSeconds ?? 0;
+            nuint length = (nuint?) info.Length?.TotalMicroseconds ?? 0;
             nint pGenre = info.Genre == null ? 0 : SilkMarshal.StringArrayToPtr([info.Genre]);
             nint pArt = SilkMarshal.StringToPtr(art);
 
@@ -138,7 +138,7 @@ public unsafe class LinuxPlatform : Platform
                 NumArtists = info.Artist == null ? 0 : 1,
                 Artists = (sbyte**) pArtist,
                 Album = (sbyte*) pAlbum,
-                Length = length * 1000 * 1000, // MPRIS wants the length in microseconds.
+                Length = length, // MPRIS wants the length in microseconds.
                 NumGenres = info.Genre == null ? 0 : 1,
                 Genres = (sbyte**) pGenre,
                 ImageUri = (sbyte*) pArt
@@ -153,7 +153,7 @@ public unsafe class LinuxPlatform : Platform
             SilkMarshal.FreeString(pTitle);
         }
         
-        Empress.Empress.SetPlayPosition(_context, (nuint) position * 1000 * 1000);
+        Empress.Empress.SetPlayPosition(_context, (nuint) position.TotalMicroseconds);
         bool canControl = state != TrackState.Stopped;
         
         Empress.Empress.SetCanPlay(_context, canControl);

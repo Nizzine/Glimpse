@@ -62,7 +62,7 @@ public unsafe class WindowsPlatform : Platform
         }
     }
 
-    public override void SetPlayState(TrackState state, TrackInfo? info, int position)
+    public override void SetPlayState(TrackState state, TrackInfo? info, TimeSpan position)
     {
         switch (state)
         {
