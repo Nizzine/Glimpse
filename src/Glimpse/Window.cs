@@ -111,8 +111,6 @@ public abstract unsafe class Window : IDisposable
 
         uint windowProps = SDL.CreateProperties();
         SDL.SetStringProperty(windowProps, SDL.Props.WindowCreateTitleString, _title);
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, _size.Width);
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, _size.Height);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateOpenGLBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
@@ -124,6 +122,10 @@ public abstract unsafe class Window : IDisposable
         SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
         uint display = SDL_GetDisplayForPoint(in mousePoint);
         uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
+        float displayScale = SDL.GetDisplayContentScale(display);
+        
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (int) (_size.Width * displayScale));
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (int) (_size.Height * displayScale));
         
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
