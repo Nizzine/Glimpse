@@ -202,6 +202,8 @@ public class Glimpse : IGlimpse, IDisposable
                 }
             }
         }
+
+        SDL.AddEventWatch(WindowExposedEventWatch, 0);
         
         AddWindow(window);
         
@@ -232,6 +234,51 @@ public class Glimpse : IGlimpse, IDisposable
                 wnd.Present();
             }
         }
+        
+        SDL.RemoveEventWatch(WindowExposedEventWatch, 0);
+    }
+
+    private bool WindowExposedEventWatch(IntPtr userdata, ref SDL.Event @event)
+    {
+        switch ((SDL.EventType) @event.Type)
+        {
+            case SDL.EventType.WindowResized:
+            {
+                Window wnd = _windowIds[@event.Window.WindowID];
+                wnd.SetActive();
+                wnd.Renderer.Resize(wnd.Size);
+                break;
+            }
+            
+            case SDL.EventType.WindowDisplayScaleChanged:
+            {
+                Window wnd = _windowIds[@event.Window.WindowID];
+                wnd.SetActive();
+                //Size winSize = wnd.Size;
+                //float scale = SDL.GetWindowDisplayScale(SDL.GetWindowFromID(@event.Window.WindowID));
+                //wnd.Size = new Size((int) (winSize.Width * scale), (int) (winSize.Height * scale));
+                wnd.Renderer.Resize(wnd.Size);
+                wnd.NotifyScaleChanged();
+                break;
+            }
+            
+            case SDL.EventType.WindowExposed:
+            {
+                foreach (Window wnd in _windows)
+                {
+                    wnd.SetActive();
+                    wnd.UpdateWindow();
+                    wnd.Present();
+                }
+
+                break;
+            }
+            
+            default:
+                return true;
+        }
+
+        return false;
     }
 
     private ImGuiMouseButton? SdlButtonToImGui(uint button)
@@ -276,23 +323,6 @@ public class Glimpse : IGlimpse, IDisposable
                 wnd.Dispose();
                 _windowIds.Remove(winEvent.Window.WindowID);
                 _windows.Remove(wnd);
-                break;
-            }
-            
-            case SDL.EventType.WindowResized:
-            {
-                Window wnd = _windowIds[winEvent.Window.WindowID];
-                wnd.SetActive();
-                wnd.Renderer.Resize(wnd.Size);
-                break;
-            }
-            
-            case SDL.EventType.WindowDisplayScaleChanged:
-            {
-                Window wnd = _windowIds[winEvent.Window.WindowID];
-                wnd.SetActive();
-                wnd.Renderer.Resize(wnd.Size);
-                wnd.NotifyScaleChanged();
                 break;
             }
 
