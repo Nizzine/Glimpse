@@ -202,10 +202,9 @@ public class Glimpse : IGlimpse, IDisposable
                 }
             }
         }
-
-        SDL.AddEventWatch(WindowExposedEventWatch, 0);
         
         AddWindow(window);
+        SDL.AddEventWatch(WindowExposedEventWatch, 0);
         
         if (args.Length > 0)
         {
@@ -331,8 +330,8 @@ public class Glimpse : IGlimpse, IDisposable
                 Window wnd = _windowIds[winEvent.Motion.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
 
-                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X * MainWindow.Scale,
-                    winEvent.Motion.Y * MainWindow.Scale);
+                ImGui.GetIO().AddMousePosEvent(winEvent.Motion.X * MainWindow.PixelDensity,
+                    winEvent.Motion.Y * MainWindow.PixelDensity);
                 break;
             }
 

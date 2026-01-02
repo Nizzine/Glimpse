@@ -16,6 +16,7 @@ public abstract unsafe class Window : IDisposable
     private string _title;
     private Size _size;
     private float _scale;
+    private float _pixelDensity;
     
     private IntPtr _window;
     private IntPtr _glContext;
@@ -25,6 +26,8 @@ public abstract unsafe class Window : IDisposable
     public Glimpse Glimpse;
     
     public Renderer Renderer;
+
+    public nint Handle => _window;
 
     public string Title
     {
@@ -66,6 +69,8 @@ public abstract unsafe class Window : IDisposable
 
     public float Scale => _scale;
 
+    public float PixelDensity => _pixelDensity;
+
     protected Window()
     {
         Title = "Window";
@@ -92,6 +97,7 @@ public abstract unsafe class Window : IDisposable
     public void NotifyScaleChanged()
     {
         _scale = SDL.GetWindowDisplayScale(_window);
+        _pixelDensity = SDL.GetWindowPixelDensity(_window);
         OnScaleChanged();
     }
 
@@ -128,6 +134,7 @@ public abstract unsafe class Window : IDisposable
             throw new Exception($"Failed to open window: {SDL.GetError()}");
         
         _scale = SDL.GetWindowDisplayScale(_window);
+        _pixelDensity = SDL.GetWindowPixelDensity(_window);
         
         ImageResult result = ImageResult.FromMemory(File.ReadAllBytes(Glimpse.GetPath("Assets/Icons/Glimpse.png")));
         IntPtr surface;
