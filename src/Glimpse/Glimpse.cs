@@ -253,9 +253,9 @@ public class Glimpse : IGlimpse, IDisposable
             {
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
-                //Size winSize = wnd.Size;
-                //float scale = SDL.GetWindowDisplayScale(SDL.GetWindowFromID(@event.Window.WindowID));
-                //wnd.Size = new Size((int) (winSize.Width * scale), (int) (winSize.Height * scale));
+                Size winSize = wnd.Size;
+                float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
+                wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
                 wnd.Renderer.Resize(wnd.Size);
                 wnd.NotifyScaleChanged();
                 break;
