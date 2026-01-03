@@ -19,6 +19,7 @@ public class Glimpse : IGlimpse, IDisposable
     private List<Window> _windows;
     private Dictionary<uint, Window> _windowIds;
     private AssemblyLoadContext _pluginsContext;
+    private int _mainThreadID;
 
     public Logger Logger;
 
@@ -202,6 +203,8 @@ public class Glimpse : IGlimpse, IDisposable
                 }
             }
         }
+
+        _mainThreadID = Environment.CurrentManagedThreadId;
         
         AddWindow(window);
         SDL.AddEventWatch(WindowExposedEventWatch, 0);
@@ -239,18 +242,26 @@ public class Glimpse : IGlimpse, IDisposable
 
     private bool WindowExposedEventWatch(IntPtr userdata, ref SDL.Event @event)
     {
+        int threadId = Environment.CurrentManagedThreadId;
+        if (threadId != _mainThreadID)
+            //throw new Exception($"Event {(SDL.EventType) @event.Type} was sent on a separate thread.");
+            Logger.Log($"Event {(SDL.EventType) @event.Type} was sent on a separate thread!!! Thread ID: {threadId}, Main Thread ID: {_mainThreadID}");
+        
         switch ((SDL.EventType) @event.Type)
         {
             case SDL.EventType.WindowResized:
             {
+                Logger.Log("Window Resized");
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
                 wnd.Renderer.Resize(wnd.Size);
+                Logger.Log("done.");
                 break;
             }
             
             case SDL.EventType.WindowDisplayScaleChanged:
             {
+                Logger.Log("Window Display Scale Changed");
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
                 Size winSize = wnd.Size;
@@ -258,17 +269,20 @@ public class Glimpse : IGlimpse, IDisposable
                 wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
                 wnd.Renderer.Resize(wnd.Size);
                 wnd.NotifyScaleChanged();
+                Logger.Log("done.");
                 break;
             }
             
             case SDL.EventType.WindowExposed:
             {
+                Logger.Log("Window Exposed");
                 foreach (Window wnd in _windows)
                 {
                     wnd.SetActive();
                     wnd.UpdateWindow();
                     wnd.Present();
                 }
+                Logger.Log("done.");
 
                 break;
             }
