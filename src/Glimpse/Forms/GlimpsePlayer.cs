@@ -611,24 +611,62 @@ public class GlimpsePlayer : Window
                     {
                         List<string> queuedTracks = player.QueuedTracks;
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                        clipper.Begin(queuedTracks.Count);
+                        clipper.Begin(queuedTracks.Count, (32 + 2) * Scale);
 
                         while (clipper.Step())
                         {
                             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                        //for (int i = 0; i < queuedTracks.Count; i++)
                             {
                                 string path = queuedTracks[i];
 
                                 bool selected = i == player.CurrentTrackIndex;
                                 bool dark = i < player.CurrentTrackIndex;
 
-                                if (dark)
+                                /*if (dark)
                                     ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1.0f));
 
                                 if (ImGui.Selectable($"{i + 1}. {Glimpse.Database.Tracks[path].Title}", selected))
                                     player.ChangeTrack(i);
                                 if (dark)
-                                    ImGui.PopStyleColor();
+                                    ImGui.PopStyleColor();*/
+
+                                Vector2 cursorPos = ImGui.GetCursorPos();
+                                int height = (int) ((32 + 6) * Scale);
+                                
+                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
+                                    player.ChangeTrack(i);
+                                ImGui.SetCursorPos(cursorPos);
+                                ImGui.SameLine();
+                                
+                                Track track = Glimpse.Database.Tracks[path];
+                                string title = EscapeString(track.Title) ?? locale.GetString("UnknownTrack");
+                                string artist = EscapeString(track.Artist) ?? locale.GetString("UnknownArtist");
+                                string album = EscapeString(track.Album) ?? locale.GetString("UnknownAlbum");
+
+                                ImGui.BeginChild($"QueueTrack{i}", new Vector2(0, height), ImGuiWindowFlags.NoInputs);
+                                {
+                                    float posY = ImGui.GetCursorPosY();
+                                    ImGui.SetCursorPosY(posY + 1);
+                                    ImGui.PushFont(ImFontPtr.Null, 32);
+                                    ImGui.Text($"{i + 1}");
+                                    ImGui.PopFont();
+                                    ImGui.SetCursorPosY(posY);
+                                    ImGui.SameLine();
+                                    ImGui.BeginChild($"QueueTrackInfo{i}", ImGuiWindowFlags.NoInputs);
+                                    {
+                                        ImGui.Text(title);
+                                        ImGui.PushFont(ImFontPtr.Null, 14);
+                                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.75f, 0.75f, 0.75f, 1.0f));
+                                        ImGui.Text(
+                                            $"{artist} • {album} • {track.Length.GetValueOrDefault():mm\\:ss}");
+                                        ImGui.PopStyleColor();
+                                        ImGui.PopFont();
+
+                                        ImGui.EndChild();
+                                    }
+                                    ImGui.EndChild();
+                                }
                             }
                         }
 

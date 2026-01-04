@@ -275,14 +275,19 @@ public class Glimpse : IGlimpse, IDisposable
             
             case SDL.EventType.WindowExposed:
             {
-                Logger.Log("Window Exposed");
-                foreach (Window wnd in _windows)
+                bool isResized = @event.Window.Data1 == 1;
+                if (isResized)
                 {
-                    wnd.SetActive();
-                    wnd.UpdateWindow();
-                    wnd.Present();
+                    Logger.Log("Window Exposed");
+                    foreach (Window wnd in _windows)
+                    {
+                        wnd.SetActive();
+                        wnd.UpdateWindow();
+                        wnd.Present();
+                    }
+
+                    Logger.Log("done.");
                 }
-                Logger.Log("done.");
 
                 break;
             }
