@@ -43,6 +43,8 @@ public class GlimpsePlayer : Window
     private Image _cogButton;
     private Image _bugButton;
     private Image _updateButton;
+    private Image _shuffleButton;
+    private Image _repeatButton;
 
     private Image _defaultAlbumArt;
     private Image? _albumArt;
@@ -74,6 +76,8 @@ public class GlimpsePlayer : Window
         _cogButton = Renderer.CreateImage("Assets/Icons/Cog.png");
         _bugButton = Renderer.CreateImage("Assets/Icons/Bug.png");
         _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
+        _shuffleButton = Renderer.CreateImage("Assets/Icons/Shuffle.png");
+        _repeatButton = Renderer.CreateImage("Assets/Icons/Repeat.png");
         
         _defaultAlbumArt = Renderer.CreateImage("Assets/Icons/Glimpse.png");
         
@@ -288,10 +292,37 @@ public class GlimpsePlayer : Window
                 ImGui.EndChild();
             }
 
+            Vector2 cursorPos = ImGui.GetCursorPos();
+            
+            Vector2 contentRegion = ImGui.GetContentRegionAvail();
+            ImGui.SetCursorPos(new Vector2(contentRegion.X - 150 * Scale, 20));
+            ImGui.BeginChild("VolumeDock");
+            {
+                ImGui.BeginDisabled();
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+                ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16));
+                ImGui.SameLine(0, 0);
+                ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16));
+                ImGui.PopStyleColor();
+                ImGui.EndDisabled();
+                
+                ImGui.SameLine(0, 2);
+                
+                contentRegion = ImGui.GetContentRegionAvail();
+                float volume = Glimpse.Player.Volume;
+                ImGui.SetNextItemWidth(contentRegion.X);
+                if (ImGui.SliderFloat("##Volume", ref volume, 0, 1))
+                    Glimpse.Player.Volume = volume;
+                    
+                ImGui.EndChild();
+            }
+
+            // TODO: HACK
+            ImGui.SetCursorPos(cursorPos);
             //ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX)
             {
-                float cursorPos = ImGui.GetCursorPosY() + (int) (10 * Scale);
-                Vector2 contentRegion = ImGui.GetContentRegionAvail();
+                float cursorPosY = ImGui.GetCursorPosY() + (int) (10 * Scale);
+                contentRegion = ImGui.GetContentRegionAvail();
 
                 float align = ImGui.GetStyle().FramePadding.Y;
 
@@ -304,10 +335,10 @@ public class GlimpsePlayer : Window
                 Vector2 elapsedTextSize = ImGui.CalcTextSize(elapsedText);
                 Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
                 
-                ImGui.SetCursorPosY(cursorPos + align);
+                ImGui.SetCursorPosY(cursorPosY + align);
                 ImGui.Text(elapsedText);
                 ImGui.SameLine();
-                ImGui.SetCursorPosY(cursorPos);
+                ImGui.SetCursorPosY(cursorPosY);
                 ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
                 if (ImGui.SliderInt("##transport", ref position, 0, length, ""))
                     _seekPosition = position;
@@ -316,7 +347,7 @@ public class GlimpsePlayer : Window
                     player.Seek(_seekPosition);
 
                 ImGui.SameLine();
-                ImGui.SetCursorPosY(cursorPos);
+                ImGui.SetCursorPosY(cursorPosY);
                 ImGui.Text(lengthText);
                 
                 //ImGui.EndChild();
