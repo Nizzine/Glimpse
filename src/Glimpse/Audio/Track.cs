@@ -9,19 +9,22 @@ namespace Glimpse.Audio;
 
 public class Track : IDisposable
 {
-    private ICodecStream _stream;
+    //public event OnUpdateBuffers UpdateBuffers;
+    
+    private ICodecStream? _stream;
     private Logger _logger;
     
     private MixrSharp.AudioFormat _format;
-    private AudioSource _source;
+    private AudioSource? _source;
 
     private byte[] _audioBuffer;
-    private AudioBuffer[] _buffers;
+    private AudioBuffer[]? _buffers;
     private int _currentBuffer;
 
     private ulong _elapsedBytes;
     private ulong _bytesConsumed;
 
+    private object _lockObj;
     private Action _onFinish;
 
     public readonly TrackInfo Info;
@@ -87,6 +90,8 @@ public class Track : IDisposable
         // The source will loop the last buffer if it runs out of buffers. It won't sound nice but at least it will
         // continue to play.
         _source.Looping = true;
+
+        _lockObj = new object();
         
         _logger.Log("Creating audio buffers.");
         _buffers = new AudioBuffer[2];
@@ -163,24 +168,31 @@ public class Track : IDisposable
         
         Task.Run(() =>
         {
-            ulong bytesProcessed = _stream.GetBuffer(_audioBuffer);
-
-            if (bytesProcessed == 0)
+            //UpdateBuffers();
+            lock (_lockObj)
             {
-                // Disable looping so the source can successfully stop.
-                _source.Looping = false;
-                return;
+                if (_stream == null || _buffers == null || _source == null)
+                    return;
+                
+                ulong bytesProcessed = _stream.GetBuffer(_audioBuffer);
+
+                if (bytesProcessed == 0)
+                {
+                    // Disable looping so the source can successfully stop.
+                    _source.Looping = false;
+                    return;
+                }
+
+                if ((int) bytesProcessed < _audioBuffer.Length)
+                    _buffers[_currentBuffer].Update(_audioBuffer[..(int) bytesProcessed]);
+                else
+                    _buffers[_currentBuffer].Update(_audioBuffer);
+                _source.SubmitBuffer(_buffers[_currentBuffer]);
+
+                _currentBuffer++;
+                if (_currentBuffer >= _buffers.Length)
+                    _currentBuffer = 0;
             }
-
-            if ((int) bytesProcessed < _audioBuffer.Length)
-                _buffers[_currentBuffer].Update(_audioBuffer[..(int) bytesProcessed]);
-            else
-                _buffers[_currentBuffer].Update(_audioBuffer);
-            _source.SubmitBuffer(_buffers[_currentBuffer]);
-
-            _currentBuffer++;
-            if (_currentBuffer >= _buffers.Length)
-                _currentBuffer = 0;
         });
     }
     
@@ -196,12 +208,20 @@ public class Track : IDisposable
 
     public void Dispose()
     {
-        _logger.Log("Disposing source.");
-        _source.Dispose();
-        _logger.Log("Disposing buffers.");
-        foreach (AudioBuffer buffer in _buffers)
-            buffer?.Dispose();
-        _logger.Log("Disposing stream.");
-        _stream.Dispose();
+        lock (_lockObj)
+        {
+            _logger.Log("Disposing source.");
+            _source.Dispose();
+            _source = null;
+            _logger.Log("Disposing buffers.");
+            foreach (AudioBuffer buffer in _buffers)
+                buffer?.Dispose();
+            _buffers = null;
+            _logger.Log("Disposing stream.");
+            _stream!.Dispose();
+            _stream = null;
+        }
     }
+
+    //public delegate void OnUpdateBuffers();
 }

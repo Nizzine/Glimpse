@@ -132,6 +132,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
         _logger.Log("  Creating track.");
         _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
+        //_activeTrack.UpdateBuffers += () => Stop();
 
         TrackChanged(info, path);
         Play();

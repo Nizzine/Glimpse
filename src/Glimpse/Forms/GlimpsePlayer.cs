@@ -309,10 +309,10 @@ public class GlimpsePlayer : Window
                 ImGui.SameLine(0, 2);
                 
                 contentRegion = ImGui.GetContentRegionAvail();
-                float volume = Glimpse.Player.Volume;
+                int volume = (int) (Glimpse.Player.Volume * 100);
                 ImGui.SetNextItemWidth(contentRegion.X);
-                if (ImGui.SliderFloat("##Volume", ref volume, 0, 1))
-                    Glimpse.Player.Volume = volume;
+                if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
+                    Glimpse.Player.Volume = (float) volume / 100;
                     
                 ImGui.EndChild();
             }
