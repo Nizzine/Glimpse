@@ -74,6 +74,9 @@ if [[ $RUNTIME == "win"* ]]; then
   zip -r "$OUT_NAME.zip" "$BUILD_DIR_NAME/" || exit 1
   makensis -DVERSION="$VERSION" -DPUBLISHDIR="$BUILD_DIR" ./packaging/windows/glimpse.nsi || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
+  mkdir -p "$BUILD_DIR/bin"
+  mv $BUILD_DIR/* "$BUILD_DIR/bin"
+  cp -r ./packaging/linux/installer/. $BUILD_DIR/ || exit 1
   tar -czvf "$OUT_NAME.tar.gz" "$BUILD_DIR_NAME/" || exit 1
 fi
 
