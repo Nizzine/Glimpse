@@ -8,5 +8,5 @@ Path=~/.local/share/Glimpse
 Exec=~/.local/share/Glimpse/Glimpse
 Icon=Glimpse
 Terminal=false
-Categories=Audio
+Categories=Audio;AudioVideo
 
