@@ -20,6 +20,7 @@ public class Glimpse : IGlimpse, IDisposable
     private Dictionary<uint, Window> _windowIds;
     private AssemblyLoadContext _pluginsContext;
     private int _mainThreadID;
+    private SDL.EventFilter _eventFilter;
 
     public Logger Logger;
 
@@ -171,7 +172,7 @@ public class Glimpse : IGlimpse, IDisposable
                     if (name.Name == currentName.Name)
                     {
                         if (name.Version != currentName.Version)
-                            Console.WriteLine("WARNING: Plugin requires different version of Glimpse. It may cause errors.");
+                            Logger.Log($"WARNING: Plugin {name.Name} requires different version of Glimpse (current version: {currentName.Version}, requires: {name.Version}). It may cause errors.");
                         
                         goto ASSEMBLY_GOOD;
                     }
@@ -205,9 +206,10 @@ public class Glimpse : IGlimpse, IDisposable
         }
 
         _mainThreadID = Environment.CurrentManagedThreadId;
+        _eventFilter = WindowExposedEventWatch;
         
         AddWindow(window);
-        SDL.AddEventWatch(WindowExposedEventWatch, 0);
+        SDL.AddEventWatch(_eventFilter, 0);
         
         if (args.Length > 0)
         {
@@ -237,7 +239,7 @@ public class Glimpse : IGlimpse, IDisposable
             }
         }
         
-        SDL.RemoveEventWatch(WindowExposedEventWatch, 0);
+        SDL.RemoveEventWatch(_eventFilter, 0);
     }
 
     private bool WindowExposedEventWatch(IntPtr userdata, ref SDL.Event @event)

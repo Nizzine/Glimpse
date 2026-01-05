@@ -520,10 +520,10 @@ public class GlimpsePlayer : Window
                         ImGui.TableHeadersRow();
 
                         string currentTrackPath = Glimpse.Player.CurrentTrackPath;
-                        int songEntryHeight = (int) (25 * Scale);
+                        //int songEntryHeight = (int) (25 * Scale);
 
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                        clipper.Begin(trackList.Count, songEntryHeight);
+                        clipper.Begin(trackList.Count/*, songEntryHeight*/);
                         while (clipper.Step())
                         {
                             int song = clipper.DisplayStart;
@@ -533,7 +533,7 @@ public class GlimpsePlayer : Window
                             {
                                 Track track = Glimpse.Database.Tracks[path];
 
-                                ImGui.TableNextRow(songEntryHeight);
+                                ImGui.TableNextRow(/*songEntryHeight*/);
                                 int currentRow = ImGui.TableGetRowIndex();
 
                                 //Console.WriteLine(song);

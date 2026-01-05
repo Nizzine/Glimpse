@@ -5,7 +5,7 @@ namespace Glimpse;
 
 public class Logger : ILogger
 {
-    private StreamWriter _writer;
+    private static StreamWriter _writer;
     
     //[Conditional("DEBUG")]
     public void Log(string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string file = "")

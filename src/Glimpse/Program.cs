@@ -9,6 +9,15 @@ public static class Program
     public static unsafe void Main(string[] args)
     {
 #if !DEBUG
+        AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+        {
+            Logger logger = new Logger();
+            string msg = eventArgs.ExceptionObject?.ToString() ??
+                         "An error occurred, but there was no message attached.";
+            logger.Log(msg);
+            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", msg, 0);
+        };
+
         try
 #endif
         {
