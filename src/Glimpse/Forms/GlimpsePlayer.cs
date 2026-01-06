@@ -216,144 +216,153 @@ public class GlimpsePlayer : Window
             
             ImGui.SameLine();
 
-            ImGui.BeginChild("MainThing");
-
-            ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
+            ImGui.BeginChild("MainView");
             {
-                if (player.TrackState == TrackState.Stopped)
+                ImGui.BeginChild("TrackInfo", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
                 {
-                    ImGui.TextUnformatted(locale.GetString("Glimpse"));
-                    ImGui.TextUnformatted("");
-                    ImGui.TextUnformatted("");
+                    if (player.TrackState == TrackState.Stopped)
+                    {
+                        ImGui.TextUnformatted(locale.GetString("Glimpse"));
+                        ImGui.TextUnformatted("");
+                        ImGui.TextUnformatted("");
+                    }
+                    else
+                    {
+                        ImGui.TextUnformatted(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack"));
+                        ImGui.TextUnformatted(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist"));
+                        ImGui.TextUnformatted(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum"));
+                    }
+
+                    ImGui.EndChild();
                 }
-                else
+
+                ImGui.SameLine();
+
+                Vector2 iconSize = new Vector2(32) * Scale;
+                // Even though there are 4 icons, 3 icons makes it *feel* more centered, even though it's shifted to the right.
+                const int numIcons = 3;
+                float spacing = ImGui.GetStyle().ItemSpacing.X;
+                float padding = ImGui.GetStyle().FramePadding.X;
+                float totalButtonsWidth = (iconSize.X + spacing + padding) * numIcons;
+
+                Vector2 centerPos = new Vector2(winSize.X / 2 - totalButtonsWidth / 2, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
+                ImGui.SetCursorScreenPos(centerPos);
+
+                ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
                 {
-                    ImGui.TextUnformatted(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack"));
-                    ImGui.TextUnformatted(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist"));
-                    ImGui.TextUnformatted(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum"));
+                    //Vector2 centerPos = new Vector2(Size.Width / 2, ImGui.GetCursorScreenPos().Y);
+                    //float padding = ImGui.GetStyle().WindowPadding.X + 10;
+
+                    ImGui.BeginDisabled(player.TrackState == TrackState.Stopped);
+
+                    Vector4 buttonColor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
+
+                    ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
+                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
+
+                    if (ImGui.ImageButton("BackwardButton", _skipButton, iconSize, new Vector2(1, 0),
+                            new Vector2(0, 1)))
+                    {
+                        player.Previous();
+                    }
+
+                    ImGui.SameLine();
+
+                    if (player.TrackState == TrackState.Playing)
+                    {
+                        if (ImGui.ImageButton("PauseButton", _pauseButton, iconSize))
+                            player.Pause();
+                    }
+                    else
+                    {
+                        if (ImGui.ImageButton("PlayButton", _playButton, iconSize))
+                            player.Play();
+                    }
+
+                    ImGui.SameLine();
+
+                    if (ImGui.ImageButton("ForwardButton", _skipButton, iconSize))
+                    {
+                        player.Next();
+                    }
+
+                    ImGui.SameLine();
+                    if (ImGui.ImageButton("StopButton", _stopButton, iconSize))
+                    {
+                        player.Stop();
+                    }
+
+                    ImGui.PopStyleColor();
+                    ImGui.PopStyleColor();
+
+                    ImGui.EndDisabled();
+
+                    ImGui.EndChild();
+                }
+
+                Vector2 cursorPos = ImGui.GetCursorPos();
+
+                Vector2 contentRegion = ImGui.GetContentRegionAvail();
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - 150 * Scale, 20));
+                ImGui.BeginChild("VolumeDock");
+                {
+                    ImGui.BeginDisabled();
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+                    ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16));
+                    ImGui.SameLine(0, 0);
+                    ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16));
+                    ImGui.PopStyleColor();
+                    ImGui.EndDisabled();
+
+                    ImGui.SameLine(0, 2);
+
+                    contentRegion = ImGui.GetContentRegionAvail();
+                    int volume = (int) (Glimpse.Player.Volume * 100);
+                    ImGui.SetNextItemWidth(contentRegion.X);
+                    if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
+                        Glimpse.Player.Volume = (float) volume / 100;
+
+                    ImGui.EndChild();
+                }
+
+                // TODO: HACK
+                ImGui.SetCursorPos(cursorPos);
+                //ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX)
+                {
+                    float cursorPosY = ImGui.GetCursorPosY() + (int) (10 * Scale);
+                    contentRegion = ImGui.GetContentRegionAvail();
+
+                    float align = ImGui.GetStyle().FramePadding.Y;
+
+                    int position = (int) player.ElapsedTime.TotalSeconds;
+                    int length = (int) player.TrackLength.TotalSeconds;
+
+                    string elapsedText = $"{position / 60:0}:{position % 60:00}";
+                    string lengthText = $"{length / 60:0}:{length % 60:00}";
+
+                    Vector2 elapsedTextSize = ImGui.CalcTextSize(elapsedText);
+                    Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
+
+                    ImGui.SetCursorPosY(cursorPosY + align);
+                    ImGui.TextUnformatted(elapsedText);
+                    ImGui.SameLine();
+                    ImGui.SetCursorPosY(cursorPosY);
+                    ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
+                    if (ImGui.SliderInt("##transport", ref position, 0, length, ""))
+                        _seekPosition = position;
+
+                    if (ImGui.IsItemDeactivatedAfterEdit())
+                        player.Seek(_seekPosition);
+
+                    ImGui.SameLine();
+                    ImGui.SetCursorPosY(cursorPosY);
+                    ImGui.TextUnformatted(lengthText);
+
+                    //ImGui.EndChild();
                 }
 
                 ImGui.EndChild();
             }
-            
-            ImGui.SameLine();
-            
-            Vector2 centerPos = new Vector2(Size.Width / 2 - 40, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
-            ImGui.SetNextWindowPos(centerPos);
-
-            ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
-            {
-                //Vector2 centerPos = new Vector2(Size.Width / 2, ImGui.GetCursorScreenPos().Y);
-                //float padding = ImGui.GetStyle().WindowPadding.X + 10;
-                
-                ImGui.BeginDisabled(player.TrackState == TrackState.Stopped);
-                
-                Vector4 buttonColor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
-                
-                ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
-                
-                if (ImGui.ImageButton("BackwardButton", _skipButton, ScaleVec(32), new Vector2(1, 0), new Vector2(0, 1)))
-                {
-                    player.Previous();
-                }
-                
-                ImGui.SameLine();
-                
-                if (player.TrackState == TrackState.Playing)
-                {
-                    if (ImGui.ImageButton("PauseButton", _pauseButton, ScaleVec(32)))
-                        player.Pause();
-                }
-                else
-                {
-                    if (ImGui.ImageButton("PlayButton", _playButton, ScaleVec(32)))
-                        player.Play();
-                }
-                
-                ImGui.SameLine();
-
-                if (ImGui.ImageButton("ForwardButton", _skipButton, ScaleVec(32)))
-                {
-                    player.Next();
-                }
-
-                ImGui.SameLine();
-                if (ImGui.ImageButton("StopButton", _stopButton, ScaleVec(32)))
-                {
-                    player.Stop();
-                }
-                
-                ImGui.PopStyleColor();
-                ImGui.PopStyleColor();
-                
-                ImGui.EndDisabled();
-                
-                ImGui.EndChild();
-            }
-
-            Vector2 cursorPos = ImGui.GetCursorPos();
-            
-            Vector2 contentRegion = ImGui.GetContentRegionAvail();
-            ImGui.SetCursorPos(new Vector2(contentRegion.X - 150 * Scale, 20));
-            ImGui.BeginChild("VolumeDock");
-            {
-                ImGui.BeginDisabled();
-                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16));
-                ImGui.SameLine(0, 0);
-                ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16));
-                ImGui.PopStyleColor();
-                ImGui.EndDisabled();
-                
-                ImGui.SameLine(0, 2);
-                
-                contentRegion = ImGui.GetContentRegionAvail();
-                int volume = (int) (Glimpse.Player.Volume * 100);
-                ImGui.SetNextItemWidth(contentRegion.X);
-                if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
-                    Glimpse.Player.Volume = (float) volume / 100;
-                    
-                ImGui.EndChild();
-            }
-
-            // TODO: HACK
-            ImGui.SetCursorPos(cursorPos);
-            //ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX)
-            {
-                float cursorPosY = ImGui.GetCursorPosY() + (int) (10 * Scale);
-                contentRegion = ImGui.GetContentRegionAvail();
-
-                float align = ImGui.GetStyle().FramePadding.Y;
-
-                int position = (int) player.ElapsedTime.TotalSeconds; 
-                int length = (int) player.TrackLength.TotalSeconds;
-                
-                string elapsedText = $"{position / 60:0}:{position % 60:00}";
-                string lengthText = $"{length / 60:0}:{length % 60:00}";
-
-                Vector2 elapsedTextSize = ImGui.CalcTextSize(elapsedText);
-                Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
-                
-                ImGui.SetCursorPosY(cursorPosY + align);
-                ImGui.TextUnformatted(elapsedText);
-                ImGui.SameLine();
-                ImGui.SetCursorPosY(cursorPosY);
-                ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
-                if (ImGui.SliderInt("##transport", ref position, 0, length, ""))
-                    _seekPosition = position;
-
-                if (ImGui.IsItemDeactivatedAfterEdit())
-                    player.Seek(_seekPosition);
-
-                ImGui.SameLine();
-                ImGui.SetCursorPosY(cursorPosY);
-                ImGui.TextUnformatted(lengthText);
-                
-                //ImGui.EndChild();
-            }
-            
-            ImGui.EndChild();
         }
         ImGui.End();
         
