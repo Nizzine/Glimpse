@@ -39,10 +39,10 @@ public sealed class RemovePopup : Popup
 
             if (_delete)
             {
-                ImGui.Text(locale.GetString(_isAlbum ? "Popup.Remove.Menu.DeleteAlbumWarning" : "Popup.Remove.DeleteTrackWarning", name));
+                ImGui.TextUnformatted(locale.GetString(_isAlbum ? "Popup.Remove.Menu.DeleteAlbumWarning" : "Popup.Remove.DeleteTrackWarning", name));
             }
             else
-                ImGui.Text(locale.GetString("Popup.Remove.Confirmation", name));
+                ImGui.TextUnformatted(locale.GetString("Popup.Remove.Confirmation", name));
 
             if (_isAlbum && !_delete)
                 ImGui.Checkbox(locale.GetString("Popup.Remove.SongsConfirmation"), ref _removeSongs);

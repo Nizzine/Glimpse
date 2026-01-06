@@ -85,7 +85,7 @@ public class AddFolderPopup : Popup
                 lock (_lockObj)
                 {
                     if (_currentFile != null)
-                        ImGui.Text(Path.GetFileName(_currentFile));
+                        ImGui.TextUnformatted(Path.GetFileName(_currentFile));
                 }
 
                 if (task.IsCompleted)

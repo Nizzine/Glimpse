@@ -142,7 +142,7 @@ public class GlimpsePlayer : Window
 /*#if DEBUG
         if (ImGui.BeginMainMenuBar())
         {
-            ImGui.Text("DEBUG Menu");
+            ImGui.TextUnformatted("DEBUG Menu");
 
             ImGui.Spacing();
             
@@ -222,15 +222,15 @@ public class GlimpsePlayer : Window
             {
                 if (player.TrackState == TrackState.Stopped)
                 {
-                    ImGui.Text(locale.GetString("Glimpse"));
-                    ImGui.Text("");
-                    ImGui.Text("");
+                    ImGui.TextUnformatted(locale.GetString("Glimpse"));
+                    ImGui.TextUnformatted("");
+                    ImGui.TextUnformatted("");
                 }
                 else
                 {
-                    ImGui.Text(EscapeString(player.CurrentTrack?.Title) ?? locale.GetString("UnknownTrack"));
-                    ImGui.Text(EscapeString(player.CurrentTrack?.Artist) ?? locale.GetString("UnknownArtist"));
-                    ImGui.Text(EscapeString(player.CurrentTrack?.Album) ?? locale.GetString("UnknownAlbum"));
+                    ImGui.TextUnformatted(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack"));
+                    ImGui.TextUnformatted(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist"));
+                    ImGui.TextUnformatted(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum"));
                 }
 
                 ImGui.EndChild();
@@ -336,7 +336,7 @@ public class GlimpsePlayer : Window
                 Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
                 
                 ImGui.SetCursorPosY(cursorPosY + align);
-                ImGui.Text(elapsedText);
+                ImGui.TextUnformatted(elapsedText);
                 ImGui.SameLine();
                 ImGui.SetCursorPosY(cursorPosY);
                 ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
@@ -348,7 +348,7 @@ public class GlimpsePlayer : Window
 
                 ImGui.SameLine();
                 ImGui.SetCursorPosY(cursorPosY);
-                ImGui.Text(lengthText);
+                ImGui.TextUnformatted(lengthText);
                 
                 //ImGui.EndChild();
             }
@@ -453,7 +453,7 @@ public class GlimpsePlayer : Window
                         if (ImGui.ImageButton("Update", _updateButton, ScaleVec(16)))
                             OpenLink(_newVersionURL);
                         
-                        ImGui.SetItemTooltip(locale.GetString("Player.UpdateAvailable", _newVersion));
+                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.UpdateAvailable", _newVersion));
                         
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
@@ -468,19 +468,19 @@ public class GlimpsePlayer : Window
                     if (ImGui.ImageButton("ReportBug", _bugButton, ScaleVec(16)))
                         OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
 
-                    ImGui.SetItemTooltip(locale.GetString("Player.ReportBug"));
+                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.ReportBug"));
                     
                     ImGui.SameLine();
                     
                     if (ImGui.ImageButton("Settings", _cogButton, ScaleVec(16)))
                         AddPopup(new SettingsPopup());
-                    ImGui.SetItemTooltip(locale.GetString("Player.Settings"));
+                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.Settings"));
             
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16)))
                         AddPopup(new AddFolderPopup());
-                    ImGui.SetItemTooltip(locale.GetString("Player.AddDirs"));
+                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
                 }
@@ -540,14 +540,13 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
                                 if (track.TrackNumber is uint trackNumber)
-                                    ImGui.Text(trackNumber.ToString());
+                                    ImGui.TextUnformatted(trackNumber.ToString());
 
                                 ImGui.TableNextColumn();
 
-                                string title = EscapeString(track.Title) ?? locale.GetString("UnknownTrack");
-                                string artist = EscapeString(track.Artist) ?? locale.GetString("UnknownArtist");
-                                string album = EscapeString(track.Album) ?? locale.GetString("UnknownAlbum");
-                                string escapedPath = EscapeString(path);
+                                string title = track.Title ?? locale.GetString("UnknownTrack");
+                                string artist = track.Artist ?? locale.GetString("UnknownArtist");
+                                string album = track.Album ?? locale.GetString("UnknownAlbum");
 
                                 // In order to allow the rating buttons to be clicked, we tell the selectable to ignore
                                 // the ratings column (otherwise the buttons won't click and instead the song will play)
@@ -581,13 +580,13 @@ public class GlimpsePlayer : Window
                                 }
 
                                 ImGui.TableNextColumn();
-                                ImGui.Text(artist);
+                                ImGui.TextUnformatted(artist);
                                 ImGui.TableNextColumn();
-                                ImGui.Text(album);
+                                ImGui.TextUnformatted(album);
                                 ImGui.TableNextColumn();
-                                ImGui.Text(track.Length?.ToString(@"mm\:ss") ?? "");
+                                ImGui.TextUnformatted(track.Length?.ToString(@"mm\:ss") ?? "");
                                 ImGui.TableNextColumn();
-                                ImGui.Text(track.PlayCount.ToString());
+                                ImGui.TextUnformatted(track.PlayCount.ToString());
                                 ImGui.TableNextColumn();
                                 int rating = isRatingHovered && _currentRowHover == currentRow ? _currentRatingHover : track.Rating;
                                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
@@ -621,10 +620,10 @@ public class GlimpsePlayer : Window
 
                                 ImGui.NewLine();
                                 ImGui.TableNextColumn();
-                                ImGui.Text(track.LastPlayed is { } lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
+                                ImGui.TextUnformatted(track.LastPlayed is { } lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
                                 ImGui.TableNextColumn();
-                                ImGui.Text(EscapeString(escapedPath));
-                                ImGui.SetItemTooltip(escapedPath);
+                                ImGui.TextUnformatted(path);
+                                ImGuiE.SetItemTooltipUnformatted(path);
 
                                 song++;
                             }
@@ -671,25 +670,25 @@ public class GlimpsePlayer : Window
                                 ImGui.SameLine();
                                 
                                 Track track = Glimpse.Database.Tracks[path];
-                                string title = EscapeString(track.Title) ?? locale.GetString("UnknownTrack");
-                                string artist = EscapeString(track.Artist) ?? locale.GetString("UnknownArtist");
-                                string album = EscapeString(track.Album) ?? locale.GetString("UnknownAlbum");
+                                string title = track.Title ?? locale.GetString("UnknownTrack");
+                                string artist = track.Artist ?? locale.GetString("UnknownArtist");
+                                string album = track.Album ?? locale.GetString("UnknownAlbum");
 
                                 ImGui.BeginChild($"QueueTrack{i}", new Vector2(0, height), ImGuiWindowFlags.NoInputs);
                                 {
                                     float posY = ImGui.GetCursorPosY();
                                     ImGui.SetCursorPosY(posY + 1);
                                     ImGui.PushFont(ImFontPtr.Null, 32);
-                                    ImGui.Text($"{i + 1}");
+                                    ImGui.TextUnformatted($"{i + 1}");
                                     ImGui.PopFont();
                                     ImGui.SetCursorPosY(posY);
                                     ImGui.SameLine();
                                     ImGui.BeginChild($"QueueTrackInfo{i}", ImGuiWindowFlags.NoInputs);
                                     {
-                                        ImGui.Text(title);
+                                        ImGui.TextUnformatted(title);
                                         ImGui.PushFont(ImFontPtr.Null, 14);
                                         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.75f, 0.75f, 0.75f, 1.0f));
-                                        ImGui.Text(
+                                        ImGui.TextUnformatted(
                                             $"{artist} • {album} • {track.Length.GetValueOrDefault():mm\\:ss}");
                                         ImGui.PopStyleColor();
                                         ImGui.PopFont();
@@ -843,11 +842,6 @@ public class GlimpsePlayer : Window
         ImGuiStylePtr style = ImGui.GetStyle();
         SetupStyle(style);
         RefreshLayout();
-    }
-
-    private static string? EscapeString(string? @string)
-    {
-        return @string?.Replace("%", "%%");
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)

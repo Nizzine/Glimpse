@@ -66,12 +66,12 @@ public class SettingsPopup : Popup
                             
                             ImGui.EndCombo();
                         }
-                        ImGui.SetItemTooltip(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Tooltip"));
+                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Tooltip"));
                         
                         ImGui.Separator();
                         
                         ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"), ref _currentConfig.EnableFileDeletion);
-                        ImGui.SetItemTooltip(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
+                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
                         
                         ImGui.EndTabItem();
                     }
@@ -109,7 +109,7 @@ public class SettingsPopup : Popup
                     {
                         if (Glimpse.Plugins == null || Glimpse.Plugins.Count == 0)
                         {
-                            ImGui.Text(locale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
+                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
                         }
                         else
                         {
@@ -171,12 +171,12 @@ public class SettingsPopup : Popup
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
                             ImGui.PushFont(null, 34 * Scale);
-                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
+                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
                             ImGui.PopFont();
-                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.Copyright"));
+                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Copyright"));
 
                             ImGui.Spacing();
-                            ImGui.Text(locale.GetString("Popup.Settings.Tab.About.Credits"));
+                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Credits"));
                             
                             ImGui.EndChild();
                         }

@@ -39,9 +39,9 @@ public partial class DiscordPresence : IPlugin
             {
                 ImGui.TableNextRow();
                 ImGui.TableNextColumn();
-                ImGui.Text(album.Replace("%", "%%"));
+                ImGui.TextUnformatted(album);
                 ImGui.TableNextColumn();
-                ImGui.Text(albumArt);
+                ImGui.TextUnformatted(albumArt);
             }
             
             ImGui.EndTable();
