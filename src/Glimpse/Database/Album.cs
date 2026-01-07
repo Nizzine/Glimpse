@@ -1,14 +1,3 @@
 ﻿namespace Glimpse.Database;
 
-public class Album
-{
-    public string Name;
-
-    public List<string> Tracks;
-
-    public Album(string name)
-    {
-        Name = name;
-        Tracks = new List<string>();
-    }
-}
+public class Album(string name) : TrackLinkData(name);

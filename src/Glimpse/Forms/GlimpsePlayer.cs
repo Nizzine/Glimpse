@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Drawing;
 using System.Net.Http.Headers;
 using System.Numerics;
@@ -27,7 +28,8 @@ public class GlimpsePlayer : Window
     private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
-    
+
+    private AlbumView _currentView;
     private string _currentAlbum;
     private int _seekPosition;
     private int _currentRowHover;
@@ -98,6 +100,7 @@ public class GlimpsePlayer : Window
         _defaultStyle = *style.Handle;
         SetupStyle(style);
 
+        _currentView = AlbumView.Albums;
         _currentAlbum = ShowAllString;
         
         if (Glimpse.Database.Tracks.Count == 0)
@@ -384,6 +387,44 @@ public class GlimpsePlayer : Window
             if (newDirectory != null)
                 ChangeDirectory(newDirectory);*/
 
+            Vector2 contentRegion = ImGui.GetContentRegionAvail() - ImGui.GetStyle().ItemSpacing;
+            const float split = 0.6f;
+            
+            ImGui.BeginDisabled();
+            
+            string str = "";
+            ImGui.SetNextItemWidth(contentRegion.X * split);
+            ImGui.InputTextWithHint("##SearchBox", "Search", ref str, 1000);
+            
+            ImGui.EndDisabled();
+            
+            ImGui.SameLine();
+            
+            ImGui.SetNextItemWidth(contentRegion.X * (1.0f - split));
+            string preview = _currentView switch
+            {
+                AlbumView.Albums => "Albums",
+                AlbumView.Artists => "Artists",
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            if (ImGui.BeginCombo("##DisplaySelector", preview))
+            {
+                if (ImGui.Selectable("Albums"))
+                {
+                    _currentView = AlbumView.Albums;
+                    _currentAlbum = ShowAllString;
+                }
+
+                if (ImGui.Selectable("Artists"))
+                {
+                    _currentView = AlbumView.Artists;
+                    _currentAlbum = ShowAllString;
+                }
+                //ImGui.Selectable("Playlists");
+                
+                ImGui.EndCombo();
+            }
+
             ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
             {
                 if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == ShowAllString))
@@ -392,34 +433,40 @@ public class GlimpsePlayer : Window
                     switchToTrackList = true;
                 }
 
-                Dictionary<string, Album> albums = Glimpse.Database.Albums;
-                ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                clipper.Begin(albums.Count);
+                IReadOnlyCollection<TrackLinkData> datas = _currentView switch
+                {
+                    AlbumView.Albums => Glimpse.Database.Albums.Values,
+                    AlbumView.Artists => Glimpse.Database.Artists.Values,
+                    _ => throw new ArgumentOutOfRangeException()
+                };
 
+                ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                clipper.Begin(datas.Count);
+                
                 while (clipper.Step())
                 {
-                    IEnumerable<KeyValuePair<string, Album>> albumsRange =
-                        albums.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                    IEnumerable<TrackLinkData> albumsRange =
+                        datas.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
                     
-                    foreach ((string name, Album album) in albumsRange)
+                    foreach (TrackLinkData data in albumsRange)
                     {
-                        if (ImGui.Selectable(name, _currentAlbum == name))
+                        if (ImGui.Selectable(data.Name, _currentAlbum == data.Name))
                         {
-                            _currentAlbum = name;
+                            _currentAlbum = data.Name;
                             switchToTrackList = true;
                         }
 
                         if (ImGui.BeginPopupContextItem())
                         {
                             if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
-                                player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
+                                player.QueueTracks(data.Tracks, QueueSlot.AtEnd);
                         
                             ImGui.Separator();
                         
                             if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                AddPopup(new RemovePopup(name, true, false));
+                                AddPopup(new RemovePopup(data.Name, true, false));
                             if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
-                                AddPopup(new RemovePopup(name, true, true));
+                                AddPopup(new RemovePopup(data.Name, true, true));
                         
                             ImGui.EndPopup();
                         }
@@ -503,13 +550,26 @@ public class GlimpsePlayer : Window
                 {
                     ICollection<string> trackList;
 
-                    if (_currentAlbum == ShowAllString || !Glimpse.Database.Albums.TryGetValue(_currentAlbum, out Album currentAlbum))
+                    TrackLinkData? currentView = null;
+                    switch (_currentView)
+                    {
+                        case AlbumView.Albums:
+                            if (Glimpse.Database.Albums.TryGetValue(_currentAlbum, out Album currentAlbum))
+                                currentView = currentAlbum;
+                            break;
+                        case AlbumView.Artists:
+                            if (Glimpse.Database.Artists.TryGetValue(_currentAlbum, out Artist currentArtist))
+                                currentView = currentArtist;
+                            break;
+                    }
+                    
+                    if (_currentAlbum == ShowAllString || currentView == null)
                     {
                         trackList = Glimpse.Database.Tracks.Keys;
                         _currentAlbum = ShowAllString;
                     }
                     else
-                        trackList = currentAlbum.Tracks;
+                        trackList = currentView.Tracks;
 
                     if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
@@ -924,5 +984,11 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
         colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
         colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
+    }
+
+    private enum AlbumView
+    {
+        Albums,
+        Artists
     }
 }

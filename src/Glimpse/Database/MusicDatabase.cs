@@ -15,17 +15,20 @@ public class MusicDatabase : IConfig
     
     public Dictionary<string, Track> Tracks;
     public Dictionary<string, Album> Albums;
+    public Dictionary<string, Artist> Artists;
     
     public MusicDatabase()
     {
-        Tracks = new Dictionary<string, Track>();
-        Albums = new Dictionary<string, Album>();
+        Tracks = [];
+        Albums = [];
+        Artists = [];
     }
 
     public void Refresh()
     {
         Tracks = Tracks.OrderBy(pair => pair.Value.Album).ThenBy(pair => pair.Value.TrackNumber).ToDictionary();
         Albums = Albums.OrderBy(pair => pair.Key).ToDictionary();
+        Artists = Artists.OrderBy(pair => pair.Key).ToDictionary();
     }
 
     public void AddIndexToDatabase(in IndexResult index)
@@ -49,6 +52,9 @@ public class MusicDatabase : IConfig
 
         foreach ((string name, Album album) in index.Albums)
             Albums[name] = album;
+
+        foreach ((string name, Artist artist) in index.Artists)
+            Artists[name] = artist;
         
         Refresh();
     }
@@ -57,8 +63,9 @@ public class MusicDatabase : IConfig
     {
         logger.Log($"Indexing directory {directory}.");
 
-        Dictionary<string, Track> tracks = new Dictionary<string, Track>();
-        Dictionary<string, Album> albums = new Dictionary<string, Album>();
+        Dictionary<string, Track> tracks = [];
+        Dictionary<string, Album> albums = [];
+        Dictionary<string, Artist> artists = [];
 
         foreach (FileInfo file in new DirectoryInfo(directory).EnumerateFiles("*.*", SearchOption.AllDirectories).OrderBy(info => info.Name))
         {
@@ -91,8 +98,19 @@ public class MusicDatabase : IConfig
                 
                 album.Tracks.Add(file.FullName);
             }
+
+            if (info.Artist != null)
+            {
+                if (!artists.TryGetValue(info.Artist, out Artist artist))
+                {
+                    artist = new Artist(info.Artist);
+                    artists.Add(info.Artist, artist);
+                }
+                
+                artist.Tracks.Add(file.FullName);
+            }
         }
 
-        return new IndexResult(directory, tracks, albums);
+        return new IndexResult(directory, tracks, albums, artists);
     }
 }
