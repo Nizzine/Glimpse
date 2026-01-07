@@ -144,7 +144,8 @@ public class SettingsPopup : Popup
                                         if (enabled)
                                         {
                                             ImGui.Separator();
-                                            Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                            if (Glimpse.Plugins[_currentPlugin].IsInitialized)
+                                                Glimpse.Plugins[_currentPlugin].DisplayGui();
                                         }
                                     }
 
