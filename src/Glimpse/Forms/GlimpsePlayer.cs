@@ -330,7 +330,7 @@ public class GlimpsePlayer : Window
 
                 // TODO: HACK
                 ImGui.SetCursorPos(cursorPos);
-                //ImGui.BeginChild("SongPosition", ImGuiChildFlags.AutoResizeX)
+                ImGui.BeginChild("SongPosition");
                 {
                     float cursorPosY = ImGui.GetCursorPosY() + (int) (10 * Scale);
                     contentRegion = ImGui.GetContentRegionAvail();
@@ -361,7 +361,7 @@ public class GlimpsePlayer : Window
                     ImGui.SetCursorPosY(cursorPosY);
                     ImGui.TextUnformatted(lengthText);
 
-                    //ImGui.EndChild();
+                    ImGui.EndChild();
                 }
 
                 ImGui.EndChild();
