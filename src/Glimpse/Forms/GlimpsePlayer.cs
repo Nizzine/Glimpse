@@ -54,6 +54,7 @@ public class GlimpsePlayer : Window
     private byte[]? _newAlbumArt;
     private bool _shouldDeleteArt;
 
+    private Timer _playCountTimer;
     private bool _hasIncrementedPlayCount;
     
     public GlimpsePlayer()
@@ -103,6 +104,8 @@ public class GlimpsePlayer : Window
 
         _currentView = AlbumView.Albums;
         _currentAlbum = ShowAllString;
+
+        _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
         if (Glimpse.Database.Tracks.Count == 0)
             AddPopup(new AddFolderPopup());
@@ -110,6 +113,26 @@ public class GlimpsePlayer : Window
 #if !DEBUG
         Task.Run(CheckForNewerVersion);
 #endif
+    }
+
+    private void CheckIncrementPlayCount(object? state)
+    {
+        AudioPlayer player = Glimpse.Player;
+
+        if (player.TrackState != TrackState.Playing ||
+            _hasIncrementedPlayCount ||
+            player.ConsumedTime.TotalSeconds < double.Max(30, player.TrackLength.TotalSeconds * 0.6))
+        {
+            return;
+        }
+
+        _hasIncrementedPlayCount = true;
+        if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrackPath, out Track track))
+        {
+            track.PlayCount++;
+            track.LastPlayed = DateTime.Now;
+            Glimpse.Database.Tracks[player.CurrentTrackPath] = track;
+        }
     }
 
     protected override unsafe void Update()
@@ -780,18 +803,6 @@ public class GlimpsePlayer : Window
             }
         }
         ImGui.End();
-
-        if (player.TrackState == TrackState.Playing && player.ConsumedTime.TotalSeconds >= double.Max(30, player.TrackLength.TotalSeconds * 0.6) &&
-            !_hasIncrementedPlayCount)
-        {
-            _hasIncrementedPlayCount = true;
-            if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrackPath, out Track track))
-            {
-                track.PlayCount++;
-                track.LastPlayed = DateTime.Now;
-                Glimpse.Database.Tracks[player.CurrentTrackPath] = track;
-            }
-        }
     }
 
     public void RefreshLayout()
@@ -905,6 +916,26 @@ public class GlimpsePlayer : Window
         {
             logger.Log($"Error occurred while checking for update: {e}");
         }
+    }
+
+    public override void Dispose()
+    {
+        _playCountTimer.Dispose();
+        
+        _playButton.Dispose();
+        _pauseButton.Dispose();
+        _skipButton.Dispose();
+        _stopButton.Dispose();
+        _plusButton.Dispose();
+        _star.Dispose();
+        _starFilled.Dispose();
+        _cogButton.Dispose();
+        _bugButton.Dispose();
+        _updateButton.Dispose();
+        _shuffleButton.Dispose();
+        _repeatButton.Dispose();
+        
+        base.Dispose();
     }
 
     public static void OpenLink(string link)

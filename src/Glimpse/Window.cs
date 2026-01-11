@@ -204,7 +204,7 @@ public abstract unsafe class Window : IDisposable
         SDL.GLSwapWindow(_window);
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
         SDL.DestroyWindow(_window);
     }
