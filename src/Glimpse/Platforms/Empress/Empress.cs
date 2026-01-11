@@ -21,6 +21,9 @@ public static unsafe class Empress
     [DllImport(DllName, EntryPoint = "empSetSeekCallback")]
     public static extern void SetSeekCallback(Context* context, SeekCallback callback);
 
+    [DllImport(DllName, EntryPoint = "empSetPositionCallback")]
+    public static extern void SetPositionCallback(Context* context, PositionCallback callback);
+
     [DllImport(DllName, EntryPoint = "empSetPlayPosition")]
     public static extern void SetPlayPosition(Context* context, nuint position);
     
@@ -51,4 +54,5 @@ public static unsafe class Empress
     public delegate void FocusCallback(Context* context);
     public delegate void ButtonPressedCallback(Context* context, Button button);
     public delegate void SeekCallback(Context* context, nuint position, long seek);
+    public delegate nuint PositionCallback(Context* context);
 }

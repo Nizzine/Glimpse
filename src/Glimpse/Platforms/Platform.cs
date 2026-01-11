@@ -7,6 +7,8 @@ public abstract class Platform : IDisposable
 {
     public event OnButtonPressed ButtonPressed = delegate { };
 
+    public event OnGetPosition? GetPosition;
+
     public abstract void InitializeMainWindow(nint hwnd);
 
     public abstract void OpenFileInExplorer(string path);
@@ -18,6 +20,11 @@ public abstract class Platform : IDisposable
     protected void InvokeButtonPressed(TransportButton? button, int? position)
     {
         ButtonPressed(button, position);
+    }
+
+    protected TimeSpan InvokeGetPosition()
+    {
+        return GetPosition?.Invoke() ?? TimeSpan.Zero;
     }
 
     public static Platform AutoDetect()
@@ -32,4 +39,6 @@ public abstract class Platform : IDisposable
     }
 
     public delegate void OnButtonPressed(TransportButton? button, int? position);
+
+    public delegate TimeSpan OnGetPosition();
 }

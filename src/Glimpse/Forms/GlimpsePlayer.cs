@@ -86,6 +86,7 @@ public class GlimpsePlayer : Window
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
+        Glimpse.Platform.GetPosition += PlatformOnGetPosition;
 
         const uint fontSize = 18;
         Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), fontSize, "Roboto");
@@ -846,6 +847,11 @@ public class GlimpsePlayer : Window
         
         if (position is { } pos)
             player.Seek(pos);
+    }
+    
+    private TimeSpan PlatformOnGetPosition()
+    {
+        return Glimpse.Player.ElapsedTime;
     }
 
     private Vector2 ScaleVec(float x, float y)

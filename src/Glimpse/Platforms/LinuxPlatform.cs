@@ -9,8 +9,10 @@ namespace Glimpse.Platforms;
 public unsafe class LinuxPlatform : Platform
 {
     private readonly Context* _context;
+    private readonly Empress.Empress.FocusCallback _focusCallback;
     private readonly Empress.Empress.ButtonPressedCallback _buttonCallback;
     private readonly Empress.Empress.SeekCallback _seekCallback;
+    private readonly Empress.Empress.PositionCallback _positionCallback;
     
     public readonly string DefaultFileManager;
     
@@ -39,8 +41,7 @@ public unsafe class LinuxPlatform : Platform
             DefaultFileManager = "nautilus";
         else if (fileManager.Contains("dolphin"))
             DefaultFileManager = "dolphin";
-
-
+        
         string desktopFile = Path.Combine(AppContext.BaseDirectory, "Glimpse.desktop");
         Console.WriteLine(desktopFile);
         byte[] bDesktopFile = Encoding.UTF8.GetBytes(desktopFile);
@@ -64,15 +65,19 @@ public unsafe class LinuxPlatform : Platform
                 throw new Exception($"{result}");
         }
 
+        _focusCallback = FocusCallback;
         _buttonCallback = ButtonPressedCallback;
         _seekCallback = SeekCallback;
+        _positionCallback = PositionCallback;
         Empress.Empress.SetCanPlay(_context, false);
         Empress.Empress.SetCanPause(_context, false);
         Empress.Empress.SetCanSeek(_context, false);
         Empress.Empress.SetCanGoNext(_context, false);
         Empress.Empress.SetCanGoPrevious(_context, false);
+        Empress.Empress.SetFocusCallback(_context, _focusCallback);
         Empress.Empress.SetButtonPressedCallback(_context, _buttonCallback);
         Empress.Empress.SetSeekCallback(_context, _seekCallback);
+        Empress.Empress.SetPositionCallback(_context, _positionCallback);
     }
 
     // This shouldn't be necessary on Linux platforms.
@@ -153,9 +158,7 @@ public unsafe class LinuxPlatform : Platform
             SilkMarshal.FreeString(pTitle);
         }
         
-        Empress.Empress.SetPlayPosition(_context, (nuint) position.TotalMicroseconds);
         bool canControl = state != TrackState.Stopped;
-        
         Empress.Empress.SetCanPlay(_context, canControl);
         Empress.Empress.SetCanPause(_context, canControl);
         Empress.Empress.SetCanGoNext(_context, canControl);
@@ -171,8 +174,14 @@ public unsafe class LinuxPlatform : Platform
         };
         
         Empress.Empress.SetPlayState(_context, playState);
+        Empress.Empress.SetPlayPosition(_context, (nuint) position.TotalMicroseconds);
     }
 
+    private void FocusCallback(Context* context)
+    {
+        Console.WriteLine("Focus!");
+    }
+    
     private void ButtonPressedCallback(Context* context, Button button)
     {
         TransportButton transportButton = button switch
@@ -191,6 +200,12 @@ public unsafe class LinuxPlatform : Platform
     private void SeekCallback(Context* context, UIntPtr position, long seek)
     {
         InvokeButtonPressed(null, (int) (position / 1000 / 1000));
+    }
+    
+    private nuint PositionCallback(Context* context)
+    {
+        TimeSpan position = InvokeGetPosition();
+        return (nuint) position.TotalMicroseconds;
     }
     
     public override void Dispose()
