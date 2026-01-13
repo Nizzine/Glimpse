@@ -1,4 +1,5 @@
-﻿using Glimpse.API;
+﻿using System.IO.Pipes;
+using Glimpse.API;
 using Glimpse.Forms;
 using SDL3;
 
@@ -8,6 +9,23 @@ public static class Program
 {
     public static unsafe void Main(string[] args)
     {
+        Console.WriteLine("Checking for an already existing instance.");
+        NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "Glimpse.Player", PipeDirection.Out);
+        try
+        {
+            pipeClient.Connect(100);
+            Console.WriteLine("Found!");
+            if (args.Length > 0)
+            {
+                BinaryWriter writer = new BinaryWriter(pipeClient);
+                writer.Write((byte) CommunicationFlags.PlayFile);
+                writer.Write(args[0]);
+            }
+            return;
+        }
+        catch (TimeoutException e) { }
+        pipeClient.Dispose();
+        
 #if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
         {
@@ -38,5 +56,13 @@ public static class Program
             SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, title, message, IntPtr.Zero);
         }
 #endif
+    }
+
+    [Flags]
+    public enum CommunicationFlags : byte
+    {
+        None = 0,
+        
+        PlayFile = 1 << 0
     }
 }
