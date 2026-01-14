@@ -9,11 +9,11 @@ RequestExecutionLevel admin
 InstallDir "$PROGRAMFILES64\Glimpse"
 InstallDirRegKey HKLM "SOFTWARE\Glimpse" "InstallDir"
 
-!define MUI_WELCOMEPAGE_TEXT "Install Glimpse ${VERSION}"
-!define MUI_FINISHPAGE_TEXT "Glimpse is installed."
+!define MUI_WELCOMEPAGE_TEXT "Install or upgrade Glimpse ${VERSION} to your system."
+!define MUI_FINISHPAGE_TEXT "Glimpse has been successfully installed!"
 !define MUI_FINISHPAGE_RUN "Glimpse.exe"
 !define MUI_ABORTWARNING
-!define MUI_ICON "..\..\src\Glimpse\Icon.ico"
+!define MUI_ICON "GlimpseInstaller.ico"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "..\..\LICENSE"
