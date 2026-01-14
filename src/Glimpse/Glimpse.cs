@@ -23,10 +23,8 @@ public class Glimpse : IGlimpse, IDisposable
     private AssemblyLoadContext _pluginsContext;
     private int _mainThreadID;
     private SDL.EventFilter _eventFilter;
-
-    private Thread _thread;
+    
     private NamedPipeServerStream _pipeServer;
-    private bool _closed;
     
     private bool _shouldFocusWindow;
     private string? _playFile;
@@ -64,8 +62,7 @@ public class Glimpse : IGlimpse, IDisposable
         Logger = new Logger();
         
         _pipeServer = new NamedPipeServerStream("Glimpse.Player", PipeDirection.In);
-        _thread = new Thread(ServerThread);
-        _thread.Start();
+        _pipeServer.BeginWaitForConnection(OnPipeServerConnection, this);
 
         // get the ass
         Assembly? ass = Assembly.GetEntryAssembly();
@@ -356,7 +353,6 @@ public class Glimpse : IGlimpse, IDisposable
         Player.Dispose();
         ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         Platform.Dispose();
-        _closed = true;
         _pipeServer.Close();
         
         SDL.Quit();
@@ -421,33 +417,32 @@ public class Glimpse : IGlimpse, IDisposable
         return Path.Combine(AppContext.BaseDirectory, path);
     }
 
-    private void ServerThread()
+    private void OnPipeServerConnection(IAsyncResult asyncResult)
     {
-        while (!_closed)
+        try
         {
-            try
-            {
-                _pipeServer.WaitForConnection();
-            }
-            catch (SocketException e)
-            {
-                return;
-            }
-
-            _shouldFocusWindow = true;
-
-            int b = _pipeServer.ReadByte();
-            if (b != -1)
-            {
-                Program.CommunicationFlags flags = (Program.CommunicationFlags) b;
-                BinaryReader reader = new BinaryReader(_pipeServer);
-
-                if ((flags & Program.CommunicationFlags.PlayFile) != 0)
-                    _playFile = reader.ReadString();
-            }
-            
-            _pipeServer.Disconnect();
+            _pipeServer.EndWaitForConnection(asyncResult);
         }
+        catch (SocketException e)
+        {
+            return;
+        }
+
+        _shouldFocusWindow = true;
+
+        int b = _pipeServer.ReadByte();
+        if (b != -1)
+        {
+            Program.CommunicationFlags flags = (Program.CommunicationFlags) b;
+            BinaryReader reader = new BinaryReader(_pipeServer);
+
+            if ((flags & Program.CommunicationFlags.PlayFile) != 0)
+                _playFile = reader.ReadString();
+        }
+            
+        _pipeServer.Disconnect();
+
+        _pipeServer.BeginWaitForConnection(OnPipeServerConnection, this);
     }
 
     SemVer IGlimpse.Version => Version;
