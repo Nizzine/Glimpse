@@ -93,6 +93,7 @@ public class GlimpsePlayer : Window
         Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), fontSize, "Roboto");
         Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansJP-Regular.ttf"), fontSize, "NotoJP");
         Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansSC-Regular.ttf"), fontSize, "NotoSC");
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf"), fontSize, "Icons");
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -424,7 +425,7 @@ public class GlimpsePlayer : Window
             
             ImGui.SameLine();
             
-            ImGui.SetNextItemWidth(contentRegion.X * (1.0f - split));
+            /*ImGui.SetNextItemWidth(contentRegion.X * (1.0f - split));
             string preview = _currentView switch
             {
                 AlbumView.Albums => locale.GetString("Player.ViewSelect.Albums"),
@@ -447,57 +448,93 @@ public class GlimpsePlayer : Window
                 //ImGui.Selectable("Playlists");
                 
                 ImGui.EndCombo();
-            }
+            }*/
 
-            ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
+            void DrawItemList()
             {
-                if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == ShowAllString))
+                ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
                 {
-                    _currentAlbum = ShowAllString;
-                    switchToTrackList = true;
-                }
-
-                IReadOnlyCollection<TrackLinkData> datas = _currentView switch
-                {
-                    AlbumView.Albums => Glimpse.Database.Albums.Values,
-                    AlbumView.Artists => Glimpse.Database.Artists.Values,
-                    _ => throw new ArgumentOutOfRangeException()
-                };
-
-                ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                clipper.Begin(datas.Count);
-                
-                while (clipper.Step())
-                {
-                    IEnumerable<TrackLinkData> albumsRange =
-                        datas.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
-                    
-                    foreach (TrackLinkData data in albumsRange)
+                    if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == ShowAllString))
                     {
-                        if (ImGui.Selectable(data.Name, _currentAlbum == data.Name))
-                        {
-                            _currentAlbum = data.Name;
-                            switchToTrackList = true;
-                        }
+                        _currentAlbum = ShowAllString;
+                        switchToTrackList = true;
+                    }
 
-                        if (ImGui.BeginPopupContextItem())
+                    IReadOnlyCollection<TrackLinkData> datas = _currentView switch
+                    {
+                        AlbumView.Albums => Glimpse.Database.Albums.Values,
+                        AlbumView.Artists => Glimpse.Database.Artists.Values,
+                        _ => throw new ArgumentOutOfRangeException()
+                    };
+
+                    ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                    clipper.Begin(datas.Count);
+                    
+                    while (clipper.Step())
+                    {
+                        IEnumerable<TrackLinkData> albumsRange =
+                            datas.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                        
+                        foreach (TrackLinkData data in albumsRange)
                         {
-                            if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
-                                player.QueueTracks(data.Tracks, QueueSlot.AtEnd);
-                        
-                            ImGui.Separator();
-                        
-                            if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                AddPopup(new RemovePopup(data.Name, true, false));
-                            if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
-                                AddPopup(new RemovePopup(data.Name, true, true));
-                        
-                            ImGui.EndPopup();
+                            if (ImGui.Selectable(data.Name, _currentAlbum == data.Name))
+                            {
+                                _currentAlbum = data.Name;
+                                switchToTrackList = true;
+                            }
+
+                            if (ImGui.BeginPopupContextItem())
+                            {
+                                if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
+                                    player.QueueTracks(data.Tracks, QueueSlot.AtEnd);
+                            
+                                ImGui.Separator();
+                            
+                                if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
+                                    AddPopup(new RemovePopup(data.Name, true, false));
+                                if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
+                                    AddPopup(new RemovePopup(data.Name, true, true));
+                            
+                                ImGui.EndPopup();
+                            }
                         }
                     }
+                    
+                    ImGui.EndChild();
                 }
+            }
+            
+            if (ImGui.BeginTabBar("AlbumTabs"))
+            {
+                //ImGui.PushFont(_iconsFont, 32);
+
+                if (ImGuiE.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums")))
+                {
+                    _currentView = AlbumView.Albums;
+                    DrawItemList();
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGuiE.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists")))
+                {
+                    _currentView = AlbumView.Artists;
+                    DrawItemList();
+                    ImGui.EndTabItem();
+                }
+
+                //ImGui.BeginDisabled();
+                if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres")))
+                {
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGuiE.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
+                {
+                    ImGui.EndTabItem();
+                }
+                //ImGui.EndDisabled();
                 
-                ImGui.EndChild();
+                ImGui.EndTabBar();
             }
         }
         ImGui.End();

@@ -15,4 +15,11 @@ public static class ImGuiE
             ImGui.End();
         }
     }
+
+    public static bool BeginTabItemTooltip(string name, string tooltip)
+    {
+        bool open = ImGui.BeginTabItem(name);
+        SetItemTooltipUnformatted(tooltip);
+        return open;
+    }
 }
