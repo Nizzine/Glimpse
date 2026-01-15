@@ -23,7 +23,10 @@
         "Player.AddDirs": "Add Folder",
         "Player.Tab.Tracks": "Tracks",
         "Player.Tab.Queue": "Queue",
+        "Player.ViewSelect.Albums": "Albums",
+        "Player.ViewSelect.Artists": "Artists",
         "Player.Albums.ShowAll": "Show All",
+        "Player.SearchBar": "Search",
         
         "Menu.AddToQueue": "Add to queue",
         "Menu.PlayNext": "Play Next",

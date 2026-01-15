@@ -418,7 +418,7 @@ public class GlimpsePlayer : Window
             
             string str = "";
             ImGui.SetNextItemWidth(contentRegion.X * split);
-            ImGui.InputTextWithHint("##SearchBox", "Search", ref str, 1000);
+            ImGui.InputTextWithHint("##SearchBox", locale.GetString("Player.SearchBar"), ref str, 1000);
             
             ImGui.EndDisabled();
             
@@ -427,19 +427,19 @@ public class GlimpsePlayer : Window
             ImGui.SetNextItemWidth(contentRegion.X * (1.0f - split));
             string preview = _currentView switch
             {
-                AlbumView.Albums => "Albums",
-                AlbumView.Artists => "Artists",
+                AlbumView.Albums => locale.GetString("Player.ViewSelect.Albums"),
+                AlbumView.Artists => locale.GetString("Player.ViewSelect.Artists"),
                 _ => throw new ArgumentOutOfRangeException()
             };
             if (ImGui.BeginCombo("##DisplaySelector", preview))
             {
-                if (ImGui.Selectable("Albums"))
+                if (ImGui.Selectable(locale.GetString("Player.ViewSelect.Albums")))
                 {
                     _currentView = AlbumView.Albums;
                     _currentAlbum = ShowAllString;
                 }
 
-                if (ImGui.Selectable("Artists"))
+                if (ImGui.Selectable(locale.GetString("Player.ViewSelect.Artists")))
                 {
                     _currentView = AlbumView.Artists;
                     _currentAlbum = ShowAllString;
