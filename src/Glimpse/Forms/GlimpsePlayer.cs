@@ -522,7 +522,7 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
 
-                //ImGui.BeginDisabled();
+                ImGui.BeginDisabled();
                 if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres")))
                 {
                     ImGui.EndTabItem();
@@ -532,7 +532,7 @@ public class GlimpsePlayer : Window
                 {
                     ImGui.EndTabItem();
                 }
-                //ImGui.EndDisabled();
+                ImGui.EndDisabled();
                 
                 ImGui.EndTabBar();
             }
