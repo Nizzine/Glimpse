@@ -174,10 +174,14 @@ public class SettingsPopup : Popup
                             ImGui.PushFont(null, 34 * Scale);
                             ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
                             ImGui.PopFont();
-                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Copyright"));
+                            ImGui.TextUnformatted("2026 aquagoose");
 
                             ImGui.Spacing();
                             ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Credits"));
+                            
+                            ImGui.Spacing();
+                            if (ImGui.TextLink("https://glimpseaudio.co.uk"))
+                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk");
                             
                             ImGui.EndChild();
                         }

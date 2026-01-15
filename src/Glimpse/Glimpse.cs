@@ -18,6 +18,12 @@ namespace Glimpse;
 
 public class Glimpse : IGlimpse, IDisposable
 {
+#if DEBUG
+    public const string PipeServerName = "GlimpsePlayer-DEBUG";
+#else
+    public const string PipeServerName = "GlimpsePlayer";
+#endif
+    
     private List<Window> _windows;
     private Dictionary<uint, Window> _windowIds;
     private AssemblyLoadContext _pluginsContext;
@@ -61,7 +67,7 @@ public class Glimpse : IGlimpse, IDisposable
     {
         Logger = new Logger();
         
-        _pipeServer = new NamedPipeServerStream("Glimpse.Player", PipeDirection.In);
+        _pipeServer = new NamedPipeServerStream(PipeServerName, PipeDirection.In);
         _pipeServer.BeginWaitForConnection(OnPipeServerConnection, this);
 
         // get the ass
@@ -423,7 +429,11 @@ public class Glimpse : IGlimpse, IDisposable
         {
             _pipeServer.EndWaitForConnection(asyncResult);
         }
-        catch (SocketException e)
+        catch (SocketException)
+        {
+            return;
+        }
+        catch (IOException)
         {
             return;
         }

@@ -10,7 +10,7 @@ public static class Program
     public static unsafe void Main(string[] args)
     {
         Console.WriteLine("Checking for an already existing instance.");
-        NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", "Glimpse.Player", PipeDirection.Out);
+        NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", Glimpse.PipeServerName, PipeDirection.Out);
         try
         {
             pipeClient.Connect(100);
