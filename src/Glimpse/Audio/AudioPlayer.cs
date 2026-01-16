@@ -92,6 +92,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
                 InsertTrackAtIndex(_currentTrackIndex + 1, path);
                 _currentQueueIndex++;
                 break;
+            case QueueSlot.Clear:
+                QueuedTracks.Clear();
+                QueuedTracks.Add(path);
+                isFirstQueue = true;
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
         }

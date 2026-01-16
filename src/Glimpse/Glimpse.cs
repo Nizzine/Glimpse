@@ -229,7 +229,7 @@ public class Glimpse : IGlimpse, IDisposable
         
         if (args.Length > 0)
         {
-            Player.QueueTrack(args[0], QueueSlot.AtEnd);
+            Player.QueueTrack(args[0], QueueSlot.Clear);
             Player.Play();
         }
 
@@ -256,8 +256,7 @@ public class Glimpse : IGlimpse, IDisposable
 
             if (_playFile != null)
             {
-                Player.Stop();
-                Player.QueueTrack(_playFile, QueueSlot.Queue);
+                Player.QueueTrack(_playFile, QueueSlot.Clear);
                 _playFile = null;
             }
 
