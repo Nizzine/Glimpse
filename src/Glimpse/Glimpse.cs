@@ -411,7 +411,7 @@ public class Glimpse : IGlimpse, IDisposable
                 Window wnd = _windowIds[winEvent.Button.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                 
-                ImGui.GetIO().AddMouseWheelEvent(winEvent.Wheel.X, winEvent.Wheel.Y);
+                ImGui.GetIO().AddMouseWheelEvent(-winEvent.Wheel.X, winEvent.Wheel.Y);
                 break;
             }
         }
