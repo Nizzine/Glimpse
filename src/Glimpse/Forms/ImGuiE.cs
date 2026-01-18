@@ -1,4 +1,5 @@
-﻿using Hexa.NET.ImGui;
+﻿using System.Numerics;
+using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
 
@@ -21,5 +22,13 @@ public static class ImGuiE
         bool open = ImGui.BeginTabItem(name);
         SetItemTooltipUnformatted(tooltip);
         return open;
+    }
+
+    public static void SetColumnTooltip(string text)
+    {
+        Vector2 textSize = ImGui.CalcTextSize(text);
+        float width = ImGui.GetColumnWidth(-1);
+        if (textSize.X > width)
+            SetItemTooltipUnformatted(text);
     }
 }

@@ -677,6 +677,11 @@ public class GlimpsePlayer : Window
                                 string title = track.Title ?? locale.GetString("UnknownTrack");
                                 string artist = track.Artist ?? locale.GetString("UnknownArtist");
                                 string album = track.Album ?? locale.GetString("UnknownAlbum");
+                                string length = track.Length?.ToString(@"mm\:ss") ?? "";
+                                string playCount = track.PlayCount.ToString();
+                                string lastPlayed = track.LastPlayed is { } last
+                                    ? last.ToString("yyyy-MM-dd HH:mm:ss")
+                                    : "";
 
                                 // In order to allow the rating buttons to be clicked, we tell the selectable to ignore
                                 // the ratings column (otherwise the buttons won't click and instead the song will play)
@@ -687,6 +692,7 @@ public class GlimpsePlayer : Window
                                     player.QueueTracks(trackList, QueueSlot.Clear);
                                     player.ChangeTrack(song);
                                 }
+                                ImGuiE.SetColumnTooltip(title);
 
                                 if (ImGui.BeginPopupContextItem())
                                 {
@@ -711,12 +717,16 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(artist);
+                                ImGuiE.SetColumnTooltip(artist);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(album);
+                                ImGuiE.SetColumnTooltip(album);
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted(track.Length?.ToString(@"mm\:ss") ?? "");
+                                ImGui.TextUnformatted(length);
+                                //ImGuiE.SetColumnTooltip(length);
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted(track.PlayCount.ToString());
+                                ImGui.TextUnformatted(playCount);
+                                //ImGuiE.SetColumnTooltip(playCount);
                                 ImGui.TableNextColumn();
                                 int rating = isRatingHovered && _currentRowHover == currentRow ? _currentRatingHover : track.Rating;
                                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
@@ -750,10 +760,11 @@ public class GlimpsePlayer : Window
 
                                 ImGui.NewLine();
                                 ImGui.TableNextColumn();
-                                ImGui.TextUnformatted(track.LastPlayed is { } lastPlayed ? lastPlayed.ToString("yyyy-MM-dd HH:mm:ss") : "");
+                                ImGui.TextUnformatted(lastPlayed);
+                                ImGuiE.SetColumnTooltip(lastPlayed);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(path);
-                                ImGuiE.SetItemTooltipUnformatted(path);
+                                ImGuiE.SetColumnTooltip(path);
 
                                 song++;
                             }
