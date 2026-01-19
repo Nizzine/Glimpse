@@ -21,7 +21,7 @@ public unsafe class BufferShaderSet<TVertex, TIndex> : IDisposable
     {
         _gl = gl;
         
-        VertexArray = _gl.CreateVertexArray();
+        VertexArray = _gl.GenVertexArray();
         _gl.BindVertexArray(VertexArray);
 
         VertexBuffer = gl.GenBuffer();

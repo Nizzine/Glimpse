@@ -106,6 +106,7 @@ public abstract unsafe class Window : IDisposable
         SDL.GLSetAttribute(SDL.GLAttr.ContextMajorVersion, 3);
         SDL.GLSetAttribute(SDL.GLAttr.ContextMinorVersion, 3);
         SDL.GLSetAttribute(SDL.GLAttr.ContextProfileMask, (int) SDL.GLProfile.Core);
+        SDL.GLSetAttribute(SDL.GLAttr.ContextFlags, (int) SDL.GLContextFlag.ForwardCompatible);
         SDL.GLSetAttribute(SDL.GLAttr.DepthSize, 0);
         SDL.GLSetAttribute(SDL.GLAttr.AlphaSize, 0);
 
