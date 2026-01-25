@@ -899,6 +899,9 @@ public class GlimpsePlayer : Window
                 case TransportButton.Previous:
                     player.Previous();
                     break;
+                case TransportButton.Stop:
+                    player.Stop();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(button), button, null);
             }

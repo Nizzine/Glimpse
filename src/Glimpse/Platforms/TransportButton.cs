@@ -5,5 +5,6 @@ public enum TransportButton
     Play,
     Pause,
     Next,
-    Previous
+    Previous,
+    Stop
 }

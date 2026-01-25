@@ -30,6 +30,7 @@ public unsafe class WindowsPlatform : Platform
         _transportControls.IsPauseEnabled = true;
         _transportControls.IsNextEnabled = true;
         _transportControls.IsPreviousEnabled = true;
+        _transportControls.IsStopEnabled = true;
     }
 
     private void MediaButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
@@ -38,7 +39,7 @@ public unsafe class WindowsPlatform : Platform
         {
             SystemMediaTransportControlsButton.Play => TransportButton.Play,
             SystemMediaTransportControlsButton.Pause => TransportButton.Pause,
-            SystemMediaTransportControlsButton.Stop => throw new NotSupportedException(),
+            SystemMediaTransportControlsButton.Stop => TransportButton.Stop,
             SystemMediaTransportControlsButton.Record => throw new NotSupportedException(),
             SystemMediaTransportControlsButton.FastForward => throw new NotSupportedException(),
             SystemMediaTransportControlsButton.Rewind => throw new NotSupportedException(),

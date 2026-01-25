@@ -74,6 +74,7 @@ public unsafe class LinuxPlatform : Platform
         Empress.Empress.SetCanSeek(_context, false);
         Empress.Empress.SetCanGoNext(_context, false);
         Empress.Empress.SetCanGoPrevious(_context, false);
+        // TODO: SetCanStop?
         Empress.Empress.SetFocusCallback(_context, _focusCallback);
         Empress.Empress.SetButtonPressedCallback(_context, _buttonCallback);
         Empress.Empress.SetSeekCallback(_context, _seekCallback);
