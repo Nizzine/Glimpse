@@ -9,7 +9,7 @@ if [ $# -ne 3 ]; then
   exit 2
 fi
 
-OUT_NAME=$1
+OUT_NAME="$1"
 BUILD_DIR_NAME="${OUT_NAME}"
 BUILD_DIR="$(pwd)/$BUILD_DIR_NAME"
 RUNTIME=$2
@@ -27,11 +27,18 @@ dotnet publish -c Release -r $RUNTIME -o $BUILD_DIR -p:Version="$VERSION" --self
 # As glimpse uses MixrSharp as a project reference rather than a nuget, we must delete the library file that doesn't
 # match the output runtime.
 pushd $BUILD_DIR
+# TODO: There MUST be a better way to do this.
 if [[ $RUNTIME == "win"* ]]; then
   rm libmixr.so || exit 1
+  rm libmixr.dylib || exit 1
+  rm Glimpse.desktop || exit 1
+elif [[ $RUNTIME == "osx"* ]]; then
+  rm libmixr.so || exit 1
+  rm mixr.dll || exit 1
   rm Glimpse.desktop || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   rm mixr.dll || exit 1
+  rm libmixr.dylib || exit 1
 fi
 popd
 
@@ -71,13 +78,17 @@ done
 rm -rf $PLUGINS_DIR_TEMP || exit 1
 
 if [[ $RUNTIME == "win"* ]]; then
-  zip -r "$OUT_NAME.zip" "$BUILD_DIR_NAME/" || exit 1
+  zip -r "$OUT_NAME-$RUNTIME.zip" "$BUILD_DIR_NAME/" || exit 1
   makensis -DVERSION="$VERSION" -DPUBLISHDIR="$BUILD_DIR" ./packaging/windows/glimpse.nsi || exit 1
+elif [[ $RUNTIME == "osx"* ]]; then
+  # TODO: Actual proper mac packaging. Signing aside, lol.
+  mv "$BUILD_DIR_NAME" "Glimpse.app" || exit 1
+  zip -r "$OUT_NAME-$RUNTIME.zip" "Glimpse.app" || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   mkdir -p "$BUILD_DIR/bin"
   mv $BUILD_DIR/* "$BUILD_DIR/bin"
   cp -r ./packaging/linux/installer/. $BUILD_DIR/ || exit 1
-  tar -czvf "$OUT_NAME.tar.gz" "$BUILD_DIR_NAME/" || exit 1
+  tar -czvf "$OUT_NAME-$RUNTIME.tar.gz" "$BUILD_DIR_NAME/" || exit 1
 fi
 
 rm -rf $BUILD_DIR || exit 1
