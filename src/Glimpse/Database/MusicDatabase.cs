@@ -88,16 +88,15 @@ public class MusicDatabase : IConfig
 
             tracks.Add(file.FullName, new Track(info));
 
-            if (info.Album != null)
+            //if (info.Album != null)
+            string albumName = info.Album ?? string.Empty;
+            if (!albums.TryGetValue(albumName, out Album album))
             {
-                if (!albums.TryGetValue(info.Album, out Album album))
-                {
-                    album = new Album(info.Album);
-                    albums.Add(info.Album, album);
-                }
-                
-                album.Tracks.Add(file.FullName);
+                album = new Album(albumName);
+                albums.Add(albumName, album);
             }
+            
+            album.Tracks.Add(file.FullName);
 
             if (info.Artist != null)
             {

@@ -28,6 +28,7 @@
         "Player.ViewSelect.Genres": "Genres",
         "Player.ViewSelect.Playlists": "Playlists",
         "Player.Albums.ShowAll": "Show All",
+        "Player.Albums.NoAlbum": "No Album",
         "Player.SearchBar": "Search",
         
         "Menu.AddToQueue": "Add to queue",

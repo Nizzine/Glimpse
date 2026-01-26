@@ -477,7 +477,11 @@ public class GlimpsePlayer : Window
                         
                         foreach (TrackLinkData data in albumsRange)
                         {
-                            if (ImGui.Selectable(data.Name, _currentAlbum == data.Name))
+                            string albumName = data.Name;
+                            if (albumName == string.Empty)
+                                albumName = locale.GetString("Player.Albums.NoAlbum");
+                            
+                            if (ImGui.Selectable(albumName, _currentAlbum == data.Name))
                             {
                                 _currentAlbum = data.Name;
                                 switchToTrackList = true;
