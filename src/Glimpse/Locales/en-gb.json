@@ -63,7 +63,9 @@
         "Popup.Settings.Tab.About": "About",
         "Popup.Settings.Tab.About.AppName": "Glimpse {0}",
         "Popup.Settings.Tab.About.Copyright": "2026 aquagoose",
-        "Popup.Settings.Tab.About.Credits": "Made by aquagoose\nThemed by Nizzine",
+        "Popup.Settings.Tab.About.Credits": "Made by aquagoose\nLogo by Nizzine",
+        "Popup.Settings.Tab.About.Website": "Website",
+        "Popup.Settings.Tab.About.Donate": "Donate",
         "Popup.Settings.Tab.About.OpenSourceLibraries": "Open-Source Libraries",
         
         "Popup.AddDirs.Name": "Add Folders",

@@ -171,7 +171,7 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
-                            ImGui.PushFont(null, 34 * Scale);
+                            ImGui.PushFont(null, 32 * Scale);
                             ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
                             ImGui.PopFont();
                             ImGui.TextUnformatted("2026 aquagoose");
@@ -180,13 +180,18 @@ public class SettingsPopup : Popup
                             ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Credits"));
                             
                             ImGui.Spacing();
-                            if (ImGui.TextLink("https://glimpseaudio.co.uk"))
+                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Website")))
                                 GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk");
+                            
+                            ImGui.SameLine();
+                            
+                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Donate")))
+                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/donate");
                             
                             ImGui.EndChild();
                         }
 
-                        if (ImGui.CollapsingHeader(locale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries")))
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries"));
                         {
                             ImGui.BeginChild("OSLibraries");
                             {
