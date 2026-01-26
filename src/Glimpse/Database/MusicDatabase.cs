@@ -16,12 +16,14 @@ public class MusicDatabase : IConfig
     public Dictionary<string, Track> Tracks;
     public Dictionary<string, Album> Albums;
     public Dictionary<string, Artist> Artists;
+    public Dictionary<string, Genre> Genres;
     
     public MusicDatabase()
     {
         Tracks = [];
         Albums = [];
         Artists = [];
+        Genres = [];
     }
 
     public void Refresh()
@@ -29,6 +31,7 @@ public class MusicDatabase : IConfig
         Tracks = Tracks.OrderBy(pair => pair.Value.Album).ThenBy(pair => pair.Value.TrackNumber).ToDictionary();
         Albums = Albums.OrderBy(pair => pair.Key).ToDictionary();
         Artists = Artists.OrderBy(pair => pair.Key).ToDictionary();
+        Genres = Genres.OrderBy(pair => pair.Key).ToDictionary();
     }
 
     public void AddIndexToDatabase(in IndexResult index)
@@ -56,6 +59,9 @@ public class MusicDatabase : IConfig
         foreach ((string name, Artist artist) in index.Artists)
             Artists[name] = artist;
         
+        foreach ((string name, Genre genre) in index.Genres)
+            Genres[name] = genre;
+        
         Refresh();
     }
 
@@ -66,6 +72,7 @@ public class MusicDatabase : IConfig
         Dictionary<string, Track> tracks = [];
         Dictionary<string, Album> albums = [];
         Dictionary<string, Artist> artists = [];
+        Dictionary<string, Genre> genres = [];
 
         foreach (FileInfo file in new DirectoryInfo(directory).EnumerateFiles("*.*", SearchOption.AllDirectories).OrderBy(info => info.Name))
         {
@@ -108,8 +115,19 @@ public class MusicDatabase : IConfig
                 
                 artist.Tracks.Add(file.FullName);
             }
+
+            if (info.Genre != null)
+            {
+                if (!genres.TryGetValue(info.Genre, out Genre genre))
+                {
+                    genre = new Genre(info.Genre);
+                    genres.Add(info.Genre, genre);
+                }
+                
+                genre.Tracks.Add(file.FullName);
+            }
         }
 
-        return new IndexResult(directory, tracks, albums, artists);
+        return new IndexResult(directory, tracks, albums, artists, genres);
     }
 }

@@ -464,6 +464,7 @@ public class GlimpsePlayer : Window
                     {
                         AlbumView.Albums => Glimpse.Database.Albums.Values,
                         AlbumView.Artists => Glimpse.Database.Artists.Values,
+                        AlbumView.Genres => Glimpse.Database.Genres.Values,
                         _ => throw new ArgumentOutOfRangeException()
                     };
 
@@ -525,13 +526,15 @@ public class GlimpsePlayer : Window
                     DrawItemList();
                     ImGui.EndTabItem();
                 }
-
-                ImGui.BeginDisabled();
+                
                 if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres")))
                 {
+                    _currentView = AlbumView.Genres;
+                    DrawItemList();
                     ImGui.EndTabItem();
                 }
 
+                ImGui.BeginDisabled();
                 if (ImGuiE.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
                 {
                     ImGui.EndTabItem();
@@ -625,6 +628,10 @@ public class GlimpsePlayer : Window
                         case AlbumView.Artists:
                             if (Glimpse.Database.Artists.TryGetValue(_currentAlbum, out Artist currentArtist))
                                 currentView = currentArtist;
+                            break;
+                        case AlbumView.Genres:
+                            if (Glimpse.Database.Genres.TryGetValue(_currentAlbum, out Genre currentGenre))
+                                currentView = currentGenre;
                             break;
                     }
                     
@@ -1081,6 +1088,7 @@ public class GlimpsePlayer : Window
     private enum AlbumView
     {
         Albums,
-        Artists
+        Artists,
+        Genres
     }
 }

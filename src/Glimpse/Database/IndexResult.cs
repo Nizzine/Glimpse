@@ -1,20 +1,19 @@
 ﻿namespace Glimpse.Database;
 
-public struct IndexResult
+public struct IndexResult(
+    string directory,
+    Dictionary<string, Track> tracks,
+    Dictionary<string, Album> albums,
+    Dictionary<string, Artist> artists,
+    Dictionary<string, Genre> genres)
 {
-    public string Directory;
+    public string Directory = directory;
     
-    public Dictionary<string, Track> Tracks;
+    public Dictionary<string, Track> Tracks = tracks;
 
-    public Dictionary<string, Album> Albums;
+    public Dictionary<string, Album> Albums = albums;
 
-    public Dictionary<string, Artist> Artists;
-
-    public IndexResult(string directory, Dictionary<string, Track> tracks, Dictionary<string, Album> albums, Dictionary<string, Artist> artists)
-    {
-        Directory = directory;
-        Tracks = tracks;
-        Albums = albums;
-        Artists = artists;
-    }
+    public Dictionary<string, Artist> Artists = artists;
+    
+    public Dictionary<string, Genre> Genres = genres;
 }
