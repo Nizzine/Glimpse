@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 
 # Builds glimpse for release.
 # Commented because I almost always immediately forget how to read and write bash scripts.
@@ -30,10 +30,12 @@ pushd $BUILD_DIR
 # TODO: There MUST be a better way to do this.
 if [[ $RUNTIME == "win"* ]]; then
   rm libmixr.so || exit 1
+  rm libempress.so
   rm libmixr.dylib || exit 1
   rm Glimpse.desktop || exit 1
 elif [[ $RUNTIME == "osx"* ]]; then
   rm libmixr.so || exit 1
+  rm libempress.so
   rm mixr.dll || exit 1
   rm Glimpse.desktop || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
