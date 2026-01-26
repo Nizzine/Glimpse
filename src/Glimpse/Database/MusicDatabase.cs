@@ -9,9 +9,12 @@ namespace Glimpse.Database;
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
 public class MusicDatabase : IConfig
 {
-    public const string DatabaseName = "Database/MusicDatabase";
+    public const string DatabaseName = "Database";
+    public const uint DatabaseVersion = 1;
 
     [JsonIgnore] public Logger Logger;
+
+    public uint Version;
     
     public Dictionary<string, Track> Tracks;
     public Dictionary<string, Album> Albums;
@@ -20,6 +23,7 @@ public class MusicDatabase : IConfig
     
     public MusicDatabase()
     {
+        Version = DatabaseVersion;
         Tracks = [];
         Albums = [];
         Artists = [];
