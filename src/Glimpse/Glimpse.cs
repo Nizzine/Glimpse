@@ -368,6 +368,7 @@ public class Glimpse : IGlimpse, IDisposable
         switch ((SDL.EventType) winEvent.Type)
         {
             case SDL.EventType.WindowCloseRequested:
+            case SDL.EventType.Quit:
             {
                 Window wnd = _windowIds[winEvent.Window.WindowID];
                 wnd.Dispose();
