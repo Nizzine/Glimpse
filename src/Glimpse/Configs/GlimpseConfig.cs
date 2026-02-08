@@ -1,4 +1,5 @@
 ﻿using Glimpse.API;
+using Glimpse.Forms;
 
 namespace Glimpse.Configs;
 
@@ -20,6 +21,8 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public bool EnableFileDeletion;
 
+    public Theme Theme;
+
     public GlimpseConfig()
     {
         Language = null;
@@ -29,13 +32,15 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
         SpeedAdjust = 1.0;
         EnabledPlugins = ["Glimpse.OpenMPT"];
         EnableFileDeletion = false;
+        Theme = Theme.SyncToOS;
     }
 
     public bool Equals(GlimpseConfig other)
     {
         return Language == other.Language && SwapTransportControls == other.SwapTransportControls &&
-               SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust) 
-               && EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion;
+               SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust)
+               && EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion &&
+               Theme == other.Theme;
     }
 
     public override bool Equals(object obj)
@@ -46,7 +51,7 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
     public override int GetHashCode()
     {
         return HashCode.Combine(Language, SwapTransportControls, SampleRate, Volume, SpeedAdjust, EnabledPlugins,
-            EnableFileDeletion);
+            EnableFileDeletion, Theme);
     }
 
     public static bool operator ==(GlimpseConfig left, GlimpseConfig right)

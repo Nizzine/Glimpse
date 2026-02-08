@@ -31,4 +31,17 @@ public static class ImGuiE
         if (textSize.X > width)
             SetItemTooltipUnformatted(text);
     }
+
+    public static bool SelectButton(string name, ImTextureRef image, Vector2 size, bool selected)
+    {
+        if (!selected)
+            ImGui.PushStyleColor(ImGuiCol.Button, 0);
+
+        bool pressed = ImGui.ImageButton(name, image, size);
+        
+        if (!selected)
+            ImGui.PopStyleColor();
+
+        return pressed;
+    }
 }

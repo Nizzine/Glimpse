@@ -15,6 +15,12 @@ public class SettingsPopup : Popup
     private Image? _glimpseLogo;
     private string? _currentPlugin;
 
+    private Image? _darkMode;
+    private Image? _lightMode;
+
+    private Image? _transportDown;
+    private Image? _transportUp;
+
     public override void Open()
     {
         _currentConfig = Glimpse.Config;
@@ -41,37 +47,92 @@ public class SettingsPopup : Popup
                 {
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.General")))
                     {
-                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.Language"), locale.DisplayName))
+                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.Language"),
+                                locale.DisplayName))
                         {
                             foreach ((string id, (_, string name)) in Locale.AvailableLocales)
                             {
-                                if (ImGui.Selectable(name, locale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
+                                if (ImGui.Selectable(name,
+                                        locale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
                                 {
                                     _currentConfig.Language = id;
                                     Glimpse.Locale = Locale.LoadLocale(id);
                                 }
                             }
-                            
+
                             ImGui.EndCombo();
                         }
 
-                        string up = locale.GetString("Popup.Settings.Tab.General.TransportLocation.Up");
-                        string down = locale.GetString("Popup.Settings.Tab.General.TransportLocation.Down");
-                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.TransportLocation"), _currentConfig.SwapTransportControls ? up : down))
+                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"),
+                            ref _currentConfig.EnableFileDeletion);
+                        ImGuiE.SetItemTooltipUnformatted(
+                            locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
+
+                        ImGui.EndTabItem();
+                    }
+                    
+                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Appearance")))
+                    {
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Appearance.Theme"));
+
+                        string syncToOS = locale.GetString("Popup.Settings.Tab.Appearance.Theme.SyncToOS");
+                        string dark = locale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
+                        string light = locale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
+
+                        bool shouldSyncToOS = _currentConfig.Theme == Theme.SyncToOS;
+                        if (ImGui.Checkbox(syncToOS, ref shouldSyncToOS))
+                            _currentConfig.Theme = shouldSyncToOS ? Theme.SyncToOS : Theme.Dark;
+
+                        _lightMode ??= Renderer.CreateImage("Assets/Images/LightMode.png");
+                        _darkMode ??= Renderer.CreateImage("Assets/Images/DarkMode.png");
+
+                        ImGui.BeginDisabled(shouldSyncToOS);
+                        
+                        if (ImGuiE.SelectButton("LightMode", _lightMode,
+                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
+                                _currentConfig.Theme == Theme.Light))
                         {
-                            if (ImGui.Selectable(up, _currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
-                                _currentConfig.SwapTransportControls = true;
-                            if (ImGui.Selectable(down, !_currentConfig.SwapTransportControls ? ImGuiSelectableFlags.Highlight : 0))
-                                _currentConfig.SwapTransportControls = false;
-                            
-                            ImGui.EndCombo();
+                            _currentConfig.Theme = Theme.Light;
                         }
-                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.TransportLocation.Tooltip"));
+                        ImGuiE.SetItemTooltipUnformatted(light);
                         
-                        ImGui.Separator();
+                        ImGui.SameLine();
                         
-                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"), ref _currentConfig.EnableFileDeletion);
-                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
+                        if (ImGuiE.SelectButton("DarkMode", _darkMode,
+                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
+                                _currentConfig.Theme == Theme.Dark))
+                        {
+                            _currentConfig.Theme = Theme.Dark;
+                        }
+                        ImGuiE.SetItemTooltipUnformatted(dark);
+                        
+                        ImGui.EndDisabled();
+                        
+                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
+
+                        _transportDown ??= Renderer.CreateImage("Assets/Images/TransportDown.png");
+                        _transportUp ??= Renderer.CreateImage("Assets/Images/TransportUp.png");
+                        
+                        string up = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Up");
+                        string down = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Down");
+                        
+                        if (ImGuiE.SelectButton("TransportDown", _transportDown,
+                            ScaleVec(_transportDown.Width * 0.25f, _transportDown.Height * 0.25f),
+                            !_currentConfig.SwapTransportControls))
+                        {
+                            _currentConfig.SwapTransportControls = false;
+                        }
+                        ImGuiE.SetItemTooltipUnformatted(down);
+
+                        ImGui.SameLine();
+                        
+                        if (ImGuiE.SelectButton("TransportUp", _transportUp,
+                                ScaleVec(_transportUp.Width * 0.25f, _transportUp.Height * 0.25f),
+                                _currentConfig.SwapTransportControls))
+                        {
+                            _currentConfig.SwapTransportControls = true;
+                        }
+                        ImGuiE.SetItemTooltipUnformatted(up);
                         
                         ImGui.EndTabItem();
                     }
@@ -262,7 +323,7 @@ public class SettingsPopup : Popup
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
-        if (_currentConfig.SwapTransportControls != oldConfig.SwapTransportControls)
+        if (_currentConfig.SwapTransportControls != oldConfig.SwapTransportControls || _currentConfig.Theme != oldConfig.Theme)
             ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
         if (Glimpse.Plugins == null)
