@@ -17,9 +17,9 @@ public static class ImGuiE
         }
     }
 
-    public static bool BeginTabItemTooltip(string name, string tooltip)
+    public static bool BeginTabItemTooltip(string name, string tooltip, bool select = false)
     {
-        bool open = ImGui.BeginTabItem(name);
+        bool open = ImGui.BeginTabItem(name, select ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None);
         SetItemTooltipUnformatted(tooltip);
         return open;
     }
@@ -43,5 +43,19 @@ public static class ImGuiE
             ImGui.PopStyleColor();
 
         return pressed;
+    }
+
+    public static bool TextButton(string text)
+    {
+        ImGui.TextUnformatted(text);
+        
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+                return true;
+        }
+
+        return false;
     }
 }

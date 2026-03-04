@@ -233,6 +233,10 @@ public class GlimpsePlayer : Window
 
         Vector4 iconsColor = _isLightModeTheme ? new Vector4(0, 0, 0, 1) : new Vector4(1, 1, 1, 1);
 
+        bool switchToTrackList = false;
+        bool switchToQueueView = false;
+        AlbumView? switchView = null;
+        
         if (ImGui.Begin("Transport", ImGuiWindowFlags.NoResize))
         {
             Vector2 winSize = ImGui.GetContentRegionAvail();
@@ -258,9 +262,29 @@ public class GlimpsePlayer : Window
                     }
                     else
                     {
-                        ImGui.TextUnformatted(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack"));
-                        ImGui.TextUnformatted(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist"));
-                        ImGui.TextUnformatted(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum"));
+                        // TODO: Scroll to the selected track & album/artist
+                        if (ImGuiE.TextButton(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack")) &&
+                            player.CurrentTrack?.Album != null)
+                        {
+                            switchToQueueView = true;
+                        }
+
+                        if (ImGuiE.TextButton(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist")) &&
+                            player.CurrentTrack?.Artist != null)
+                        {
+                            switchToTrackList = true;
+                            switchView = AlbumView.Artists;
+                            _currentAlbum = player.CurrentTrack.Artist;
+                        }
+
+
+                        if (ImGuiE.TextButton(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum")) &&
+                            player.CurrentTrack?.Album != null)
+                        {
+                            switchToTrackList = true;
+                            switchView = AlbumView.Albums;
+                            _currentAlbum = player.CurrentTrack.Album;
+                        }
                     }
 
                     ImGui.EndChild();
@@ -400,8 +424,6 @@ public class GlimpsePlayer : Window
         }
         ImGui.End();
         
-        bool switchToTrackList = false;
-        
         if (ImGui.Begin("Albums", ImGuiWindowFlags.HorizontalScrollbar))
         {
             /*string newDirectory = null;
@@ -519,23 +541,29 @@ public class GlimpsePlayer : Window
             {
                 //ImGui.PushFont(_iconsFont, 32);
 
-                if (ImGuiE.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums")))
+                if (switchView is AlbumView view)
+                    _currentView = view;
+
+                if (ImGuiE.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
                 {
-                    _currentView = AlbumView.Albums;
+                    if (switchView == null)
+                        _currentView = AlbumView.Albums;
                     DrawItemList();
                     ImGui.EndTabItem();
                 }
 
-                if (ImGuiE.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists")))
+                if (ImGuiE.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
                 {
-                    _currentView = AlbumView.Artists;
+                    if (switchView == null)
+                        _currentView = AlbumView.Artists;
                     DrawItemList();
                     ImGui.EndTabItem();
                 }
                 
-                if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres")))
+                if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
                 {
-                    _currentView = AlbumView.Genres;
+                    if (switchView == null)
+                        _currentView = AlbumView.Genres;
                     DrawItemList();
                     ImGui.EndTabItem();
                 }
@@ -641,7 +669,7 @@ public class GlimpsePlayer : Window
                             break;
                     }
                     
-                    if (_currentAlbum == ShowAllString || currentView == null)
+                    if (_currentAlbum == ShowAllString || (currentView == null && switchView == null))
                     {
                         trackList = Glimpse.Database.Tracks.Keys;
                         _currentAlbum = ShowAllString;
@@ -793,7 +821,10 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
 
-                if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Queue")))
+                ImGuiTabItemFlags queueFlags =
+                    switchToQueueView ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
+                
+                if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Queue"), queueFlags))
                 {
                     ImGui.BeginChild("QueuedTracks");
                     {
