@@ -36,6 +36,9 @@ public abstract class Platform : IDisposable
         if (OperatingSystem.IsLinux())
             return new LinuxPlatform();
 
+        if (OperatingSystem.IsMacOS())
+            return new OSXPlatform();
+
         return new NullPlatform();
     }
 

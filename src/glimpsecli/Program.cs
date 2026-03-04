@@ -6,6 +6,8 @@ using System.Threading;
 using Glimpse.API;
 using Glimpse.Audio;
 
+namespace glimpsecli;
+
 public static class GlimpseCli
 {
     public static void Main(string[] args)
@@ -271,4 +273,3 @@ public static class GlimpseCli
                           """);
     }
 }
-

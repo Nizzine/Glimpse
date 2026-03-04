@@ -32,29 +32,27 @@ public unsafe class LinuxPlatform : Platform
         };
         process.Start();
         process.WaitForExit();
+        
+        FileManagerName = "File Manager";
         string? fileManager = process.StandardOutput.ReadLine();
 
-        if (fileManager == null)
+        if (fileManager != null)
         {
-            FileManagerName = "File Manager";
-            return;
-        }
+            fileManager = fileManager.ToLower();
 
-        fileManager = fileManager.ToLower();
-
-        if (fileManager.Contains("nautilus"))
-        {
-            _defaultFileManager = "nautilus";
-            FileManagerName = "Nautilus";
-        }
-        else if (fileManager.Contains("dolphin"))
-        {
-            _defaultFileManager = "dolphin";
-            FileManagerName = "Dolphin";
+            if (fileManager.Contains("nautilus"))
+            {
+                _defaultFileManager = "nautilus";
+                FileManagerName = "Nautilus";
+            }
+            else if (fileManager.Contains("dolphin"))
+            {
+                _defaultFileManager = "dolphin";
+                FileManagerName = "Dolphin";
+            }
         }
 
         string desktopFile = Path.Combine(AppContext.BaseDirectory, "Glimpse.desktop");
-        Console.WriteLine(desktopFile);
         byte[] bDesktopFile = Encoding.UTF8.GetBytes(desktopFile);
         
 #if DEBUG

@@ -211,7 +211,7 @@ public class Track : IDisposable
         lock (_lockObj)
         {
             _logger?.Log("Disposing source.");
-            _source.Dispose();
+            _source?.Dispose();
             _source = null;
             _logger?.Log("Disposing buffers.");
             foreach (AudioBuffer buffer in _buffers)
