@@ -3,22 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Glimpse.Player;
-using Glimpse.Player.Configs;
+using Glimpse.API;
+using Glimpse.Audio;
 
 public static class GlimpseCli
 {
     public static void Main(string[] args)
     {
-        Logger.Log("Program Start");
-        
         if (args.Length == 0)
         {
             PrintHelp();
             return;
         }
-        
-        Logger.Log($"args.Length = {args.Length}");
         
         List<string> files = new List<string>();
         float? volume = null;
@@ -113,8 +109,6 @@ public static class GlimpseCli
             }
         }
         
-        Logger.Log($"files.Count = {files.Count}");
-
         if (files.Count == 0)
         {
             PrintHelp();
@@ -140,18 +134,21 @@ public static class GlimpseCli
             files = shuffled;
         }
 
-        Logger.Log("Create Audio Player");
-        AudioPlayer player = new AudioPlayer();
-        ref PlayerConfig cfg = ref player.Config;
-        cfg.Volume = volume ?? player.Config.Volume;
-        cfg.SpeedAdjust = speed ?? player.Config.SpeedAdjust;
+        PlayerSettings settings = new PlayerSettings()
+        {
+            SampleRate = 48000,
+            Volume = volume ?? 1.0f,
+            SpeedAdjust = speed ?? 1.0f
+        };
+        AudioPlayer player = new AudioPlayer(null, settings);
         
         foreach (string path in files)
             player.QueueTrack(path, QueueSlot.AtEnd);
 
         player.ChangeTrack(startingTrack);
-        
-        PrintConsoleText(player.TrackInfo, 0, player.TrackLength, player.TrackState, player.CurrentTrackIndex, files.Count);
+
+        PrintConsoleText(player.CurrentTrack, 0, (int) player.TrackLength.TotalSeconds, player.TrackState,
+            player.CurrentTrackIndex, files.Count);
 
         Console.CancelKeyPress += (sender, eventArgs) =>
         {
@@ -162,12 +159,12 @@ public static class GlimpseCli
 
         while (player.TrackState != TrackState.Stopped)
         {
-            int elapsed = player.ElapsedSeconds;
-            int total = player.TrackLength;
+            int elapsed = (int) player.ElapsedTime.TotalSeconds;
+            int total = (int) player.TrackLength.TotalSeconds;
 
             (int left, int top) = Console.GetCursorPosition();
             Console.SetCursorPosition(left, top - 8);
-            PrintConsoleText(player.TrackInfo, elapsed, total, player.TrackState, player.CurrentTrackIndex, files.Count);
+            PrintConsoleText(player.CurrentTrack, elapsed, total, player.TrackState, player.CurrentTrackIndex, files.Count);
 
             if (Console.KeyAvailable)
             {
@@ -206,11 +203,8 @@ public static class GlimpseCli
             Thread.Sleep(125);
         }
         
-        Logger.Log("Quitting.");
         
         ResetConsole();
-        
-        Logger.Log("Disposing audio player");
         player.Dispose();
     }
 

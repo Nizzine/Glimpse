@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Glimpse.API;
-using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Graphics;
 using Glimpse.Locales;

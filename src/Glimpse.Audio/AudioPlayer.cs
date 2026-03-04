@@ -1,6 +1,5 @@
 ﻿using Glimpse.API;
 using Glimpse.API.Codecs;
-using Glimpse.Audio.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
 using Glimpse.Audio.Codecs.Vorbis;
@@ -15,7 +14,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public event IAudioPlayer.OnStateChanged StateChanged = delegate { };
 
-    private readonly Logger _logger;
+    private readonly ILogger? _logger;
     private readonly Context _context;
     private readonly AudioDevice _device;
     
@@ -51,19 +50,19 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public string CurrentTrackPath => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
 
-    public AudioPlayer(Logger logger, PlayerSettings settings)
+    public AudioPlayer(ILogger? logger, PlayerSettings settings)
     {
         _logger = logger;
         _settings = settings;
         
-        _logger.Log("Creating context.");
+        _logger?.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
         Volume = _settings.Volume;
         
-        _logger.Log("Creating device.");
+        _logger?.Log("Creating device.");
         _device = new AudioDevice(_context, _settings.SampleRate);
 
-        _logger.Log("Initializing codecs.");
+        _logger?.Log("Initializing codecs.");
         _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
 
         QueuedTracks = new List<string>();
@@ -76,7 +75,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     /// <param name="slot">The <see cref="QueueSlot"/> to insert the track at.</param>
     public void QueueTrack(string path, QueueSlot slot, bool autoPlay = true)
     {
-        _logger.Log($"Queueing track {path}");
+        _logger?.Log($"Queueing track {path}");
 
         bool isFirstQueue = autoPlay && QueuedTracks.Count == 0;
 
@@ -119,33 +118,33 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public void ChangeTrack(int queueIndex)
     {
-        _logger.Log($"Changing to track {queueIndex}.");
+        _logger?.Log($"Changing to track {queueIndex}.");
         
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
             throw new Exception("Cannot queue track that is not in the queue.");
         
-        //_logger.Log("  Locking device.");
+        //_logger?.Log("  Locking device.");
         //_device.Lock();
         Track oldTrack = _activeTrack;
 
         string path = QueuedTracks[queueIndex];
         _currentTrackIndex = queueIndex;
         
-        _logger.Log($"  Creating codec stream from file {path}");
+        _logger?.Log($"  Creating codec stream from file {path}");
         ICodecStream stream = CreateStreamFromFile(path);
         TrackInfo info = stream.TrackInfo;
 
-        _logger.Log("  Creating track.");
+        _logger?.Log("  Creating track.");
         _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
         //_activeTrack.UpdateBuffers += () => Stop();
 
         TrackChanged(info, path);
         Play();
         
-        _logger.Log("  Disposing the old track.");
+        _logger?.Log("  Disposing the old track.");
         oldTrack?.Dispose();
         
-        //_logger.Log("  Unlocking device.");
+        //_logger?.Log("  Unlocking device.");
         //_device.Unlock();
     }
 
@@ -154,10 +153,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         if (_activeTrack == null)
             return;
         
-        _logger.Log("Start playback.");
+        _logger?.Log("Start playback.");
         _activeTrack.Play();
         StateChanged(TrackState.Playing);
-        _logger.Log("  Playing device.");
+        _logger?.Log("  Playing device.");
         _device.Play();
     }
     
@@ -175,15 +174,15 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         if (_activeTrack == null)
             return;
         
-        _logger.Log("Stopping.");
+        _logger?.Log("Stopping.");
         
-        _logger.Log("  Pausing device.");
+        _logger?.Log("  Pausing device.");
         _device.Pause();
-        _logger.Log("  Disposing active track.");
+        _logger?.Log("  Disposing active track.");
         _activeTrack.Dispose();
         _activeTrack = null;
         
-        _logger.Log("  Clearing queued tracks.");
+        _logger?.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
         _currentTrackIndex = 0;
         StateChanged(TrackState.Stopped);
@@ -237,11 +236,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public TrackInfo GetTrackInfoForFile(string path)
     {
-        _logger.Log("Checking for codec support.");
+        _logger?.Log("Checking for codec support.");
         if (!FileIsSupported(path, out ICodec codec))
             throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
         
-        _logger.Log("  Getting track info.");
+        _logger?.Log("  Getting track info.");
         return codec.GetTrackInfo(path);
     }
     
@@ -263,10 +262,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private ICodecStream CreateStreamFromFile(string path)
     {
-        _logger.Log("Checking for codec support.");
+        _logger?.Log("Checking for codec support.");
         if (FileIsSupported(path, out ICodec codec))
         {
-            _logger.Log("  Creating stream.");
+            _logger?.Log("  Creating stream.");
             return codec.CreateStream(path);
         }
 
@@ -275,7 +274,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private void InsertTrackAtIndex(int index, string path)
     {
-        _logger.Log($"Inserting track '{path}' at index {index}.");
+        _logger?.Log($"Inserting track '{path}' at index {index}.");
         if (index >= QueuedTracks.Count)
             QueuedTracks.Add(path);
         else
@@ -289,11 +288,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public void Dispose()
     {
-        _logger.Log("Disposing track.");
+        _logger?.Log("Disposing track.");
         _activeTrack?.Dispose();
-        _logger.Log("Disposing device.");
+        _logger?.Log("Disposing device.");
         _device.Dispose();
-        _logger.Log("Disposing context.");
+        _logger?.Log("Disposing context.");
         _context.Dispose();
     }
 }

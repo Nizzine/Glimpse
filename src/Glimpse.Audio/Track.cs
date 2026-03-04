@@ -12,7 +12,7 @@ public class Track : IDisposable
     //public event OnUpdateBuffers UpdateBuffers;
     
     private ICodecStream? _stream;
-    private Logger _logger;
+    private ILogger? _logger;
     
     private MixrSharp.AudioFormat _format;
     private AudioSource? _source;
@@ -67,7 +67,7 @@ public class Track : IDisposable
         }
     }
     
-    internal Track(Context context, ICodecStream stream, TrackInfo info, Action onFinish, Logger logger)
+    internal Track(Context context, ICodecStream stream, TrackInfo info, Action onFinish, ILogger? logger)
     {
         _stream = stream;
         _onFinish = onFinish;
@@ -75,14 +75,14 @@ public class Track : IDisposable
         Info = info;
 
         _format = stream.Format.ToMixr();
-        _logger.Log($"DataType: {_format.DataType}");
-        _logger.Log($"SampleRate: {_format.SampleRate}");
-        _logger.Log($"Channels: {_format.Channels}");
+        _logger?.Log($"DataType: {_format.DataType}");
+        _logger?.Log($"SampleRate: {_format.SampleRate}");
+        _logger?.Log($"Channels: {_format.Channels}");
 
         LengthInSeconds = (int) (_stream.LengthInSamples / _format.SampleRate);
-        _logger.Log($"LengthInSeconds: {LengthInSeconds}");
+        _logger?.Log($"LengthInSeconds: {LengthInSeconds}");
 
-        _logger.Log("Creating source.");
+        _logger?.Log("Creating source.");
         _source = context.CreateSource(new SourceDescription(SourceType.Pcm, _format));
         
         _audioBuffer = new byte[_format.SampleRate * _format.Channels * _format.BytesPerSample];
@@ -93,7 +93,7 @@ public class Track : IDisposable
 
         _lockObj = new object();
         
-        _logger.Log("Creating audio buffers.");
+        _logger?.Log("Creating audio buffers.");
         _buffers = new AudioBuffer[2];
         for (int i = 0; i < _buffers.Length; i++)
         {
@@ -116,29 +116,29 @@ public class Track : IDisposable
 
     public void Play()
     {
-        _logger.Log("Playing.");
+        _logger?.Log("Playing.");
         _source.Play();
     }
 
     public void Pause()
     {
-        _logger.Log("Pausing.");
+        _logger?.Log("Pausing.");
         _source.Pause();
     }
 
     public void Seek(int second)
     {
-        _logger.Log($"Seeking to {second}s.");
+        _logger?.Log($"Seeking to {second}s.");
         
         SourceState state = _source.State;
-        _logger.Log("  Pausing source.");
+        _logger?.Log("  Pausing source.");
         _source.Pause();
-        _logger.Log("  Seeking stream.");
+        _logger?.Log("  Seeking stream.");
         _stream.Seek((ulong) (second * _format.SampleRate));
-        _logger.Log("  Clearing buffers.");
+        _logger?.Log("  Clearing buffers.");
         _source.ClearBuffers();
         _currentBuffer = 0;
-        _logger.Log("  Updating buffers.");
+        _logger?.Log("  Updating buffers.");
         for (int i = 0; i < _buffers.Length; i++)
         {
             ulong amount = _stream.GetBuffer(_audioBuffer);
@@ -154,7 +154,7 @@ public class Track : IDisposable
 
         if (state == SourceState.Playing)
         {
-            _logger.Log("  Playing.");
+            _logger?.Log("  Playing.");
             _source.Play();
         }
 
@@ -198,10 +198,10 @@ public class Track : IDisposable
     
     private void StateChanged(SourceState state)
     {
-        _logger.Log($"Source state changed to {state}.");
+        _logger?.Log($"Source state changed to {state}.");
         if (state == SourceState.Stopped && !_source.Looping)
         {
-            _logger.Log("  ... Calling _onFinish()");
+            _logger?.Log("  ... Calling _onFinish()");
             _onFinish();
         }
     }
@@ -210,14 +210,14 @@ public class Track : IDisposable
     {
         lock (_lockObj)
         {
-            _logger.Log("Disposing source.");
+            _logger?.Log("Disposing source.");
             _source.Dispose();
             _source = null;
-            _logger.Log("Disposing buffers.");
+            _logger?.Log("Disposing buffers.");
             foreach (AudioBuffer buffer in _buffers)
                 buffer?.Dispose();
             _buffers = null;
-            _logger.Log("Disposing stream.");
+            _logger?.Log("Disposing stream.");
             _stream!.Dispose();
             _stream = null;
         }

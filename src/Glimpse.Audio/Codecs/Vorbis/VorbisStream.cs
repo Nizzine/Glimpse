@@ -1,6 +1,5 @@
 ﻿using Glimpse.API;
 using Glimpse.API.Codecs;
-using MixrSharp;
 using AudioFormat = Glimpse.API.Codecs.AudioFormat;
 
 namespace Glimpse.Audio.Codecs.Vorbis;

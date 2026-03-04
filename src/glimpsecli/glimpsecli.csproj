@@ -8,4 +8,8 @@
         <TrimMode>partial</TrimMode>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Glimpse.Audio\Glimpse.Audio.csproj" />
+    </ItemGroup>
+
 </Project>
