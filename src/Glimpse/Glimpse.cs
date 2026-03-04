@@ -368,7 +368,6 @@ public class Glimpse : IGlimpse, IDisposable
         switch ((SDL.EventType) winEvent.Type)
         {
             case SDL.EventType.WindowCloseRequested:
-            case SDL.EventType.Quit:
             {
                 if (!_windowIds.TryGetValue(winEvent.Window.WindowID, out Window wnd))
                     break;
@@ -376,6 +375,17 @@ public class Glimpse : IGlimpse, IDisposable
                 wnd.Dispose();
                 _windowIds.Remove(winEvent.Window.WindowID);
                 _windows.Remove(wnd);
+                break;
+            }
+
+            case SDL.EventType.Quit:
+            {
+                foreach (Window window in _windows)
+                    window.Dispose();
+
+                _windows.Clear();
+                _windowIds.Clear();
+
                 break;
             }
 

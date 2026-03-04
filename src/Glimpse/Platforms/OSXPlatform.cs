@@ -15,7 +15,7 @@ public class OSXPlatform : Platform
         {
             StartInfo = new ProcessStartInfo("open")
             {
-                Arguments = $"--reveal {path}"
+                Arguments = $"--reveal \"{path}\""
             }
         };
 
