@@ -137,7 +137,7 @@ public class SettingsPopup : Popup
                         ImGui.EndTabItem();
                     }
 
-                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Player")))
+                    /*if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Player")))
                     {
                         ref float volume = ref _currentConfig.Volume;
                         ref uint sampleRate = ref _currentConfig.SampleRate;
@@ -150,7 +150,7 @@ public class SettingsPopup : Popup
                         
                         /*ImGui.Checkbox("Auto Play", ref autoPlay);
                         if (ImGui.IsItemHovered())
-                            ImGui.SetTooltip("Start playing when a track is selected or added to queue.");*/
+                            ImGui.SetTooltip("Start playing when a track is selected or added to queue.");
                         
                         //if (ImGui.DragFloat("Speed Adjustment", ref speed, 0.01f, 0.01f, 10))
                         //    _currentConfig.SpeedAdjust = speed;
@@ -164,7 +164,7 @@ public class SettingsPopup : Popup
                         ImGui.EndDisabled();
 
                         ImGui.EndTabItem();
-                    }
+                    }*/
 
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Plugins")))
                     {
