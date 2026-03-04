@@ -15,6 +15,8 @@ public unsafe class WindowsPlatform : Platform
 
     private InMemoryRandomAccessStream? _albumArtStream;
 
+    public override string FileManagerName => "Explorer";
+    
     public WindowsPlatform()
     {
         TerraFX.Interop.Windows.Windows.CoInitialize(null);

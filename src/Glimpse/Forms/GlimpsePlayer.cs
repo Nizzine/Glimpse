@@ -718,7 +718,7 @@ public class GlimpsePlayer : Window
 
                                     ImGui.Separator();
 
-                                    if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer")))
+                                    if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer", Glimpse.Platform.FileManagerName)))
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                         AddPopup(new RemovePopup(path, false, false));

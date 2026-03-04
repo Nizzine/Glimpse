@@ -13,8 +13,10 @@ public unsafe class LinuxPlatform : Platform
     private readonly Empress.Empress.ButtonPressedCallback _buttonCallback;
     private readonly Empress.Empress.SeekCallback _seekCallback;
     private readonly Empress.Empress.PositionCallback _positionCallback;
+
+    private readonly string _defaultFileManager;
     
-    public readonly string DefaultFileManager;
+    public override string FileManagerName { get; }
     
     public LinuxPlatform()
     {
@@ -33,15 +35,24 @@ public unsafe class LinuxPlatform : Platform
         string? fileManager = process.StandardOutput.ReadLine();
 
         if (fileManager == null)
+        {
+            FileManagerName = "File Manager";
             return;
+        }
 
         fileManager = fileManager.ToLower();
 
         if (fileManager.Contains("nautilus"))
-            DefaultFileManager = "nautilus";
+        {
+            _defaultFileManager = "nautilus";
+            FileManagerName = "Nautilus";
+        }
         else if (fileManager.Contains("dolphin"))
-            DefaultFileManager = "dolphin";
-        
+        {
+            _defaultFileManager = "dolphin";
+            FileManagerName = "Dolphin";
+        }
+
         string desktopFile = Path.Combine(AppContext.BaseDirectory, "Glimpse.desktop");
         Console.WriteLine(desktopFile);
         byte[] bDesktopFile = Encoding.UTF8.GetBytes(desktopFile);
@@ -88,7 +99,7 @@ public unsafe class LinuxPlatform : Platform
     {
         Process process;
         
-        if (DefaultFileManager == null)
+        if (_defaultFileManager == null)
         {
             process = new Process()
             {
@@ -102,7 +113,7 @@ public unsafe class LinuxPlatform : Platform
         {
             process = new Process()
             {
-                StartInfo = new ProcessStartInfo(DefaultFileManager)
+                StartInfo = new ProcessStartInfo(_defaultFileManager)
                 {
                     Arguments = $"--select \"{path}\""
                 }

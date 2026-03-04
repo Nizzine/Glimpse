@@ -19,7 +19,7 @@ namespace Glimpse;
 public class Glimpse : IGlimpse, IDisposable
 {
 #if DEBUG
-    public const string PipeServerName = "GlimpsePlayer-DEBUG";
+    public const string PipeServerName = "GlimpsePlayerDEBUG";
 #else
     public const string PipeServerName = "GlimpsePlayer";
 #endif

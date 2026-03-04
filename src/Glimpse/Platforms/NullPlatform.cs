@@ -5,6 +5,8 @@ namespace Glimpse.Platforms;
 
 public class NullPlatform : Platform
 {
+    public override string FileManagerName { get; }
+    
     public override void InitializeMainWindow(IntPtr hwnd) { }
 
     public override void OpenFileInExplorer(string path) { }

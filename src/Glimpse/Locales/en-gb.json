@@ -35,7 +35,7 @@
         "Menu.PlayNext": "Play Next",
         "Menu.AddToEnd": "Add to end",
         "Menu.RemoveFromLibrary": "Remove from library...",
-        "Menu.ShowInExplorer": "Show File In Explorer",
+        "Menu.ShowInExplorer": "Show File In {0}",
         "Menu.DeleteAlbum": "Delete album...",
         "Menu.DeleteFile": "Delete file...",
 

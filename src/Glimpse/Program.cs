@@ -1,4 +1,5 @@
 ﻿using System.IO.Pipes;
+using System.Net.Sockets;
 using Glimpse.API;
 using Glimpse.Forms;
 using SDL3;
@@ -21,9 +22,12 @@ public static class Program
                 writer.Write((byte) CommunicationFlags.PlayFile);
                 writer.Write(args[0]);
             }
+
             return;
         }
-        catch (TimeoutException e) { }
+        catch (TimeoutException) { }
+        catch (SocketException) { }
+
         pipeClient.Dispose();
         
 #if !DEBUG

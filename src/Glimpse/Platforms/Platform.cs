@@ -8,6 +8,8 @@ public abstract class Platform : IDisposable
     public event OnButtonPressed ButtonPressed = delegate { };
 
     public event OnGetPosition? GetPosition;
+    
+    public abstract string FileManagerName { get; }
 
     public abstract void InitializeMainWindow(nint hwnd);
 
