@@ -20,6 +20,8 @@ public abstract unsafe class Window : IDisposable
     
     private IntPtr _window;
     private IntPtr _glContext;
+    private Dictionary<ImGuiMouseCursor, IntPtr> _cursors;
+    private ImGuiMouseCursor _lastCursor;
 
     private List<Popup> _popups;
 
@@ -149,6 +151,31 @@ public abstract unsafe class Window : IDisposable
 
         SDL.SetWindowIcon(_window, surface);
 
+        _cursors = [];
+        _lastCursor = ImGuiMouseCursor.Arrow;
+        for (int i = 0; i < (int) ImGuiMouseCursor.Count; i++)
+        {
+            ImGuiMouseCursor cursor = (ImGuiMouseCursor) i;
+            SDL.SystemCursor systemCursor = cursor switch
+            {
+                ImGuiMouseCursor.None => SDL.SystemCursor.Default,
+                ImGuiMouseCursor.Arrow => SDL.SystemCursor.Default,
+                ImGuiMouseCursor.TextInput => SDL.SystemCursor.Text,
+                ImGuiMouseCursor.ResizeAll => SDL.SystemCursor.NESWResize,
+                ImGuiMouseCursor.ResizeNs => SDL.SystemCursor.NSResize,
+                ImGuiMouseCursor.ResizeEw => SDL.SystemCursor.EWResize,
+                ImGuiMouseCursor.ResizeNesw => SDL.SystemCursor.NESWResize,
+                ImGuiMouseCursor.ResizeNwse => SDL.SystemCursor.NWSEResize,
+                ImGuiMouseCursor.Hand => SDL.SystemCursor.Pointer,
+                ImGuiMouseCursor.Wait => SDL.SystemCursor.Wait,
+                ImGuiMouseCursor.Progress => SDL.SystemCursor.Progress,
+                ImGuiMouseCursor.NotAllowed => SDL.SystemCursor.NotAllowed,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
+            _cursors[(ImGuiMouseCursor) i] = SDL.CreateSystemCursor(systemCursor);
+        }
+
         _glContext = SDL.GLCreateContext(_window);
         
         _isCreated = true;
@@ -196,6 +223,14 @@ public abstract unsafe class Window : IDisposable
                 i--;
             }
         }
+
+
+        ImGuiMouseCursor cursor = ImGui.GetMouseCursor();
+        if (cursor != _lastCursor)
+        {
+            _lastCursor = cursor;
+            SDL.SetCursor(_cursors[cursor]);
+        }
     }
 
     internal void Present()
@@ -208,6 +243,9 @@ public abstract unsafe class Window : IDisposable
     public virtual void Dispose()
     {
         SDL.DestroyWindow(_window);
+        
+        foreach ((_, IntPtr cursor) in _cursors)
+            SDL.DestroyCursor(cursor);
     }
     
     // Workaround because SDL3-CS doesn't use a pointer for this method when the ABI expects one, meaning it fails.
