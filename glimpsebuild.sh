@@ -1,4 +1,4 @@
- #!/bin/bash
+#!/bin/bash
 
 # Builds glimpse for release.
 # Commented because I almost always immediately forget how to read and write bash scripts.
@@ -83,8 +83,12 @@ if [[ $RUNTIME == "win"* ]]; then
   zip -r "$OUT_NAME-$RUNTIME.zip" "$BUILD_DIR_NAME/" || exit 1
   makensis -DVERSION="$VERSION" -DPUBLISHDIR="$BUILD_DIR" ./packaging/windows/glimpse.nsi || exit 1
 elif [[ $RUNTIME == "osx"* ]]; then
-  # TODO: Actual proper mac packaging. Signing aside, lol.
-  mv "$BUILD_DIR_NAME" "Glimpse.app" || exit 1
+  # Create a macOS build and mvoe the output here (as it outputs into packaging/macos/Glimpse.app)
+  # Then copy the contents of the build directory into the MacOS directory
+  # TODO: Find out why it produces a package with a cross through it??
+  ./packaging/macos/build-macos.sh $VERSION || exit 1
+  mv "packaging/macos/Glimpse.app" . || exit 1
+  cp -a "$BUILD_DIR_NAME/." "Glimpse.app/Contents/MacOS" || exit 1
   zip -r "$OUT_NAME-$RUNTIME.zip" "Glimpse.app" || exit 1
 elif [[ $RUNTIME == "linux"* ]]; then
   mkdir -p "$BUILD_DIR/bin"
