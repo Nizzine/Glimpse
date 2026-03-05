@@ -39,7 +39,7 @@ jobs:
         run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" win-x64 $RELEASE_VERSION
 
       - name: "Publish Linux x64"
-        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSIO" linux-x64 $RELEASE_VERSION
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" linux-x64 $RELEASE_VERSION
         
       - name: "Public macOS arm64"
         run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" osx-arm64 $RELEASE_VERSION
