@@ -17,7 +17,7 @@ on:
 jobs:
   publish:
     name: "Publish Glimpse"
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     env:
       RELEASE_VERSION: ${{ github.event.release.tag_name }}
     steps:
@@ -28,7 +28,7 @@ jobs:
           fetch-depth: 0
           
       - name: "Install deps"
-        run: sudo apt update && sudo apt install zip nsis
+        run: brew install nsis
 
       - name: "Install .NET"
         uses: actions/setup-dotnet@v4
@@ -36,13 +36,13 @@ jobs:
           dotnet-version: 9.0.x
 
       - name: "Publish Windows x64"
-        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION-win-x64" win-x64 $RELEASE_VERSION
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" win-x64 $RELEASE_VERSION
 
       - name: "Publish Linux x64"
-        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION-linux-x64" linux-x64 $RELEASE_VERSION
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSIO" linux-x64 $RELEASE_VERSION
         
       - name: "Public macOS arm64"
-        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION-linux-x64" osx-arm64 $RELEASE_VERSION
+        run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" osx-arm64 $RELEASE_VERSION
 
       - name: Create Release
         uses: ncipollo/release-action@v1.20.0
