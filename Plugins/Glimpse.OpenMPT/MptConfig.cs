@@ -1,4 +1,5 @@
 using Glimpse.API;
+using OpenMPT.NET;
 
 namespace Glimpse.OpenMPT;
 
@@ -6,14 +7,14 @@ public class MptConfig : IConfig
 {
     public bool EmulateAmigaResampler;
 
-    public int ResamplerFilterMode;
+    public Filter ResamplerFilter;
 
     public bool FadeOutAtEnd;
 
     public MptConfig()
     {
         EmulateAmigaResampler = true;
-        ResamplerFilterMode = 0;
+        ResamplerFilter = Filter.Default;
         FadeOutAtEnd = false;
     }
 }
