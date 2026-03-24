@@ -23,13 +23,10 @@ public class MptStream : ICodecStream
 
     public MptStream(string path, MptConfig config)
     {
-        _module = Module.FromMemory(File.ReadAllBytes(path), new ModuleOptions()
-        {
-            EmulateAmigaResampler = config.EmulateAmigaResampler,
-            EndBehavior = config.FadeOutAtEnd ? EndBehavior.FadeOut : EndBehavior.Stop
-        });
-        
-        _module.Params.InterpolationFilter = config.ResamplerFilter;
+        _module = Module.FromMemory(File.ReadAllBytes(path));
+        _module.Config.EmulateAmigaResampler = config.EmulateAmigaResampler;
+        _module.Config.EndBehavior = config.FadeOutAtEnd ? EndBehavior.FadeOut : EndBehavior.Stop;
+        _module.RenderParams.InterpolationFilter = config.ResamplerFilter;
 
         ModuleMetadata metadata = _module.Metadata;
         TrackInfo = new TrackInfo(null, metadata.Title ?? Path.GetFileNameWithoutExtension(path), metadata.Artist, null,
