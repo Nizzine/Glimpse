@@ -7,6 +7,11 @@ assignees: aquagoose
 
 ---
 
+**Checks**
+Ensures a level of quality with bug reports. **Your report may not necessarily be closed if it is a duplicate, it is merely to ensure you have checked to see if the issue has been reported already.**
+- [ ] I'm confident this is not a duplicate of an already existing issue.
+- [ ] I am a human that has discovered & reported this issue, and I am not an AI nor have I used AI in reporting this issue.
+
 **Info**
 Change these to fit your current Glimpse.
 - Glimpse Version: 1.0.0

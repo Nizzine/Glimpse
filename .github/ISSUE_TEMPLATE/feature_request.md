@@ -7,6 +7,11 @@ assignees: aquagoose
 
 ---
 
+**Checks**
+Ensures a level of quality in feature requests. **Your request may not necessarily be closed if it is a duplicate, it is merely to ensure you have checked to see if a request has been made already.**
+- [ ] I'm confident this is not a duplicate of an already existing feature request.
+- [ ] I am a human that is making this request, and I am not an AI nor have I used AI to request this feature.
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 
