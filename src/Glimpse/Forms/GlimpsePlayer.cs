@@ -742,11 +742,9 @@ public class GlimpsePlayer : Window
                                 if (ImGui.BeginPopupContextItem())
                                 {
                                     if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
-                                        player.QueueTrack(path, QueueSlot.Queue);
+                                        player.QueueTrack(path, QueueSlot.AtEnd);
                                     if (ImGui.Selectable(locale.GetString("Menu.PlayNext")))
                                         player.QueueTrack(path, QueueSlot.NextTrack);
-                                    if (ImGui.Selectable(locale.GetString("Menu.AddToEnd")))
-                                        player.QueueTrack(path, QueueSlot.AtEnd);
 
                                     ImGui.Separator();
 

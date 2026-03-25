@@ -8,11 +8,6 @@ public enum QueueSlot
     AtEnd,
     
     /// <summary>
-    /// The track will be placed at the end of the user-selected queue.
-    /// </summary>
-    Queue,
-    
-    /// <summary>
     /// The track will be inserted into the queue at the end of the current track.
     /// </summary>
     NextTrack,

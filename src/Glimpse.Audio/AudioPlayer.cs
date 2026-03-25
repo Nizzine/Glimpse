@@ -21,7 +21,6 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private Track? _activeTrack;
 
     private int _currentTrackIndex;
-    private int _currentQueueIndex;
 
     private PlayerSettings _settings;
     private readonly List<ICodec> _codecs;
@@ -84,12 +83,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             case QueueSlot.AtEnd:
                 QueuedTracks.Add(path);
                 break;
-            case QueueSlot.Queue:
-                InsertTrackAtIndex(_currentTrackIndex + ++_currentQueueIndex, path);
-                break;
             case QueueSlot.NextTrack:
                 InsertTrackAtIndex(_currentTrackIndex + 1, path);
-                _currentQueueIndex++;
                 break;
             case QueueSlot.Clear:
                 QueuedTracks.Clear();
@@ -197,10 +192,6 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             Stop();
             return;
         }
-
-        _currentQueueIndex--;
-        if (_currentQueueIndex < 0)
-            _currentQueueIndex = 0;
         
         ChangeTrack(_currentTrackIndex);
     }
@@ -211,9 +202,6 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         if (_currentTrackIndex < 0)
             _currentTrackIndex = 0;
-
-        if (_currentQueueIndex != 0)
-            _currentQueueIndex++;
         
         ChangeTrack(_currentTrackIndex);
     }

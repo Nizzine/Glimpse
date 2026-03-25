@@ -33,7 +33,6 @@
         
         "Menu.AddToQueue": "Add to queue",
         "Menu.PlayNext": "Play Next",
-        "Menu.AddToEnd": "Add to end",
         "Menu.RemoveFromLibrary": "Remove from library...",
         "Menu.ShowInExplorer": "Show File In {0}",
         "Menu.DeleteAlbum": "Delete album...",
