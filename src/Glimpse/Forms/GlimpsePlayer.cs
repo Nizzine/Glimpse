@@ -237,6 +237,8 @@ public class GlimpsePlayer : Window
         bool switchToQueueView = false;
         AlbumView? switchView = null;
         
+        #region Transport Dock
+        
         if (ImGui.Begin("Transport", ImGuiWindowFlags.NoResize))
         {
             Vector2 winSize = ImGui.GetContentRegionAvail();
@@ -424,6 +426,10 @@ public class GlimpsePlayer : Window
         }
         ImGui.End();
         
+        #endregion
+        
+        #region Albums Dock
+        
         if (ImGui.Begin("Albums", ImGuiWindowFlags.HorizontalScrollbar))
         {
             /*string newDirectory = null;
@@ -579,6 +585,10 @@ public class GlimpsePlayer : Window
             }
         }
         ImGui.End();
+        
+        #endregion
+        
+        #region Songs Dock
         
         if (_currentAlbum != null && ImGui.Begin("Songs"))
         {
@@ -897,6 +907,8 @@ public class GlimpsePlayer : Window
             }
         }
         ImGui.End();
+        
+        #endregion
     }
 
     public void RefreshLayout()
