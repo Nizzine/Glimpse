@@ -35,8 +35,13 @@ public class AddFolderPopup : Popup
                 ]
             };
 
+            // Deduplicate the drives. For some reason Linux systems report multiple drives in the same location.
+            HashSet<string> drives = [];
             foreach (DriveInfo info in DriveInfo.GetDrives())
             {
+                if (!drives.Add(info.Name))
+                    continue;
+                
                 _baseDirectory.SubDirectories.Add(new DirectorySource(info.Name));
             }
 
@@ -129,6 +134,9 @@ public class AddFolderPopup : Popup
             
             foreach (DirectorySource directory in SubDirectories)
             {
+                if (string.IsNullOrWhiteSpace(directory.Path))
+                    continue;
+                
                 ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
                 if (directory.Path == selected)
                     flags |= ImGuiTreeNodeFlags.Selected;
@@ -136,10 +144,15 @@ public class AddFolderPopup : Popup
                     flags |= ImGuiTreeNodeFlags.Leaf;
 
                 string dirName = System.IO.Path.GetFileName(directory.Path);
+                // GetFileName can return empty strings if the path ends with a directory separator.
+                // If that happens, just print the path of the directory.
                 if (string.IsNullOrWhiteSpace(dirName))
                     dirName = directory.Path;
-
-                bool node = ImGui.TreeNodeEx(dirName, flags);
+                
+                // We don't usually need to provide directory.Path as an ID, however, when calling DriveiInfo.GetDrives()
+                // Linux systems may report directories with the same name but with different paths, causing ImGui to
+                // throw a warning about duplicated names. This shoudl fix that.
+                bool node = ImGui.TreeNodeEx($"{dirName}##{directory.Path}", flags);
                 if (ImGui.IsItemClicked())
                     selected = directory.Path;
                     
