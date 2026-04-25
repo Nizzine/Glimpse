@@ -31,7 +31,7 @@ public class Track : IDisposable
     
     public readonly int LengthInSeconds;
 
-    public int ElapsedSeconds
+    public double ElapsedSeconds
     {
         get
         {
@@ -39,17 +39,17 @@ public class Track : IDisposable
             elapsedSamples += _source.Position;
 
             // TODO: Make this better.
-            return (int) (elapsedSamples / _format.SampleRate);
+            return (double) elapsedSamples / _format.SampleRate;
         }
     }
 
-    public int SecondsConsumed
+    public double SecondsConsumed
     {
         get
         {
             ulong samplesConsumed = _bytesConsumed / _format.BytesPerSample / _format.Channels;
             samplesConsumed += _source.Position;
-            return (int) (samplesConsumed / _format.SampleRate);
+            return (double) samplesConsumed / _format.SampleRate;
         }
     }
     
@@ -126,7 +126,7 @@ public class Track : IDisposable
         _source.Pause();
     }
 
-    public void Seek(int second)
+    public void Seek(double second)
     {
         _logger?.Log($"Seeking to {second}s.");
         

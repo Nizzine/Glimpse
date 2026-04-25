@@ -33,7 +33,8 @@ public class GlimpsePlayer : Window
 
     private AlbumView _currentView;
     private string _currentAlbum;
-    private int _seekPosition;
+    private bool _wasSeekClicked;
+    private double? _seekPosition;
     private int _currentRowHover;
     private int _currentRatingHover;
 
@@ -172,6 +173,15 @@ public class GlimpsePlayer : Window
         
         AudioPlayer player = Glimpse.Player;
         
+        // Perform seeking if necessary 
+        if (_wasSeekClicked)
+        {
+            Debug.Assert(_seekPosition is not null);
+            player.Seek(_seekPosition.Value);
+            _seekPosition = null;
+            _wasSeekClicked = false;
+        }
+
         Renderer.Clear(Color.Black);
         
 /*#if DEBUG
@@ -407,11 +417,11 @@ public class GlimpsePlayer : Window
 
                     float align = ImGui.GetStyle().FramePadding.Y;
 
-                    int position = (int) player.ElapsedTime.TotalSeconds;
-                    int length = (int) player.TrackLength.TotalSeconds;
-
-                    string elapsedText = $"{position / 60:0}:{position % 60:00}";
-                    string lengthText = $"{length / 60:0}:{length % 60:00}";
+                    double position = _seekPosition ?? player.ElapsedTime.TotalSeconds;
+                    double length = player.TrackLength.TotalSeconds;
+                    
+                    string elapsedText = Utils.FormatTimespan(player.ElapsedTime);
+                    string lengthText = Utils.FormatTimespan(player.TrackLength);
 
                     Vector2 elapsedTextSize = ImGui.CalcTextSize(elapsedText);
                     Vector2 lengthTextSize = ImGui.CalcTextSize(lengthText);
@@ -419,13 +429,36 @@ public class GlimpsePlayer : Window
                     ImGui.SetCursorPosY(cursorPosY + align);
                     ImGui.TextUnformatted(elapsedText);
                     ImGui.SameLine();
+                    
                     ImGui.SetCursorPosY(cursorPosY);
-                    ImGui.SetNextItemWidth(contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale));
-                    if (ImGui.SliderInt("##transport", ref position, 0, length, ""))
-                        _seekPosition = position;
-
-                    if (ImGui.IsItemDeactivatedAfterEdit())
-                        player.Seek(_seekPosition);
+                    Vector2 globalCursorPos = ImGui.GetCursorScreenPos();
+                    float width = contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale);
+                    ImGui.ProgressBar((float) (position / length), new Vector2(width, 0), "");
+                    
+                    // ProgressBars in ImGui don't have any slider-like behaviours. Before we were using a slider and it
+                    // worked well, but progress bars look so much better.
+                    // We have to hack the slider-like behaviour in.
+                    
+                    // Start seeking when the progress bar is hovered OR if a seek has already been requested, so that
+                    // if the user moves their mouse away from the bar, it will continue seeking as long as they are
+                    // holding the mouse button
+                    if (ImGui.IsItemHovered() || _seekPosition != null)
+                    {
+                        ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+                        if (ImGui.IsMouseDown(ImGuiMouseButton.Left))
+                        {
+                            // Calculate the mouse position relative to the bar then turn it into a 0-1 range.
+                            float xFraction = (ImGui.GetMousePos().X - globalCursorPos.X) / width;
+                            _seekPosition = length * xFraction;
+                        }
+                        else if (_seekPosition != null) // Only seek once the mouse button is let go.
+                            _wasSeekClicked = true;
+                    }
+                    else
+                    {
+                        _seekPosition = null;
+                        _wasSeekClicked = false;
+                    }
 
                     ImGui.SameLine();
                     ImGui.SetCursorPosY(cursorPosY);
@@ -1149,7 +1182,7 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.DockingEmptyBg]         = new Vector4(0.20f, 0.20f, 0.20f, 1.00f);
         colors[(int) ImGuiCol.PlotLines]              = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
         colors[(int) ImGuiCol.PlotLinesHovered]       = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
+        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
         colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
         colors[(int) ImGuiCol.TableHeaderBg]          = new Vector4(0.19f, 0.19f, 0.26f, 1.00f);
         colors[(int) ImGuiCol.TableBorderStrong]      = new Vector4(0.31f, 0.31f, 0.35f, 1.00f);
@@ -1212,7 +1245,7 @@ public class GlimpsePlayer : Window
         colors[(int) ImGuiCol.DockingEmptyBg]         = new Vector4(0.20f, 0.20f, 0.20f, 1.00f);
         colors[(int) ImGuiCol.PlotLines]              = new Vector4(0.39f, 0.39f, 0.39f, 1.00f);
         colors[(int) ImGuiCol.PlotLinesHovered]       = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.90f, 0.70f, 0.00f, 1.00f);
+        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
         colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.45f, 0.00f, 1.00f);
         colors[(int) ImGuiCol.TableHeaderBg]          = new Vector4(0.78f, 0.87f, 0.98f, 1.00f);
         colors[(int) ImGuiCol.TableBorderStrong]      = new Vector4(0.57f, 0.57f, 0.64f, 1.00f);

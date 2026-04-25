@@ -217,7 +217,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         } while(!TryChangeTrack(_currentTrackIndex));
     }
 
-    public void Seek(int second)
+    public void Seek(double second)
     {
         _activeTrack.Seek(second);
         StateChanged(TrackState);

@@ -111,7 +111,7 @@ public interface IAudioPlayer
     /// Seek to the given second in the track.
     /// </summary>
     /// <param name="second">The second to skip to.</param>
-    public void Seek(int second);
+    public void Seek(double second);
 
     /// <summary>
     /// Register a codec that can be used to play back certain audio files.

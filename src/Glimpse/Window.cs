@@ -191,7 +191,7 @@ public abstract unsafe class Window : IDisposable
         _isCreated = true;
 
         SDL.GLMakeCurrent(_window, _glContext);
-        Renderer = new Renderer(GL.GetApi(s => Marshal.GetFunctionPointerForDelegate(SDL.GLGetProcAddress(s))), Size, _scale);
+        Renderer = new Renderer(GL.GetApi(SDL.GLGetProcAddress), Size, _scale);
         
         Initialize();
         
