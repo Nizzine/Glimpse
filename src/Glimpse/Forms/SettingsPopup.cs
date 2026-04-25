@@ -67,6 +67,10 @@ public class SettingsPopup : Popup
                         ImGui.SetItemTooltipUnformatted(
                             locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
 
+                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.CheckForUpdates"),
+                            ref _currentConfig.EnableUpdateChecking);
+                        ImGui.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.CheckForUpdates.Tooltip"));
+
                         ImGui.EndTabItem();
                     }
                     

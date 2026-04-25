@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Net.Sockets;
@@ -34,6 +35,7 @@ public class Glimpse : IGlimpse, IDisposable
     
     private bool _shouldFocusWindow;
     private string? _playFile;
+    private float _currentDeltaTime;
 
     public Logger Logger;
 
@@ -232,6 +234,8 @@ public class Glimpse : IGlimpse, IDisposable
             Player.QueueTrack(args[0], QueueSlot.Clear);
             Player.Play();
         }
+        
+        Stopwatch sw = Stopwatch.StartNew();
 
         while (_windows.Count > 0)
         {
@@ -260,10 +264,13 @@ public class Glimpse : IGlimpse, IDisposable
                 _playFile = null;
             }
 
+            _currentDeltaTime = (float) sw.Elapsed.TotalSeconds;
+            sw.Restart();
+            
             foreach (Window wnd in _windows)
             {
                 wnd.SetActive();
-                wnd.UpdateWindow();
+                wnd.UpdateWindow(_currentDeltaTime);
                 wnd.Present();
             }
         }
@@ -313,7 +320,7 @@ public class Glimpse : IGlimpse, IDisposable
                     foreach (Window wnd in _windows)
                     {
                         wnd.SetActive();
-                        wnd.UpdateWindow();
+                        wnd.UpdateWindow(_currentDeltaTime);
                         wnd.Present();
                     }
 

@@ -50,6 +50,8 @@
         "Popup.Settings.Tab.General.Language":  "Language",
         "Popup.Settings.Tab.General.EnableDeleteFile": "Enable \"delete file\" context menu item",
         "Popup.Settings.Tab.General.EnableDeleteFile.Tooltip": "Enables the \"delete file\" context menu item, allowing files to be permanently deleted from your computer.",
+        "Popup.Settings.Tab.General.CheckForUpdates": "Check for updates on startup",
+        "Popup.Settings.Tab.General.CheckForUpdates.Tooltip": "If enabled, Glimpse will check for updates on startup.\nIf you do not wish for Glimpse to connect to the internet, turn this off.",
         "Popup.Settings.Tab.Appearance": "Appearance",
         "Popup.Settings.Tab.Appearance.Theme": "Theme",
         "Popup.Settings.Tab.Appearance.Theme.SyncToOS": "Sync to OS",

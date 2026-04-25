@@ -115,9 +115,11 @@ public class GlimpsePlayer : Window
         if (Glimpse.Database.Tracks.Count == 0)
             AddPopup(new AddFolderPopup());
 
-#if !DEBUG
-        Task.Run(CheckForNewerVersion);
-#endif
+//#if !DEBUG
+        // Only perform the update check if the user wants it!
+        if (Glimpse.Config.EnableUpdateChecking)
+            Task.Run(CheckForNewerVersion);
+//#endif
     }
 
     private void CheckIncrementPlayCount(object? state)
@@ -140,7 +142,7 @@ public class GlimpsePlayer : Window
         }
     }
 
-    protected override unsafe void Update()
+    protected override unsafe void Update(float dt)
     {
         Locale locale = Glimpse.Locale;
         
@@ -637,7 +639,6 @@ public class GlimpsePlayer : Window
                         ImGui.SameLine();
 
                         // TODO: DeltaTime
-                        const float dt = 1 / 60.0f;
                         _newVersionBlinker += dt * 2;
                         if (_newVersionBlinker >= float.Pi * 2)
                             _newVersionBlinker -= float.Pi * 2;

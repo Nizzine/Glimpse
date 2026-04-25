@@ -1,5 +1,7 @@
 ﻿using Glimpse.API;
 using Glimpse.Forms;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Glimpse.Configs;
 
@@ -21,8 +23,12 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public bool EnableFileDeletion;
 
+    public bool EnableUpdateChecking;
+
+    [JsonConverter(typeof(StringEnumConverter))]
     public Theme Theme;
 
+    [JsonConstructor]
     public GlimpseConfig()
     {
         Language = null;
@@ -31,6 +37,7 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
         Volume = 1.0f;
         SpeedAdjust = 1.0;
         EnabledPlugins = ["Glimpse.OpenMPT"];
+        EnableUpdateChecking = true;
         EnableFileDeletion = false;
         Theme = Theme.SyncToOS;
     }
@@ -40,7 +47,7 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
         return Language == other.Language && SwapTransportControls == other.SwapTransportControls &&
                SampleRate == other.SampleRate && Volume.Equals(other.Volume) && SpeedAdjust.Equals(other.SpeedAdjust)
                && EnabledPlugins.SetEquals(other.EnabledPlugins) && EnableFileDeletion == other.EnableFileDeletion &&
-               Theme == other.Theme;
+               EnableUpdateChecking == other.EnableUpdateChecking && Theme == other.Theme;
     }
 
     public override bool Equals(object obj)
@@ -50,8 +57,18 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(Language, SwapTransportControls, SampleRate, Volume, SpeedAdjust, EnabledPlugins,
-            EnableFileDeletion, Theme);
+        HashCode hashCode = new HashCode();
+        hashCode.Add(Language);
+        hashCode.Add(SwapTransportControls);
+        hashCode.Add(SampleRate);
+        hashCode.Add(Volume);
+        hashCode.Add(SpeedAdjust);
+        hashCode.Add(EnabledPlugins);
+        hashCode.Add(EnableFileDeletion);
+        hashCode.Add(EnableUpdateChecking);
+        hashCode.Add(Theme);
+
+        return hashCode.ToHashCode();
     }
 
     public static bool operator ==(GlimpseConfig left, GlimpseConfig right)

@@ -85,7 +85,7 @@ public abstract unsafe class Window : IDisposable
 
     protected virtual void Initialize() { }
 
-    protected virtual void Update() { }
+    protected virtual void Update(float dt) { }
 
     public void AddPopup(Popup popup)
     {
@@ -212,14 +212,14 @@ public abstract unsafe class Window : IDisposable
         SDL.GLMakeCurrent(_window, _glContext);
     }
 
-    internal void UpdateWindow()
+    internal void UpdateWindow(float dt)
     {
         ImGui.SetCurrentContext(Renderer.ImGui.ImGuiContext);
         ImGui.GetIO().DeltaTime = 1 / 60.0f;
         ImGui.NewFrame();
         
         Renderer.GL.Disable(EnableCap.ScissorTest);
-        Update();
+        Update(dt);
 
         for (int i = 0; i < _popups.Count; i++)
         {
