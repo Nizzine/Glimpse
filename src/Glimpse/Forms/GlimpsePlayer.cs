@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Numerics;
 using System.Text.Json.Nodes;
@@ -630,8 +631,7 @@ public class GlimpsePlayer : Window
                         float amount = (float.Sin(_newVersionBlinker) + 1) / 2;
                         
                         ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Lerp(buttonColor, highlightColor, amount));
-                        if (ImGui.ImageButton("Update", _updateButton, ScaleVec(16), Vector4.Zero, iconsColor))
-                            OpenLink(_newVersionURL);
+                        if (ImGui.ImageButton("Update", _updateButton, ScaleVec(16), Vector4.Zero, iconsColor)) Utils.OpenLink(_newVersionURL);
                         
                         ImGui.SetItemTooltipUnformatted(locale.GetString("Player.UpdateAvailable", _newVersion));
                         
@@ -644,8 +644,7 @@ public class GlimpsePlayer : Window
                             _newVersionBlinker -= float.Pi * 2;
                     }
 
-                    if (ImGui.ImageButton("ReportBug", _bugButton, ScaleVec(16), Vector4.Zero, iconsColor))
-                        OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
+                    if (ImGui.ImageButton("ReportBug", _bugButton, ScaleVec(16), Vector4.Zero, iconsColor)) Utils.OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
 
                     ImGui.SetItemTooltipUnformatted(locale.GetString("Player.ReportBug"));
                     
@@ -743,10 +742,12 @@ public class GlimpsePlayer : Window
                                 string title = track.Title ?? locale.GetString("UnknownTrack");
                                 string artist = track.Artist ?? locale.GetString("UnknownArtist");
                                 string album = track.Album ?? locale.GetString("UnknownAlbum");
-                                string length = track.Length?.ToString(@"mm\:ss") ?? "";
+                                string length = track.Length is TimeSpan trackLength
+                                    ? Utils.FormatTimespan(trackLength)
+                                    : "";
                                 string playCount = track.PlayCount.ToString();
-                                string lastPlayed = track.LastPlayed is { } last
-                                    ? last.ToString("yyyy-MM-dd HH:mm:ss")
+                                string lastPlayed = track.LastPlayed is DateTime last
+                                    ? last.ToString(CultureInfo.CurrentUICulture)
                                     : "";
 
                                 // In order to allow the rating buttons to be clicked, we tell the selectable to ignore
@@ -1073,11 +1074,6 @@ public class GlimpsePlayer : Window
         _repeatButton.Dispose();
         
         base.Dispose();
-    }
-
-    public static void OpenLink(string link)
-    {
-        SDL.OpenURL(link);
     }
 
     protected override void OnScaleChanged()

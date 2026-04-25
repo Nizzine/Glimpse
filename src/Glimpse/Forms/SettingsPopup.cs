@@ -245,22 +245,22 @@ public class SettingsPopup : Popup
                             
                             ImGui.Spacing();
                             if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Website")))
-                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk");
+                                Utils.OpenLink("https://glimpseaudio.co.uk");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Donate")))
-                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/donate");
+                                Utils.OpenLink("https://glimpseaudio.co.uk/donate");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Repository")))
-                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/repo");
+                                Utils.OpenLink("https://glimpseaudio.co.uk/repo");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Discord")))
-                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/discord");
+                                Utils.OpenLink("https://glimpseaudio.co.uk/discord");
                             
                             ImGui.EndChild();
                         }
@@ -270,29 +270,29 @@ public class SettingsPopup : Popup
                             ImGui.BeginChild("OSLibraries");
                             {
                                 if (ImGui.TextLink("mixr"))
-                                    GlimpsePlayer.OpenLink("https://github.com/Aquatic-Games/mixr");
+                                    Utils.OpenLink("https://github.com/Aquatic-Games/mixr");
                                 if (ImGui.TextLink("Hexa.NET.ImGui"))
-                                    GlimpsePlayer.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
+                                    Utils.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 if (ImGui.TextLink("Silk.NET"))
-                                    GlimpsePlayer.OpenLink("https://dotnet.github.io/Silk.NET/");
+                                    Utils.OpenLink("https://dotnet.github.io/Silk.NET/");
                                 if (ImGui.TextLink("SDL3-CS"))
-                                    GlimpsePlayer.OpenLink("github.com/edwardgushchin/SDL3-CS");
+                                    Utils.OpenLink("github.com/edwardgushchin/SDL3-CS");
                                 if (ImGui.TextLink("TagLibSharp"))
-                                    GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
+                                    Utils.OpenLink("https://github.com/mono/taglib-sharp");
                                 if (ImGui.TextLink("ImageSharp"))
-                                    GlimpsePlayer.OpenLink("https://sixlabors.com/products/imagesharp/");
+                                    Utils.OpenLink("https://sixlabors.com/products/imagesharp/");
                                 if (ImGui.TextLink("empress"))
-                                    GlimpsePlayer.OpenLink("https://github.com/aquagoose/empress");
+                                    Utils.OpenLink("https://github.com/aquagoose/empress");
                                 if (ImGui.TextLink("DiscordRichPresence"))
-                                    GlimpsePlayer.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
+                                    Utils.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
                                 if (ImGui.TextLink("MetaBrainz.MusicBrainz"))
-                                    GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
+                                    Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
                                 if (ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt"))
-                                    GlimpsePlayer.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
+                                    Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
                                 if (ImGui.TextLink("TerraFX.Interop.Windows"))
-                                    GlimpsePlayer.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
+                                    Utils.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
                                 if (ImGui.TextLink("Newtonsoft.Json"))
-                                    GlimpsePlayer.OpenLink("https://www.newtonsoft.com/json");
+                                    Utils.OpenLink("https://www.newtonsoft.com/json");
 
                                 ImGui.EndChild();
                             }
