@@ -445,7 +445,8 @@ public class GlimpsePlayer : Window
                     // Start seeking when the progress bar is hovered OR if a seek has already been requested, so that
                     // if the user moves their mouse away from the bar, it will continue seeking as long as they are
                     // holding the mouse button
-                    if (ImGui.IsItemHovered() || _seekPosition != null)
+                    // TODO: The hitbox is too small. Increase the size of the hitbox
+                    if ((ImGui.IsItemHovered() || _seekPosition != null) && player.TrackState != TrackState.Stopped)
                     {
                         ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
                         if (ImGui.IsMouseDown(ImGuiMouseButton.Left))
