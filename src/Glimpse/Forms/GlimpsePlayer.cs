@@ -430,10 +430,13 @@ public class GlimpsePlayer : Window
                     ImGui.TextUnformatted(elapsedText);
                     ImGui.SameLine();
                     
-                    ImGui.SetCursorPosY(cursorPosY);
+                    // TODO: Realllly need to work out a better way of working out positions rather than randomly
+                    //   throwing numbers around and hoping it looks right. Fully expecting to run into a major MAJOR
+                    //   headache some day.
+                    ImGui.SetCursorPosY(cursorPosY + 7 * Scale);
                     Vector2 globalCursorPos = ImGui.GetCursorScreenPos();
                     float width = contentRegion.X - elapsedTextSize.X - lengthTextSize.X - (int) (20 * Scale);
-                    ImGui.ProgressBar((float) (position / length), new Vector2(width, 0), "");
+                    ImGui.ProgressBar((float) (position / length), new Vector2(width, 10 * Scale), "");
                     
                     // ProgressBars in ImGui don't have any slider-like behaviours. Before we were using a slider and it
                     // worked well, but progress bars look so much better.
