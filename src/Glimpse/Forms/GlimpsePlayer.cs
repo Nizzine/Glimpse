@@ -783,13 +783,13 @@ public class GlimpsePlayer : Window
                                 ImGui.SetColumnTooltip(artist);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(album);
-                                ImGui.SetColumnTooltip(album);
+                                ImGuiE.SetColumnTooltip(album);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(length);
-                                //ImGui.SetColumnTooltip(length);
+                                //ImGuiE.SetColumnTooltip(length);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(playCount);
-                                //ImGui.SetColumnTooltip(playCount);
+                                //ImGuiE.SetColumnTooltip(playCount);
                                 ImGui.TableNextColumn();
                                 int rating = isRatingHovered && _currentRowHover == currentRow ? _currentRatingHover : track.Rating;
                                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
@@ -824,10 +824,10 @@ public class GlimpsePlayer : Window
                                 ImGui.NewLine();
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(lastPlayed);
-                                ImGui.SetColumnTooltip(lastPlayed);
+                                ImGuiE.SetColumnTooltip(lastPlayed);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(path);
-                                ImGui.SetColumnTooltip(path);
+                                ImGuiE.SetColumnTooltip(path);
 
                                 song++;
                             }

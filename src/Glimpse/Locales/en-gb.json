@@ -70,6 +70,8 @@
         "Popup.Settings.Tab.About.Credits": "Made by aquagoose\nLogo by Nizzine",
         "Popup.Settings.Tab.About.Website": "Website",
         "Popup.Settings.Tab.About.Donate": "Donate",
+        "Popup.Settings.Tab.About.Repository": "GitHub",
+        "Popup.Settings.Tab.About.Discord": "Discord",
         "Popup.Settings.Tab.About.OpenSourceLibraries": "Open-Source Libraries",
         
         "Popup.AddDirs.Name": "Add Folders",

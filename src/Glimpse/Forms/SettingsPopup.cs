@@ -248,6 +248,16 @@ public class SettingsPopup : Popup
                             if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Donate")))
                                 GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/donate");
                             
+                            ImGui.SameLine();
+                            
+                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Repository")))
+                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/repo");
+                            
+                            ImGui.SameLine();
+                            
+                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Discord")))
+                                GlimpsePlayer.OpenLink("https://glimpseaudio.co.uk/discord");
+                            
                             ImGui.EndChild();
                         }
 
