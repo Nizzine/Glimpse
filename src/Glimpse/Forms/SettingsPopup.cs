@@ -260,13 +260,13 @@ public class SettingsPopup : Popup
                                 if (ImGui.TextLink("Hexa.NET.ImGui"))
                                     GlimpsePlayer.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 if (ImGui.TextLink("Silk.NET"))
-                                    GlimpsePlayer.OpenLink("https://github.com/dotnet/Silk.NET");
+                                    GlimpsePlayer.OpenLink("https://dotnet.github.io/Silk.NET/");
                                 if (ImGui.TextLink("SDL3-CS"))
                                     GlimpsePlayer.OpenLink("github.com/edwardgushchin/SDL3-CS");
                                 if (ImGui.TextLink("TagLibSharp"))
                                     GlimpsePlayer.OpenLink("https://github.com/mono/taglib-sharp");
-                                if (ImGui.TextLink("StbImageSharp"))
-                                    GlimpsePlayer.OpenLink("https://github.com/StbSharp/StbImageSharp");
+                                if (ImGui.TextLink("ImageSharp"))
+                                    GlimpsePlayer.OpenLink("https://sixlabors.com/products/imagesharp/");
                                 if (ImGui.TextLink("empress"))
                                     GlimpsePlayer.OpenLink("https://github.com/aquagoose/empress");
                                 if (ImGui.TextLink("DiscordRichPresence"))
@@ -278,7 +278,7 @@ public class SettingsPopup : Popup
                                 if (ImGui.TextLink("TerraFX.Interop.Windows"))
                                     GlimpsePlayer.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
                                 if (ImGui.TextLink("Newtonsoft.Json"))
-                                    GlimpsePlayer.OpenLink("https://github.com/JamesNK/Newtonsoft.Json");
+                                    GlimpsePlayer.OpenLink("https://www.newtonsoft.com/json");
 
                                 ImGui.EndChild();
                             }

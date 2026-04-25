@@ -120,6 +120,7 @@ public abstract unsafe class Window : IDisposable
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
+        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
 
         // Attempt to set the window centered on the display the mouse cursor is on.
         // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
@@ -127,10 +128,10 @@ public abstract unsafe class Window : IDisposable
         SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
         uint display = SDL_GetDisplayForPoint(in mousePoint);
         uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
-        float displayScale = SDL.GetDisplayContentScale(display);
+        //float displayScale = SDL.GetDisplayContentScale(display);
         
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (int) (_size.Width * displayScale));
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (int) (_size.Height * displayScale));
+        //SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (int) (_size.Width * displayScale));
+        //SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (int) (_size.Height * displayScale));
         
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
@@ -143,6 +144,7 @@ public abstract unsafe class Window : IDisposable
         _scale = SDL.GetWindowDisplayScale(_window);
         _pixelDensity = SDL.GetWindowPixelDensity(_window);
 
+        SDL.SetWindowSize(_window, _size.Width, _size.Height);
 
         using (Image<Rgba32> icon = Image.Load<Rgba32>(Glimpse.GetPath("Assets/Icons/Glimpse.png")))
         {
