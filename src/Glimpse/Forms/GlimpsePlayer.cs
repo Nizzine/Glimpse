@@ -275,13 +275,13 @@ public class GlimpsePlayer : Window
                     else
                     {
                         // TODO: Scroll to the selected track & album/artist
-                        if (ImGuiE.TextButton(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack")) &&
+                        if (ImGui.TextButton(player.CurrentTrack?.Title ?? locale.GetString("UnknownTrack")) &&
                             player.CurrentTrack?.Album != null)
                         {
                             switchToQueueView = true;
                         }
 
-                        if (ImGuiE.TextButton(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist")) &&
+                        if (ImGui.TextButton(player.CurrentTrack?.Artist ?? locale.GetString("UnknownArtist")) &&
                             player.CurrentTrack?.Artist != null)
                         {
                             switchToTrackList = true;
@@ -290,7 +290,7 @@ public class GlimpsePlayer : Window
                         }
 
 
-                        if (ImGuiE.TextButton(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum")) &&
+                        if (ImGui.TextButton(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum")) &&
                             player.CurrentTrack?.Album != null)
                         {
                             switchToTrackList = true;
@@ -560,7 +560,7 @@ public class GlimpsePlayer : Window
                 if (switchView is AlbumView view)
                     _currentView = view;
 
-                if (ImGuiE.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
+                if (ImGui.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
                 {
                     if (switchView == null)
                         _currentView = AlbumView.Albums;
@@ -568,7 +568,7 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
 
-                if (ImGuiE.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
+                if (ImGui.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
                 {
                     if (switchView == null)
                         _currentView = AlbumView.Artists;
@@ -576,7 +576,7 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
                 
-                if (ImGuiE.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
+                if (ImGui.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
                 {
                     if (switchView == null)
                         _currentView = AlbumView.Genres;
@@ -585,7 +585,7 @@ public class GlimpsePlayer : Window
                 }
 
                 ImGui.BeginDisabled();
-                if (ImGuiE.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
+                if (ImGui.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
                 {
                     ImGui.EndTabItem();
                 }
@@ -631,7 +631,7 @@ public class GlimpsePlayer : Window
                         if (ImGui.ImageButton("Update", _updateButton, ScaleVec(16), Vector4.Zero, iconsColor))
                             OpenLink(_newVersionURL);
                         
-                        ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.UpdateAvailable", _newVersion));
+                        ImGui.SetItemTooltipUnformatted(locale.GetString("Player.UpdateAvailable", _newVersion));
                         
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
@@ -646,19 +646,19 @@ public class GlimpsePlayer : Window
                     if (ImGui.ImageButton("ReportBug", _bugButton, ScaleVec(16), Vector4.Zero, iconsColor))
                         OpenLink("https://github.com/aquagoose/Glimpse/issues/new?template=bug_report.md");
 
-                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.ReportBug"));
+                    ImGui.SetItemTooltipUnformatted(locale.GetString("Player.ReportBug"));
                     
                     ImGui.SameLine();
                     
                     if (ImGui.ImageButton("Settings", _cogButton, ScaleVec(16), Vector4.Zero, iconsColor))
                         AddPopup(new SettingsPopup());
-                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.Settings"));
+                    ImGui.SetItemTooltipUnformatted(locale.GetString("Player.Settings"));
             
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16), Vector4.Zero, iconsColor))
                         AddPopup(new AddFolderPopup());
-                    ImGuiE.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
+                    ImGui.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
                 }
@@ -757,7 +757,7 @@ public class GlimpsePlayer : Window
                                     player.QueueTracks(trackList, QueueSlot.Clear);
                                     player.ChangeTrack(song);
                                 }
-                                ImGuiE.SetColumnTooltip(title);
+                                ImGui.SetColumnTooltip(title);
 
                                 if (ImGui.BeginPopupContextItem())
                                 {
@@ -780,16 +780,16 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(artist);
-                                ImGuiE.SetColumnTooltip(artist);
+                                ImGui.SetColumnTooltip(artist);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(album);
-                                ImGuiE.SetColumnTooltip(album);
+                                ImGui.SetColumnTooltip(album);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(length);
-                                //ImGuiE.SetColumnTooltip(length);
+                                //ImGui.SetColumnTooltip(length);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(playCount);
-                                //ImGuiE.SetColumnTooltip(playCount);
+                                //ImGui.SetColumnTooltip(playCount);
                                 ImGui.TableNextColumn();
                                 int rating = isRatingHovered && _currentRowHover == currentRow ? _currentRatingHover : track.Rating;
                                 ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0));
@@ -824,10 +824,10 @@ public class GlimpsePlayer : Window
                                 ImGui.NewLine();
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(lastPlayed);
-                                ImGuiE.SetColumnTooltip(lastPlayed);
+                                ImGui.SetColumnTooltip(lastPlayed);
                                 ImGui.TableNextColumn();
                                 ImGui.TextUnformatted(path);
-                                ImGuiE.SetColumnTooltip(path);
+                                ImGui.SetColumnTooltip(path);
 
                                 song++;
                             }

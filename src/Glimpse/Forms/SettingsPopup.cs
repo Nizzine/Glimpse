@@ -64,7 +64,7 @@ public class SettingsPopup : Popup
 
                         ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"),
                             ref _currentConfig.EnableFileDeletion);
-                        ImGuiE.SetItemTooltipUnformatted(
+                        ImGui.SetItemTooltipUnformatted(
                             locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
 
                         ImGui.EndTabItem();
@@ -87,23 +87,23 @@ public class SettingsPopup : Popup
 
                         ImGui.BeginDisabled(shouldSyncToOS);
                         
-                        if (ImGuiE.SelectButton("LightMode", _lightMode,
+                        if (ImGui.SelectButton("LightMode", _lightMode,
                                 ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
                                 _currentConfig.Theme == Theme.Light))
                         {
                             _currentConfig.Theme = Theme.Light;
                         }
-                        ImGuiE.SetItemTooltipUnformatted(light);
+                        ImGui.SetItemTooltipUnformatted(light);
                         
                         ImGui.SameLine();
                         
-                        if (ImGuiE.SelectButton("DarkMode", _darkMode,
+                        if (ImGui.SelectButton("DarkMode", _darkMode,
                                 ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
                                 _currentConfig.Theme == Theme.Dark))
                         {
                             _currentConfig.Theme = Theme.Dark;
                         }
-                        ImGuiE.SetItemTooltipUnformatted(dark);
+                        ImGui.SetItemTooltipUnformatted(dark);
                         
                         ImGui.EndDisabled();
                         
@@ -115,23 +115,23 @@ public class SettingsPopup : Popup
                         string up = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Up");
                         string down = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Down");
                         
-                        if (ImGuiE.SelectButton("TransportDown", _transportDown,
+                        if (ImGui.SelectButton("TransportDown", _transportDown,
                             ScaleVec(_transportDown.Width * 0.25f, _transportDown.Height * 0.25f),
                             !_currentConfig.SwapTransportControls))
                         {
                             _currentConfig.SwapTransportControls = false;
                         }
-                        ImGuiE.SetItemTooltipUnformatted(down);
+                        ImGui.SetItemTooltipUnformatted(down);
 
                         ImGui.SameLine();
                         
-                        if (ImGuiE.SelectButton("TransportUp", _transportUp,
+                        if (ImGui.SelectButton("TransportUp", _transportUp,
                                 ScaleVec(_transportUp.Width * 0.25f, _transportUp.Height * 0.25f),
                                 _currentConfig.SwapTransportControls))
                         {
                             _currentConfig.SwapTransportControls = true;
                         }
-                        ImGuiE.SetItemTooltipUnformatted(up);
+                        ImGui.SetItemTooltipUnformatted(up);
                         
                         ImGui.EndTabItem();
                     }
