@@ -96,7 +96,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         }
         
         if (isFirstQueue)
-            ChangeTrack(0);
+            TryChangeTrack(0);
     }
 
     public void QueueTracks(IEnumerable<string> paths, QueueSlot slot)
@@ -111,18 +111,25 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             QueueTrack(path, slot, false);
     }
 
-    public void ChangeTrack(int queueIndex)
+    public bool TryChangeTrack(int queueIndex)
     {
         _logger?.Log($"Changing to track {queueIndex}.");
-        
+
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
-            throw new Exception("Cannot queue track that is not in the queue.");
+        {
+            Stop();
+            return false;
+        }
+
+        string path = QueuedTracks[queueIndex];
+
+        if (!File.Exists(path))
+            return false;
         
         //_logger?.Log("  Locking device.");
         //_device.Lock();
         Track oldTrack = _activeTrack;
 
-        string path = QueuedTracks[queueIndex];
         _currentTrackIndex = queueIndex;
         
         _logger?.Log($"  Creating codec stream from file {path}");
@@ -141,6 +148,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         //_logger?.Log("  Unlocking device.");
         //_device.Unlock();
+
+        return true;
     }
 
     public void Play()
@@ -185,25 +194,27 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public void Next()
     {
-        _currentTrackIndex++;
-
-        if (_currentTrackIndex >= QueuedTracks.Count)
+        do
         {
-            Stop();
-            return;
-        }
-        
-        ChangeTrack(_currentTrackIndex);
+            _currentTrackIndex++;
+
+            if (_currentTrackIndex >= QueuedTracks.Count)
+            {
+                Stop();
+                return;
+            }
+        } while (!TryChangeTrack(_currentTrackIndex));
     }
 
     public void Previous()
     {
-        _currentTrackIndex--;
-        
-        if (_currentTrackIndex < 0)
-            _currentTrackIndex = 0;
-        
-        ChangeTrack(_currentTrackIndex);
+        do
+        {
+            _currentTrackIndex--;
+
+            if (_currentTrackIndex < 0)
+                _currentTrackIndex = 0;
+        } while(!TryChangeTrack(_currentTrackIndex));
     }
 
     public void Seek(int second)

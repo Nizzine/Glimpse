@@ -147,7 +147,7 @@ public static class GlimpseCli
         foreach (string path in files)
             player.QueueTrack(path, QueueSlot.AtEnd);
 
-        player.ChangeTrack(startingTrack);
+        player.TryChangeTrack(startingTrack);
 
         PrintConsoleText(player.CurrentTrack, 0, (int) player.TrackLength.TotalSeconds, player.TrackState,
             player.CurrentTrackIndex, files.Count);

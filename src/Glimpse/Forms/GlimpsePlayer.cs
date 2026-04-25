@@ -756,7 +756,8 @@ public class GlimpsePlayer : Window
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, isRatingHovered ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.SpanAllColumns))
                                 {
                                     player.QueueTracks(trackList, QueueSlot.Clear);
-                                    player.ChangeTrack(song);
+                                    if (!player.TryChangeTrack(song))
+                                        AddPopup(new FileNotFoundPopup(title));
                                 }
                                 ImGui.SetColumnTooltip(title);
 
@@ -872,15 +873,21 @@ public class GlimpsePlayer : Window
                                 Vector2 cursorPos = ImGui.GetCursorPos();
                                 int height = (int) ((32 + 6) * Scale);
                                 
-                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
-                                    player.ChangeTrack(i);
-                                ImGui.SetCursorPos(cursorPos);
-                                ImGui.SameLine();
-                                
                                 Track track = Glimpse.Database.Tracks[path];
                                 string title = track.Title ?? locale.GetString("UnknownTrack");
                                 string artist = track.Artist ?? locale.GetString("UnknownArtist");
                                 string album = track.Album ?? locale.GetString("UnknownAlbum");
+                                
+                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
+                                {
+                                    if (!player.TryChangeTrack(i))
+                                    {
+                                        
+                                        AddPopup(new FileNotFoundPopup(title));
+                                    }
+                                }
+                                ImGui.SetCursorPos(cursorPos);
+                                ImGui.SameLine();
 
                                 ImGui.BeginChild($"QueueTrack{i}", new Vector2(0, height), ImGuiWindowFlags.NoInputs);
                                 {

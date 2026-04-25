@@ -73,12 +73,13 @@ public interface IAudioPlayer
     /// <param name="paths">The paths to the track files.</param>
     /// <param name="slot">The <see cref="QueueSlot"/> to insert the tracks at.</param>
     public void QueueTracks(IEnumerable<string> paths, QueueSlot slot);
-    
+
     /// <summary>
-    /// Change to the given queue index. If auto play is enabled, the track will play immediately.
+    /// Try and change to the given queue index.
     /// </summary>
     /// <param name="index">The index in the queue to change to.</param>
-    public void ChangeTrack(int index);
+    /// <returns>True if the change was successful, false otherwise.</returns>
+    public bool TryChangeTrack(int index);
 
     /// <summary>
     /// Start playback of the currently playing track.
