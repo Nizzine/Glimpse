@@ -91,10 +91,12 @@ public class GlimpsePlayer : Window
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
 
         const uint fontSize = 18;
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), fontSize, "Roboto");
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansJP-Regular.ttf"), fontSize, "NotoJP");
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansSC-Regular.ttf"), fontSize, "NotoSC");
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf"), fontSize, "Icons");
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansJP-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansSC-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansKR-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoEmoji-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf"), fontSize);
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -245,7 +247,15 @@ public class GlimpsePlayer : Window
 
             ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y));
             {
-                ImGui.Image(_albumArt ?? _defaultAlbumArt, new Vector2(winSize.Y));
+                Image albumArt = _albumArt ?? _defaultAlbumArt;
+
+                float aspectRatio = albumArt.Width / (float) albumArt.Height;
+                float scale = winSize.Y / (aspectRatio > 1 ? albumArt.Width : albumArt.Height);
+                
+                Vector2 size = new Vector2(albumArt.Width, albumArt.Height) * scale;
+                
+                ImGui.SetCursorPosY(winSize.Y / 2 - size.Y / 2);
+                ImGui.Image(albumArt, size);
                 
                 ImGui.EndChild();
             }

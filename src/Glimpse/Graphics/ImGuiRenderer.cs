@@ -23,8 +23,6 @@ public class ImGuiRenderer : IDisposable
 
     private uint _imGuiTexture;
 
-    public readonly Dictionary<string, ImFontPtr> Fonts;
-
     public ImGuiContextPtr ImGuiContext => _context;
     
     public unsafe ImGuiRenderer(GL gl, Size size)
@@ -58,11 +56,9 @@ public class ImGuiRenderer : IDisposable
         io.LogFilename = null;
         //io.Fonts.AddFontDefault();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasTextures;
-
-        Fonts = new Dictionary<string, ImFontPtr>();
     }
 
-    public unsafe ImFontPtr AddFont(string path, uint size, string name)
+    public unsafe ImFontPtr AddFont(string path, uint size)
     {
         ImFontAtlasPtr fonts = ImGui.GetIO().Fonts;
         
@@ -75,7 +71,6 @@ public class ImGuiRenderer : IDisposable
             GlyphMaxAdvanceX = float.MaxValue
         };
         ImFontPtr font = fonts.AddFontFromFileTTF(path, size, &config);
-        Fonts.Add(name, font);
 
         return font;
     }
