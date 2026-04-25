@@ -1,9 +1,11 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Reflection;
 using Glimpse.Graphics.GLUtils;
 using Silk.NET.OpenGL;
-using StbImageSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Color = System.Drawing.Color;
+using Size = System.Drawing.Size;
 
 namespace Glimpse.Graphics;
 
@@ -71,16 +73,20 @@ public unsafe class Renderer : IDisposable
 
     public Image CreateImage(string path)
     {
-        using FileStream stream = File.OpenRead(Glimpse.GetPath(path));
-        ImageResult result = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(path);
+        byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
+        image.CopyPixelDataTo(pixels);
 
-        return new Image(GL, result.Data, (uint) result.Width, (uint) result.Height);
+        return new Image(GL, pixels, (uint) image.Width, (uint) image.Height);
     }
 
     public Image CreateImage(byte[] data)
     {
-        ImageResult result = ImageResult.FromMemory(data, ColorComponents.RedGreenBlueAlpha);
-        return new Image(GL, result.Data, (uint) result.Width, (uint) result.Height);
+        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(data);
+        byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
+        image.CopyPixelDataTo(pixels);
+        
+        return new Image(GL, pixels, (uint) image.Width, (uint) image.Height);
     }
 
     public void Clear(Color color)

@@ -1,12 +1,14 @@
-﻿using System.Drawing;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using Glimpse.Forms;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
 using Silk.NET.OpenGL;
-using StbImageSharp;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using Image = SixLabors.ImageSharp.Image;
 using Renderer = Glimpse.Graphics.Renderer;
+using Size = System.Drawing.Size;
 
 namespace Glimpse;
 
@@ -140,16 +142,22 @@ public abstract unsafe class Window : IDisposable
         
         _scale = SDL.GetWindowDisplayScale(_window);
         _pixelDensity = SDL.GetWindowPixelDensity(_window);
-        
-        ImageResult result = ImageResult.FromMemory(File.ReadAllBytes(Glimpse.GetPath("Assets/Icons/Glimpse.png")));
-        IntPtr surface;
-        fixed (byte* pData = result.Data)
-        {
-            surface = SDL.CreateSurfaceFrom(result.Width, result.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
-                result.Width * 4);
-        }
 
-        SDL.SetWindowIcon(_window, surface);
+
+        using (Image<Rgba32> icon = Image.Load<Rgba32>(Glimpse.GetPath("Assets/Icons/Glimpse.png")))
+        {
+            byte[] pixels = new byte[icon.Width * icon.Height * sizeof(Rgba32)];
+            icon.CopyPixelDataTo(pixels);
+            
+            IntPtr surface;
+            fixed (byte* pData = pixels)
+            {
+                surface = SDL.CreateSurfaceFrom(icon.Width, icon.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
+                    icon.Width * 4);
+            }
+
+            SDL.SetWindowIcon(_window, surface);
+        }
 
         _cursors = [];
         _lastCursor = ImGuiMouseCursor.Arrow;

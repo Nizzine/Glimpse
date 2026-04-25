@@ -10,6 +10,7 @@ public static class Program
 {
     public static unsafe void Main(string[] args)
     {
+#if !DEBUG
         Console.WriteLine("Checking for an already existing instance.");
         NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", Glimpse.PipeServerName, PipeDirection.Out);
         try
@@ -30,7 +31,6 @@ public static class Program
 
         pipeClient.Dispose();
         
-#if !DEBUG
         AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
         {
             Logger logger = new Logger();

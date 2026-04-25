@@ -2,7 +2,6 @@
 using Windows.Media;
 using Windows.Storage.Streams;
 using Glimpse.API;
-using StbImageSharp;
 using TerraFX.Interop.Windows;
 
 namespace Glimpse.Platforms;
