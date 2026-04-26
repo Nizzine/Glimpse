@@ -73,7 +73,8 @@ public unsafe class Renderer : IDisposable
 
     public Image CreateImage(string path)
     {
-        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(path);
+        string fullPath = Utils.GetPath(path);
+        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(fullPath);
         byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
         image.CopyPixelDataTo(pixels);
 

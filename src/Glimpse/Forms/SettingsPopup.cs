@@ -235,7 +235,7 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
-                            ImGui.PushFont(null, 32 * Scale);
+                            ImGui.PushFont(null, 32);
                             ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
                             ImGui.PopFont();
                             ImGui.TextUnformatted("2026 aquagoose");

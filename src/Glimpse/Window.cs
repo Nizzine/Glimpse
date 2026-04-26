@@ -146,7 +146,7 @@ public abstract unsafe class Window : IDisposable
 
         SDL.SetWindowSize(_window, _size.Width, _size.Height);
 
-        using (Image<Rgba32> icon = Image.Load<Rgba32>(Glimpse.GetPath("Assets/Icons/Glimpse.png")))
+        using (Image<Rgba32> icon = Image.Load<Rgba32>(Utils.GetPath("Assets/Icons/Glimpse.png")))
         {
             byte[] pixels = new byte[icon.Width * icon.Height * sizeof(Rgba32)];
             icon.CopyPixelDataTo(pixels);

@@ -159,7 +159,7 @@ public class Glimpse : IGlimpse, IDisposable
         Database!.Refresh();
         
         Logger.Log("Searching for 'Plugins' directory.");
-        string pluginsLocation = GetPath("Plugins");
+        string pluginsLocation = Utils.GetPath("Plugins");
         if (Directory.Exists(pluginsLocation))
         {
             _pluginsContext = new AssemblyLoadContext("Plugins");
@@ -435,11 +435,6 @@ public class Glimpse : IGlimpse, IDisposable
                 break;
             }
         }
-    }
-
-    public static string GetPath(string path)
-    {
-        return Path.Combine(AppContext.BaseDirectory, path);
     }
 
     private void OnPipeServerConnection(IAsyncResult asyncResult)

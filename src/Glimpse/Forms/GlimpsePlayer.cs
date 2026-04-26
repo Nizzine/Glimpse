@@ -93,12 +93,12 @@ public class GlimpsePlayer : Window
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
 
         const uint fontSize = 18;
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/Roboto-Regular.ttf"), fontSize);
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansJP-Regular.ttf"), fontSize);
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansSC-Regular.ttf"), fontSize);
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoSansKR-Regular.ttf"), fontSize);
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/NotoEmoji-Regular.ttf"), fontSize);
-        Renderer.ImGui.AddFont(Glimpse.GetPath("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf"), fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansJP-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansSC-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansKR-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/NotoEmoji-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf", fontSize);
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -1124,7 +1124,7 @@ public class GlimpsePlayer : Window
     {
         *style.Handle = _defaultStyle;
         
-        int rounding = (int) (5 * Scale);
+        const int rounding = 5;
         style.FrameRounding = rounding;
         style.GrabRounding = rounding;
         style.ChildRounding = rounding;

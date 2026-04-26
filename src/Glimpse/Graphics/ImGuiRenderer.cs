@@ -60,6 +60,7 @@ public class ImGuiRenderer : IDisposable
 
     public unsafe ImFontPtr AddFont(string path, uint size)
     {
+        string fullPath = Utils.GetPath(path);
         ImFontAtlasPtr fonts = ImGui.GetIO().Fonts;
         
         ImFontConfig config = new()
@@ -70,7 +71,7 @@ public class ImGuiRenderer : IDisposable
             RasterizerMultiply = 1,
             GlyphMaxAdvanceX = float.MaxValue
         };
-        ImFontPtr font = fonts.AddFontFromFileTTF(path, size, &config);
+        ImFontPtr font = fonts.AddFontFromFileTTF(fullPath, size, &config);
 
         return font;
     }

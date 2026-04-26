@@ -4,6 +4,11 @@ namespace Glimpse;
 
 public static class Utils
 {
+    public static string GetPath(string path)
+    {
+        return Path.Combine(AppContext.BaseDirectory, path);
+    }
+    
     public static void OpenLink(string link)
     {
         SDL.OpenURL(link);
