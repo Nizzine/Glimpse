@@ -302,9 +302,11 @@ public class Glimpse : IGlimpse, IDisposable
                 Logger.Log("Window Display Scale Changed");
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
-                Size winSize = wnd.Size;
-                float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
-                wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
+                // TODO: Check this behaviour on windows. I have a feeling below will work as expected (as I'm fairly
+                //       sure it always did, hence why this has been implemented).
+                //Size winSize = wnd.Size;
+                //float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
+                //wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
                 wnd.Renderer.Resize(wnd.Size);
                 wnd.NotifyScaleChanged();
                 Logger.Log("done.");
