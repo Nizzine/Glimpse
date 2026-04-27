@@ -27,6 +27,9 @@ public class GlimpsePlayer : Window
     private ImGuiStyle _defaultStyle;
     private bool _isLightModeTheme;
 
+    private Size _restoreSize;
+    private bool _miniplayer;
+
     private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
@@ -213,35 +216,35 @@ public class GlimpsePlayer : Window
             
             ImGuiP.DockBuilderRemoveNode(id);
             ImGuiP.DockBuilderAddNode(id, ImGuiDockNodeFlags.NoUndocking);
+            uint transportId = id;
 
-            ImGuiDir dir = Glimpse.Config.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
-            
-            uint transportId;
-            uint albumsSongsId;
-            ImGuiP.DockBuilderSplitNode(id, dir, 0, &transportId, &albumsSongsId);
+            if (!_miniplayer)
+            {
+                ImGuiDir dir = Glimpse.Config.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
+                
+                uint albumsSongsId;
+                ImGuiP.DockBuilderSplitNode(id, dir, 0, &transportId, &albumsSongsId);
 
-            ImGuiDockNodePtr transportNode = ImGuiP.DockBuilderGetNode(transportId);
-            transportNode.LocalFlags = ImGuiDockNodeFlags.NoResize;
-            transportNode.SizeRef = ScaleVec(1100, 122);
+                ImGuiDockNodePtr transportNode = ImGuiP.DockBuilderGetNode(transportId);
+                transportNode.LocalFlags = ImGuiDockNodeFlags.NoResize;
+                transportNode.SizeRef = ScaleVec(1100, 122);
             
-            uint albumsId;
-            uint songsId;
-            ImGuiP.DockBuilderSplitNode(albumsSongsId, ImGuiDir.Left, 0, &albumsId, &songsId);
+                uint albumsId;
+                uint songsId;
+                ImGuiP.DockBuilderSplitNode(albumsSongsId, ImGuiDir.Left, 0, &albumsId, &songsId);
 
-            ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
-            albumsNode.SizeRef = ScaleVec(327, 650);
+                ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
+                albumsNode.SizeRef = ScaleVec(327, 650);
 
-            ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
-            songsNode.SizeRef = ScaleVec(772, 650);
-            songsNode.LocalFlags = (ImGuiDockNodeFlags) centralNode;
-            
-            Console.WriteLine(albumsId.ToString("x8"));
-            Console.WriteLine(albumsId.ToString("x8"));
-            Console.WriteLine(transportId.ToString("x8"));
-            
+                ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
+                songsNode.SizeRef = ScaleVec(772, 650);
+                songsNode.LocalFlags = (ImGuiDockNodeFlags) centralNode;
+                
+                ImGuiP.DockBuilderDockWindow("Albums", albumsId);
+                ImGuiP.DockBuilderDockWindow("Songs", songsId);
+            }
+
             ImGuiP.DockBuilderDockWindow("Transport", transportId);
-            ImGuiP.DockBuilderDockWindow("Albums", albumsId);
-            ImGuiP.DockBuilderDockWindow("Songs", songsId);
         
             ImGuiP.DockBuilderFinish(id);
         }
@@ -269,6 +272,18 @@ public class GlimpsePlayer : Window
                 
                 ImGui.SetCursorPosY(winSize.Y / 2 - size.Y / 2);
                 ImGui.Image(albumArt, size);
+                if (ImGui.IsItemClicked())
+                {
+                    Size windowSize = Size;
+
+                    if (_restoreSize.IsEmpty)
+                        _restoreSize = new Size(450, 122);
+                    
+                    _miniplayer = !_miniplayer;
+                    Size = _restoreSize;
+                    _restoreSize = windowSize;
+                    RefreshLayout();
+                }
                 
                 ImGui.EndChild();
             }
@@ -317,14 +332,25 @@ public class GlimpsePlayer : Window
 
                 ImGui.SameLine();
 
-                Vector2 iconSize = new Vector2(32) * Scale;
+                float miniplayerScale = _miniplayer ? 0.75f : 1.0f;
+                
+                Vector2 iconSize = new Vector2(32) * Scale * miniplayerScale;
                 // Even though there are 4 icons, 3 icons makes it *feel* more centered, even though it's shifted to the right.
                 const int numIcons = 3;
-                float spacing = ImGui.GetStyle().ItemSpacing.X;
-                float padding = ImGui.GetStyle().FramePadding.X;
+                float spacing = ImGui.GetStyle().ItemSpacing.X * miniplayerScale;
+                float padding = ImGui.GetStyle().FramePadding.X * miniplayerScale;
                 float totalButtonsWidth = (iconSize.X + spacing + padding) * numIcons;
 
-                Vector2 centerPos = new Vector2(winSize.X / 2 - totalButtonsWidth / 2, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
+                Vector2 centerPos;
+                if (_miniplayer)
+                {
+                    centerPos = new Vector2(winSize.X - totalButtonsWidth, ImGui.GetCursorScreenPos().Y + (int) (15 * Scale));
+                }
+                else
+                {
+                    centerPos = new Vector2(winSize.X / 2 - totalButtonsWidth / 2, ImGui.GetCursorScreenPos().Y + (int) (10 * Scale));
+                }
+
                 ImGui.SetCursorScreenPos(centerPos);
 
                 ImGui.BeginChild("TransportControls", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
@@ -365,10 +391,13 @@ public class GlimpsePlayer : Window
                         player.Next();
                     }
 
-                    ImGui.SameLine();
-                    if (ImGui.ImageButton("StopButton", _stopButton, iconSize, Vector4.Zero, iconsColor))
+                    if (!_miniplayer)
                     {
-                        player.Stop();
+                        ImGui.SameLine();
+                        if (ImGui.ImageButton("StopButton", _stopButton, iconSize, Vector4.Zero, iconsColor))
+                        {
+                            player.Stop();
+                        }
                     }
 
                     ImGui.PopStyleColor();
@@ -382,30 +411,36 @@ public class GlimpsePlayer : Window
                 Vector2 cursorPos = ImGui.GetCursorPos();
 
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - 150 * Scale, 20));
-                ImGui.BeginChild("VolumeDock");
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (_miniplayer ? 45 : 150) * Scale, _miniplayer ? 0 : 20));
+                //if (!_miniplayer)
                 {
-                    ImGui.BeginDisabled();
-                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                    ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16), Vector4.Zero, iconsColor);
-                    ImGui.SameLine(0, 0);
-                    ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16), Vector4.Zero, iconsColor);
-                    ImGui.PopStyleColor();
-                    ImGui.EndDisabled();
-
-                    ImGui.SameLine(0, 2);
-
-                    contentRegion = ImGui.GetContentRegionAvail();
-                    int volume = (int) (Glimpse.Player.Volume * 100);
-                    ImGui.SetNextItemWidth(contentRegion.X);
-                    if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
+                    ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
                     {
-                        float fVol = (float) volume / 100;
-                        Glimpse.Player.Volume = fVol;
-                        Glimpse.Config.Volume = fVol;
-                    }
+                        ImGui.BeginDisabled();
+                        ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        ImGui.SameLine(0, 0);
+                        ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        ImGui.PopStyleColor();
+                        ImGui.EndDisabled();
 
-                    ImGui.EndChild();
+                        if (!_miniplayer)
+                        {
+                            ImGui.SameLine(0, 2);
+
+                            contentRegion = ImGui.GetContentRegionAvail();
+                            int volume = (int) (Glimpse.Player.Volume * 100);
+                            ImGui.SetNextItemWidth(contentRegion.X);
+                            if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
+                            {
+                                float fVol = (float) volume / 100;
+                                Glimpse.Player.Volume = fVol;
+                                Glimpse.Config.Volume = fVol;
+                            }
+                        }
+
+                        ImGui.EndChild();
+                    }
                 }
 
                 // TODO: HACK
@@ -477,6 +512,9 @@ public class GlimpsePlayer : Window
         ImGui.End();
         
         #endregion
+
+        if (_miniplayer)
+            return;
         
         #region Albums Dock
         
