@@ -60,11 +60,11 @@ public interface IMusicLibrary
     /// </summary>
     /// <param name="path">The path to the track.</param>
     /// <returns>The <see cref="Track"/>.</returns>
-    public Track GetTrack(string path);
+    public bool TryGetTrack(string path, out Track? track);
 
     /// <summary>
     /// Update a <see cref="Track"/> in the library.
     /// </summary>
     /// <param name="track">The <see cref="Track"/> to update.</param>
-    public void UpdateTrack(Track track);
+    public bool UpdateTrack(Track track);
 }

@@ -57,7 +57,8 @@ public class MusicDatabase : IMusicLibrary
     
     public void Index()
     {
-        Task.Run(IndexLibrary);
+        //Task.Run(IndexLibrary);
+        IndexLibrary(); // TODO: Make this threaded again
     }
 
     public MusicDatabase(Logger logger, AudioPlayer player)
@@ -85,7 +86,7 @@ public class MusicDatabase : IMusicLibrary
         Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
 
         _libraryPaths = library.LibraryPaths.ToList();
-        _excludedDirectories = library.LibraryPaths.ToList();
+        _excludedDirectories = library.ExcludedDirectories.ToList();
         
         foreach (Track track in library.Tracks)
             _tracks.Add(track.Path, track);
@@ -100,22 +101,31 @@ public class MusicDatabase : IMusicLibrary
             _genres.Add(genre.Name, genre);
     }
     
-    public Track GetTrack(string path)
+    public bool TryGetTrack(string path, out Track? track)
     {
-        // TODO: TryGetTrack
-        return _tracks[path];
+        if (!_tracks.TryGetValue(path, out Track trk))
+        {
+            track = null;
+            return false;
+        }
+
+        track = trk;
+        return true;
     }
     
-    public void UpdateTrack(Track track)
+    public bool UpdateTrack(Track track)
     {
         _tracks[track.Path] = track;
         SaveLibrary();
+
+        // TODO: Check if track exists in the library.
+        return true;
     }
 
     private void SaveLibrary()
     {
         _logger.Log($"Saving library to {_databasePath}.");
-        Library library = new Library(DatabaseVersion, [], [], _tracks.Values, _albums.Values, _artists.Values,
+        Library library = new Library(DatabaseVersion, _libraryPaths, _excludedDirectories, _tracks.Values, _albums.Values, _artists.Values,
             _genres.Values);
         string json = JsonConvert.SerializeObject(library, Formatting.Indented);
         File.WriteAllText(_databasePath, json);
@@ -138,12 +148,12 @@ public class MusicDatabase : IMusicLibrary
                 // TODO: Excluded Paths
                 _logger.Log($"  Indexing {path}");
                 if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
+                {
                     _logger.Log("    ... failed.");
+                    continue;
+                }
 
-                Track? oldTrack = null;
-                if (_tracks.TryGetValue(path, out Track existingTrack))
-                    oldTrack = existingTrack;
-                
+                TryGetTrack(path, out Track? oldTrack);
                 Track track = new Track(path, info, oldTrack);
                 
                 tracks.Add(path, track);
@@ -152,6 +162,8 @@ public class MusicDatabase : IMusicLibrary
 
         _tracks = tracks;
         _albums = albums;
+        
+        SaveLibrary();
     }
 
     /*public void AddIndexToDatabase(in IndexResult index)

@@ -35,7 +35,7 @@ public sealed class RemovePopup : Popup
             MusicDatabase db = Glimpse.Database;
             AudioPlayer player = Glimpse.Player;
             
-            string name = _isAlbum ? _nameOrPath : (db.Tracks[_nameOrPath].Title ?? locale.GetString("UnknownTrack"));
+            /*string name = _isAlbum ? _nameOrPath : (db.Tracks[_nameOrPath].Title ?? locale.GetString("UnknownTrack"));
 
             if (_delete)
             {
@@ -79,7 +79,7 @@ public sealed class RemovePopup : Popup
                 Close();
             }
             
-            ImGui.SameLine();
+            ImGui.SameLine();*/
             
             if (ImGui.Button(locale.GetString("Button.No")))
                 Close();

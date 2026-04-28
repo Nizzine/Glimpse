@@ -2,7 +2,7 @@
 
 public record struct Track
 {
-    public readonly string Path;
+    public string Path;
     
     public uint? TrackNumber;
     

@@ -158,7 +158,8 @@ public class Glimpse : IGlimpse, IDisposable
 
         //Database!.Logger = Logger;
         //Database!.Refresh();
-        Database = new MusicDatabase(Logger);
+        Database = new MusicDatabase(Logger, Player);
+        Database.Index(); // TODO: Don't automatically index on startup! (Unless the user enables the setting)
         
         Logger.Log("Searching for 'Plugins' directory.");
         string pluginsLocation = Utils.GetPath("Plugins");
