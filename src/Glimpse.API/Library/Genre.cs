@@ -1,7 +1,7 @@
 namespace Glimpse.API.Library;
 
-public record struct Genre
+public record Genre
 (
     string Name,
-    IReadOnlyCollection<string> Tracks
+    List<string> Tracks
 );

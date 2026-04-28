@@ -32,14 +32,38 @@ public class MusicDatabase : IMusicLibrary
     private Dictionary<string, Artist> _artists;
     private Dictionary<string, Genre> _genres;
 
-    public IReadOnlyCollection<Track> Tracks => _tracks.Values;
+    public SizedCollection<Track> GetTracks()
+    {
+        var tracks = _tracks.Values;
+        IEnumerable<Track> trackEnumerable = tracks.OrderBy(track => track.Album).ThenBy(track => track.TrackNumber);
 
-    public IReadOnlyCollection<Album> Albums => _albums.Values;
-
-    public IReadOnlyCollection<Artist> Artists => _artists.Values;
-
-    public IReadOnlyCollection<Genre> Genres => _genres.Values;
+        return new SizedCollection<Track>(trackEnumerable, (uint) tracks.Count);
+    }
     
+    public SizedCollection<Album> GetAlbums()
+    {
+        var albums = _albums.Values;
+        IEnumerable<Album> albumEnumerable = albums.OrderBy(album => album.Name);
+
+        return new SizedCollection<Album>(albumEnumerable, (uint) albums.Count);
+    }
+    
+    public SizedCollection<Artist> GetArtists()
+    {
+        var artists = _artists.Values;
+        IEnumerable<Artist> artistEnumerable = artists.OrderBy(artist => artist.Name);
+
+        return new SizedCollection<Artist>(artistEnumerable, (uint) artists.Count);
+    }
+    
+    public SizedCollection<Genre> GetGenres()
+    {
+        var genres = _genres.Values;
+        IEnumerable<Genre> genreEnumerable = genres.OrderBy(genre => genre.Name);
+
+        return new SizedCollection<Genre>(genreEnumerable, (uint) genres.Count);
+    }
+
     public IReadOnlyCollection<string> GetLibraryPaths()
     {
         throw new NotImplementedException();
@@ -113,16 +137,7 @@ public class MusicDatabase : IMusicLibrary
         return true;
     }
     
-    public bool UpdateTrack(Track track)
-    {
-        _tracks[track.Path] = track;
-        SaveLibrary();
-
-        // TODO: Check if track exists in the library.
-        return true;
-    }
-
-    public bool TryGetTracksFromAlbum(string albumName, out IReadOnlyCollection<Track> tracks)
+    public bool TryGetTracksFromAlbum(string albumName, out SizedCollection<Track> tracks)
     {
         if (!_albums.TryGetValue(albumName, out Album album))
         {
@@ -139,8 +154,23 @@ public class MusicDatabase : IMusicLibrary
             trackList.Add(track);
         }
 
-        tracks = trackList;
+        IEnumerable<Track> trackEnumerable = trackList.OrderBy(track => track.TrackNumber).ThenBy(track => track.Title);
+        tracks = new SizedCollection<Track>(trackEnumerable, (uint) trackList.Count);
         return true;
+    }
+    
+    public bool UpdateTrack(Track track)
+    {
+        _tracks[track.Path] = track;
+        SaveLibrary();
+
+        // TODO: Check if track exists in the library.
+        return true;
+    }
+
+    public bool TryGetAlbum(string albumName, out Album album)
+    {
+        return _albums.TryGetValue(albumName, out album);
     }
 
     private void SaveLibrary()
@@ -157,6 +187,8 @@ public class MusicDatabase : IMusicLibrary
         // TODO: Make this thread safe.
         Dictionary<string, Track> tracks = [];
         Dictionary<string, Album> albums = [];
+        Dictionary<string, Artist> artists = [];
+        Dictionary<string, Genre> genres = [];
         
         foreach (string libraryPath in _libraryPaths)
         {
@@ -183,13 +215,28 @@ public class MusicDatabase : IMusicLibrary
                     album = new Album(track.Album, []);
                     albums.Add(album.Name, album);
                 }
-
                 album.Tracks.Add(track.Path);
+
+                if (!artists.TryGetValue(track.Artist, out Artist artist))
+                {
+                    artist = new Artist(track.Artist, []);
+                    artists.Add(artist.Name, artist);
+                }
+                artist.Tracks.Add(track.Path);
+
+                if (!genres.TryGetValue(track.Genre, out Genre genre))
+                {
+                    genre = new Genre(track.Genre, []);
+                    genres.Add(genre.Name, genre);
+                }
+                genre.Tracks.Add(track.Path);
             }
         }
 
         _tracks = tracks;
         _albums = albums;
+        _artists = artists;
+        _genres = genres;
         
         SaveLibrary();
     }

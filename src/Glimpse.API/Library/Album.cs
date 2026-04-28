@@ -1,6 +1,6 @@
 namespace Glimpse.API.Library;
 
-public record struct Album
+public record Album
 (
     string Name,
     List<string> Tracks

@@ -5,22 +5,22 @@ public interface IMusicLibrary
     /// <summary>
     /// Gets the <see cref="Track"/>s in the library.
     /// </summary>
-    public IReadOnlyCollection<Track> Tracks { get; }
-    
+    public SizedCollection<Track> GetTracks();
+
     /// <summary>
     /// Gets the <see cref="Album"/>s in the library.
     /// </summary>
-    public IReadOnlyCollection<Album> Albums { get; }
-    
+    public SizedCollection<Album> GetAlbums();
+
     /// <summary>
     /// Gets the <see cref="Artist"/>s in the library.
     /// </summary>
-    public IReadOnlyCollection<Artist> Artists { get; }
-    
+    public SizedCollection<Artist> GetArtists();
+
     /// <summary>
     /// Gets the <see cref="Genre"/>s in the library.
     /// </summary>
-    public IReadOnlyCollection<Genre> Genres { get; }
+    public SizedCollection<Genre> GetGenres();
 
     /// <summary>
     /// Gets a full list of directories that will be indexed by the music library.
@@ -62,11 +62,13 @@ public interface IMusicLibrary
     /// <returns>The <see cref="Track"/>.</returns>
     public bool TryGetTrack(string path, out Track? track);
 
+    public bool TryGetTracksFromAlbum(string albumName, out SizedCollection<Track> tracks);
+    
     /// <summary>
     /// Update a <see cref="Track"/> in the library.
     /// </summary>
     /// <param name="track">The <see cref="Track"/> to update.</param>
     public bool UpdateTrack(Track track);
 
-    public bool TryGetTracksFromAlbum(string albumName, out IReadOnlyCollection<Track> tracks);
+    public bool TryGetAlbum(string albumName, out Album album);
 }
