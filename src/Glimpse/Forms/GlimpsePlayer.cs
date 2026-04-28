@@ -34,6 +34,7 @@ public class GlimpsePlayer : Window
     private float _newVersionBlinker;
     
     private string? _currentAlbum;
+    private AlbumView _currentView;
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
     
@@ -578,9 +579,42 @@ public class GlimpsePlayer : Window
                 
                 ImGui.EndCombo();
             }*/
-
-            void DrawItemList()
+            
+            if (ImGui.BeginTabBar("AlbumTabs"))
             {
+                //ImGui.PushFont(_iconsFont, 32);
+
+                //if (switchView is AlbumView view)
+                //    _currentView = view;
+
+                if (ImGui.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
+                {
+                    if (_currentView != AlbumView.Albums)
+                        ChangeView(AlbumView.Albums);
+                    ImGui.EndTabItem();
+                }
+
+                if (ImGui.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
+                {
+                    if (_currentView != AlbumView.Artists)
+                        ChangeView(AlbumView.Artists);
+                    ImGui.EndTabItem();
+                }
+                
+                if (ImGui.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
+                {
+                    if (_currentView != AlbumView.Genres)
+                        ChangeView(AlbumView.Genres);
+                    ImGui.EndTabItem();
+                }
+
+                ImGui.BeginDisabled();
+                if (ImGui.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
+                {
+                    ImGui.EndTabItem();
+                }
+                ImGui.EndDisabled();
+                
                 ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
                 {
                     if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == null))
@@ -631,45 +665,6 @@ public class GlimpsePlayer : Window
                     
                     ImGui.EndChild();
                 }
-            }
-            
-            if (ImGui.BeginTabBar("AlbumTabs"))
-            {
-                //ImGui.PushFont(_iconsFont, 32);
-
-                //if (switchView is AlbumView view)
-                //    _currentView = view;
-
-                if (ImGui.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
-                {
-                    //if (switchView == null)
-                    //    _currentView = AlbumView.Albums;
-                    DrawItemList();
-                    ImGui.EndTabItem();
-                }
-
-                if (ImGui.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
-                {
-                    //if (switchView == null)
-                    //    _currentView = AlbumView.Artists;
-                    DrawItemList();
-                    ImGui.EndTabItem();
-                }
-                
-                if (ImGui.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
-                {
-                    //if (switchView == null)
-                    //    _currentView = AlbumView.Genres;
-                    DrawItemList();
-                    ImGui.EndTabItem();
-                }
-
-                ImGui.BeginDisabled();
-                if (ImGui.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
-                {
-                    ImGui.EndTabItem();
-                }
-                ImGui.EndDisabled();
                 
                 ImGui.EndTabBar();
             }
@@ -1154,6 +1149,7 @@ public class GlimpsePlayer : Window
 
     private void ChangeView(AlbumView view)
     {
+        _currentView = view;
         switch (view)
         {
             case AlbumView.Albums:
@@ -1161,6 +1157,20 @@ public class GlimpsePlayer : Window
                 SizedCollection<Album> albums = Glimpse.Database.GetAlbums();
                 IEnumerable<string> albumNames = albums.Collection.Select(album => album.Name);
                 _albums = new SizedCollection<string>(albumNames, albums.Count);
+                break;
+            }
+            case AlbumView.Artists:
+            {
+                SizedCollection<Artist> artists = Glimpse.Database.GetArtists();
+                IEnumerable<string> artistNames = artists.Collection.Select(artist => artist.Name);
+                _albums = new SizedCollection<string>(artistNames, artists.Count);
+                break;
+            }
+            case AlbumView.Genres:
+            {
+                SizedCollection<Genre> genres = Glimpse.Database.GetGenres();
+                IEnumerable<string> genreNames = genres.Collection.Select(genre => genre.Name);
+                _albums = new SizedCollection<string>(genreNames, genres.Count);
                 break;
             }
         }
