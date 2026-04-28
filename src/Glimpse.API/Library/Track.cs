@@ -2,7 +2,7 @@
 
 public record struct Track
 {
-    public string Path;
+    public readonly string Path;
     
     public uint? TrackNumber;
     
@@ -22,7 +22,7 @@ public record struct Track
 
     public DateTime? LastPlayed;
 
-    public Track(string path, TrackInfo info)
+    public Track(string path, TrackInfo info, Track? oldTrack = null)
     {
         Path = path;
         TrackNumber = info.TrackNumber;
@@ -31,7 +31,8 @@ public record struct Track
         Album = info.Album;
         Length = info.Length;
         Genre = info.Genre;
-        Rating = 0;
-        PlayCount = 0;
+        Rating = oldTrack?.Rating ?? 0;
+        PlayCount = oldTrack?.PlayCount ?? 0;
+        LastPlayed = oldTrack?.LastPlayed ?? null;
     }
 }

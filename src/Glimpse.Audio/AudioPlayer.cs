@@ -233,14 +233,18 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _codecs.Remove(codec);
     }
 
-    public TrackInfo GetTrackInfoForFile(string path)
+    public bool TryGetTrackInfoForFile(string path, out TrackInfo? info)
     {
         _logger?.Log("Checking for codec support.");
         if (!FileIsSupported(path, out ICodec codec))
-            throw new NotSupportedException($"File type '{Path.GetExtension(path)}' not supported.");
-        
-        _logger?.Log("  Getting track info.");
-        return codec.GetTrackInfo(path);
+        {
+            info = null;
+            return false;
+        }
+
+        _logger?.Log("    Getting track info.");
+        info = codec.GetTrackInfo(path);
+        return true;
     }
     
     private bool FileIsSupported(string path, out ICodec outCodec)

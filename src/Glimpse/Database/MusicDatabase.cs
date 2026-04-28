@@ -1,6 +1,8 @@
 ﻿using Glimpse.API;
 using Glimpse.API.Library;
+using Glimpse.Audio;
 using Newtonsoft.Json;
+using Track = Glimpse.API.Library.Track;
 
 namespace Glimpse.Database;
 
@@ -10,21 +12,67 @@ public class MusicDatabase : IMusicLibrary
     public const uint DatabaseVersion = 1;
 
     private readonly Logger _logger;
+    private readonly AudioPlayer _player;
     private readonly string _databasePath;
 
-    private readonly Dictionary<string, Track> _tracks;
+    /// <summary>
+    /// A list of directories that have been explicitly added to the library.
+    /// </summary>
+    private readonly List<string> _libraryPaths;
     
-    //public Dictionary<string, Track> Tracks = [];
-    public Dictionary<string, Album> Albums = [];
-    public Dictionary<string, Artist> Artists = [];
-    public Dictionary<string, Genre> Genres = [];
+    /// <summary>
+    /// A list of directories, within the Library Paths, that have been removed from the library.
+    /// This is done so that any new subdirectories within the Library Paths will automatically be added, without
+    /// Glimpse (or the user) needing to do anything.
+    /// </summary>
+    private readonly List<string> _excludedDirectories;
+
+    private Dictionary<string, Track> _tracks;
+    private Dictionary<string, Album> _albums;
+    private Dictionary<string, Artist> _artists;
+    private Dictionary<string, Genre> _genres;
+
+    public IReadOnlyCollection<Track> Tracks => _tracks.Values;
+
+    public IReadOnlyCollection<Album> Albums => _albums.Values;
+
+    public IReadOnlyCollection<Artist> Artists => _artists.Values;
+
+    public IReadOnlyCollection<Genre> Genres => _genres.Values;
     
-    public MusicDatabase(Logger logger)
+    public IReadOnlyCollection<string> GetLibraryPaths()
+    {
+        throw new NotImplementedException();
+    }
+    
+    public void AddLibraryPath(string path, bool includeSubdirectories = true)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public void RemoveLibaryPath(string path, bool includeSubdirectories = true)
+    {
+        throw new NotImplementedException();
+    }
+    
+    public void Index()
+    {
+        Task.Run(IndexLibrary);
+    }
+
+    public MusicDatabase(Logger logger, AudioPlayer player)
     {
         _logger = logger;
+        _player = player;
         _databasePath = Path.Combine(IConfigManager.BaseDir, $"{DatabaseName}.json");
 
+        _libraryPaths = [];
+        _excludedDirectories = [];
+        
         _tracks = [];
+        _albums = [];
+        _artists = [];
+        _genres = [];
 
         // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
         if (!File.Exists(_databasePath))
@@ -35,15 +83,75 @@ public class MusicDatabase : IMusicLibrary
 
         // TODO: Handle null
         Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
+
+        _libraryPaths = library.LibraryPaths.ToList();
+        _excludedDirectories = library.LibraryPaths.ToList();
+        
         foreach (Track track in library.Tracks)
             _tracks.Add(track.Path, track);
+        
+        foreach (Album album in library.Albums)
+            _albums.Add(album.Name, album);
+        
+        foreach (Artist artist in library.Artists)
+            _artists.Add(artist.Name, artist);
+
+        foreach (Genre genre in library.Genres)
+            _genres.Add(genre.Name, genre);
+    }
+    
+    public Track GetTrack(string path)
+    {
+        // TODO: TryGetTrack
+        return _tracks[path];
+    }
+    
+    public void UpdateTrack(Track track)
+    {
+        _tracks[track.Path] = track;
+        SaveLibrary();
     }
 
     private void SaveLibrary()
     {
-        Library library = new Library(DatabaseVersion, [], [], _tracks.Values);
-        string json = JsonConvert.SerializeObject(library);
+        _logger.Log($"Saving library to {_databasePath}.");
+        Library library = new Library(DatabaseVersion, [], [], _tracks.Values, _albums.Values, _artists.Values,
+            _genres.Values);
+        string json = JsonConvert.SerializeObject(library, Formatting.Indented);
         File.WriteAllText(_databasePath, json);
+    }
+
+    private void IndexLibrary()
+    {
+        // TODO: Make this thread safe.
+        Dictionary<string, Track> tracks = [];
+        Dictionary<string, Album> albums = [];
+        
+        foreach (string libraryPath in _libraryPaths)
+        {
+            _logger.Log($"Indexing library path: {libraryPath}");
+
+            // TODO: Could probably be made more efficient using recursive-esque pattern?
+            string[] paths = Directory.GetFiles(libraryPath, "*", SearchOption.AllDirectories);
+            foreach (string path in paths)
+            {
+                // TODO: Excluded Paths
+                _logger.Log($"  Indexing {path}");
+                if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
+                    _logger.Log("    ... failed.");
+
+                Track? oldTrack = null;
+                if (_tracks.TryGetValue(path, out Track existingTrack))
+                    oldTrack = existingTrack;
+                
+                Track track = new Track(path, info, oldTrack);
+                
+                tracks.Add(path, track);
+            }
+        }
+
+        _tracks = tracks;
+        _albums = albums;
     }
 
     /*public void AddIndexToDatabase(in IndexResult index)
