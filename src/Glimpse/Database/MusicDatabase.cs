@@ -20,14 +20,14 @@ public class MusicDatabase : IMusicLibrary
     /// <summary>
     /// A list of directories that have been explicitly added to the library.
     /// </summary>
-    private readonly List<string> _libraryPaths;
+    private readonly HashSet<string> _libraryPaths;
     
     /// <summary>
     /// A list of directories, within the Library Paths, that have been removed from the library.
     /// This is done so that any new subdirectories within the Library Paths will automatically be added, without
     /// Glimpse (or the user) needing to do anything.
     /// </summary>
-    private readonly List<string> _excludedDirectories;
+    private readonly HashSet<string> _excludedDirectories;
 
     private Dictionary<string, Track> _tracks;
     private Dictionary<string, Album> _albums;
@@ -36,6 +36,46 @@ public class MusicDatabase : IMusicLibrary
 
     public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
 
+    public MusicDatabase(Logger logger, AudioPlayer player)
+    {
+        _logger = logger;
+        _player = player;
+        _databasePath = Path.Combine(IConfigManager.BaseDir, $"{DatabaseName}.json");
+
+        _libraryPaths = [];
+        _excludedDirectories = [];
+        
+        _tracks = [];
+        _albums = [];
+        _artists = [];
+        _genres = [];
+
+        // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
+        if (!File.Exists(_databasePath))
+        {
+            SaveLibrary();
+            return;
+        }
+
+        // TODO: Handle null
+        Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
+
+        _libraryPaths = library.LibraryPaths.ToHashSet();
+        _excludedDirectories = library.ExcludedDirectories.ToHashSet();
+        
+        foreach (Track track in library.Tracks)
+            _tracks.Add(track.Path, track);
+        
+        foreach (Album album in library.Albums)
+            _albums.Add(album.Name, album);
+        
+        foreach (Artist artist in library.Artists)
+            _artists.Add(artist.Name, artist);
+
+        foreach (Genre genre in library.Genres)
+            _genres.Add(genre.Name, genre);
+    }
+    
     public SizedCollection<Track> GetTracks()
     {
         var tracks = _tracks.Values;
@@ -75,12 +115,20 @@ public class MusicDatabase : IMusicLibrary
         {
             paths.Add(libraryPath);
             
-            foreach (string directory in Directory.GetDirectories(libraryPath))
+            foreach (string directory in Directory.GetDirectories(libraryPath, "*", SearchOption.AllDirectories))
             {
                 if (_excludedDirectories.Contains(directory))
                     continue;
+
+                foreach (string excluded in _excludedDirectories)
+                {
+                    if (directory.StartsWith(excluded))
+                        goto SKIP;
+                }
                 
                 paths.Add(directory);
+                
+                SKIP: ;
             }
         }
 
@@ -89,58 +137,30 @@ public class MusicDatabase : IMusicLibrary
     
     public void AddLibraryPath(string path, bool includeSubdirectories = true)
     {
-        throw new NotImplementedException();
+        if (!includeSubdirectories)
+            throw new NotImplementedException("Cannot add library path and not include subdirectories yet!");
+
+        if (!_excludedDirectories.Remove(path))
+            _libraryPaths.Add(path);
+        
+        SaveLibrary();
     }
     
     public void RemoveLibaryPath(string path, bool includeSubdirectories = true)
     {
-        throw new NotImplementedException();
+        if (!includeSubdirectories)
+            throw new NotImplementedException("Cannot remove library path but keep subdirectories yet!");
+        
+        if (!_libraryPaths.Remove(path))
+            _excludedDirectories.Add(path); 
+        
+        SaveLibrary();
     }
     
     public void Index()
     {
         _indexTask = Task.Run(IndexLibrary);
         //IndexLibrary(); // TODO: Make this threaded again
-    }
-
-    public MusicDatabase(Logger logger, AudioPlayer player)
-    {
-        _logger = logger;
-        _player = player;
-        _databasePath = Path.Combine(IConfigManager.BaseDir, $"{DatabaseName}.json");
-
-        _libraryPaths = [];
-        _excludedDirectories = [];
-        
-        _tracks = [];
-        _albums = [];
-        _artists = [];
-        _genres = [];
-
-        // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
-        if (!File.Exists(_databasePath))
-        {
-            SaveLibrary();
-            return;
-        }
-
-        // TODO: Handle null
-        Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
-
-        _libraryPaths = library.LibraryPaths.ToList();
-        _excludedDirectories = library.ExcludedDirectories.ToList();
-        
-        foreach (Track track in library.Tracks)
-            _tracks.Add(track.Path, track);
-        
-        foreach (Album album in library.Albums)
-            _albums.Add(album.Name, album);
-        
-        foreach (Artist artist in library.Artists)
-            _artists.Add(artist.Name, artist);
-
-        foreach (Genre genre in library.Genres)
-            _genres.Add(genre.Name, genre);
     }
     
     public bool TryGetTrack(string path, out Track? track)
@@ -213,57 +233,59 @@ public class MusicDatabase : IMusicLibrary
             _logger.Log($"Indexing library path: {libraryPath}");
 
             // TODO: Could probably be made more efficient using recursive-esque pattern?
-            string[] paths = Directory.GetFiles(libraryPath, "*", SearchOption.AllDirectories);
-            foreach (string path in paths)
+            foreach (string directory in GetLibraryPaths())
             {
-                // TODO: Excluded Paths
-                _logger.Log($"  Indexing {path}");
-                if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
+                foreach (string path in Directory.GetFiles(directory))
                 {
-                    _logger.Log("    ... failed.");
-                    continue;
-                }
-
-                TryGetTrack(path, out Track? oldTrack);
-                Track track = new Track(path, info, oldTrack);
-                _tracks[path] = track;
-
-                if (track.Album != null)
-                {
-                    if (!_albums.TryGetValue(track.Album, out Album album))
+                    // TODO: Excluded Paths
+                    _logger.Log($"  Indexing {path}");
+                    if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
                     {
-                        album = new Album(track.Album, []);
-                        _albums[album.Name] = album;
+                        _logger.Log("    ... failed.");
+                        continue;
                     }
 
-                    album.Tracks.Add(track.Path);
-                }
+                    TryGetTrack(path, out Track? oldTrack);
+                    Track track = new Track(path, info, oldTrack);
+                    _tracks[path] = track;
 
-                if (track.Artist != null)
-                {
-                    if (!_artists.TryGetValue(track.Artist, out Artist artist))
+                    if (track.Album != null)
                     {
-                        artist = new Artist(track.Artist, []);
-                        _artists[artist.Name] = artist;
+                        if (!_albums.TryGetValue(track.Album, out Album album))
+                        {
+                            album = new Album(track.Album, []);
+                            _albums[album.Name] = album;
+                        }
+
+                        album.Tracks.Add(track.Path);
                     }
 
-                    artist.Tracks.Add(track.Path);
-                }
-
-                if (track.Genre != null)
-                {
-                    if (!_genres.TryGetValue(track.Genre, out Genre genre))
+                    if (track.Artist != null)
                     {
-                        genre = new Genre(track.Genre, []);
-                        _genres[genre.Name] = genre;
+                        if (!_artists.TryGetValue(track.Artist, out Artist artist))
+                        {
+                            artist = new Artist(track.Artist, []);
+                            _artists[artist.Name] = artist;
+                        }
+
+                        artist.Tracks.Add(track.Path);
                     }
 
-                    genre.Tracks.Add(track.Path);
+                    if (track.Genre != null)
+                    {
+                        if (!_genres.TryGetValue(track.Genre, out Genre genre))
+                        {
+                            genre = new Genre(track.Genre, []);
+                            _genres[genre.Name] = genre;
+                        }
+
+                        genre.Tracks.Add(track.Path);
+                    }
+
+                    // TODO: Not having this here seems to cause major issues with the UI.
+                    //       obviously this is not a solution! Fix this!
+                    Thread.Sleep(10);
                 }
-                
-                // TODO: Not having this here seems to cause major issues with the UI.
-                //       obviously this is not a solution! Fix this!
-                Thread.Sleep(1);
             }
         }
 

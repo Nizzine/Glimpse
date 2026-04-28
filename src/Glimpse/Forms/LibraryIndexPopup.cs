@@ -1,6 +1,7 @@
 using System.Numerics;
-using Glimpse.Graphics;
 using Hexa.NET.ImGui;
+using SDL3;
+using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;
 
@@ -12,6 +13,8 @@ public class LibraryIndexPopup : Popup
     private float _refreshFlipTimer;
     private bool _flipRefresh;
 
+    private bool _needsRefresh;
+
     private IReadOnlyCollection<string> _libraryPaths;
 
     private string? _selectedLibrary;
@@ -21,11 +24,14 @@ public class LibraryIndexPopup : Popup
         _plus = Renderer.CreateImage("Assets/Icons/Plus.png");
         _refresh = Renderer.CreateImage("Assets/Icons/Update.png");
 
-        _libraryPaths = Glimpse.Database.GetLibraryPaths();
+        _needsRefresh = true;
     }
 
     public override void Update(float dt)
     {
+        if (_needsRefresh)
+            _libraryPaths = Glimpse.Database.GetLibraryPaths();
+        
         string popupName = "Library";
         
         if (!ImGui.IsPopupOpen(popupName))
@@ -36,7 +42,7 @@ public class LibraryIndexPopup : Popup
         {
             ImGui.BeginDisabled(Glimpse.Database.IsIndexing);
             
-            ImGui.BeginChild("PathsList", ScaleVec(400, 400));
+            ImGui.BeginChild("PathsList", ScaleVec(400, 400), ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
             {
                 foreach (string path in _libraryPaths)
                 {
@@ -51,7 +57,14 @@ public class LibraryIndexPopup : Popup
 
             ImGui.BeginChild("Settings", ImGuiChildFlags.AutoResizeY);
             {
-                ImGui.ImageButton("AddNewFolders", _plus, ScaleVec(16));
+                if (ImGui.ImageButton("AddNewFolders", _plus, ScaleVec(16)))
+                {
+                    string? defaultLocation = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
+                    if (string.IsNullOrWhiteSpace(defaultLocation))
+                        defaultLocation = null;
+
+                    SDL.ShowOpenFolderDialog(FolderCallback, 0, Glimpse.MainWindow.Handle, defaultLocation, true);
+                }
                 ImGui.SetItemTooltipUnformatted("Add Folders to Library");
                 ImGui.SameLine();
 
@@ -82,8 +95,12 @@ public class LibraryIndexPopup : Popup
                 ImGui.Separator();
                 
                 ImGui.BeginDisabled(_selectedLibrary == null);
-                
-                ImGui.Button("Remove");
+
+                if (ImGui.Button("Remove"))
+                {
+                    Glimpse.Database.RemoveLibaryPath(_selectedLibrary);
+                    _needsRefresh = true;
+                }
                 
                 ImGui.EndDisabled();
                 
@@ -99,6 +116,19 @@ public class LibraryIndexPopup : Popup
         }
     }
 
+    private unsafe void FolderCallback(IntPtr userdata, IntPtr filelist, int filter)
+    {
+        sbyte** fileList = (sbyte**) filelist;
+        int index = 0;
+        while (fileList[index] != null)
+        {
+            string directory = new string(fileList[index]);
+            Glimpse.Database.AddLibraryPath(directory);
+            _needsRefresh = true;
+            index++;
+        }
+    }
+
     public override void Dispose()
     {
         _refresh.Dispose();
@@ -108,7 +138,12 @@ public class LibraryIndexPopup : Popup
     private struct LibraryDirectory
     {
         public string DirectoryName;
+        public Dictionary<string, LibraryDirectory> SubDirectories;
 
-        public List<LibraryDirectory> SubDirectories;
+        public LibraryDirectory(string name)
+        {
+            DirectoryName = name;
+            SubDirectories = [];
+        }
     }
 }
