@@ -1,4 +1,5 @@
-﻿using Glimpse.API;
+﻿using System.Collections.Concurrent;
+using Glimpse.API;
 using Glimpse.API.Library;
 using Glimpse.Audio;
 using Newtonsoft.Json;
@@ -14,7 +15,7 @@ public class MusicDatabase : IMusicLibrary
     private readonly Logger _logger;
     private readonly AudioPlayer _player;
     private readonly string _databasePath;
-
+    
     private Task? _indexTask;
 
     /// <summary>
@@ -29,10 +30,10 @@ public class MusicDatabase : IMusicLibrary
     /// </summary>
     private readonly HashSet<string> _excludedDirectories;
 
-    private Dictionary<string, Track> _tracks;
-    private Dictionary<string, Album> _albums;
-    private Dictionary<string, Artist> _artists;
-    private Dictionary<string, Genre> _genres;
+    private ConcurrentDictionary<string, Track> _tracks;
+    private ConcurrentDictionary<string, Album> _albums;
+    private ConcurrentDictionary<string, Artist> _artists;
+    private ConcurrentDictionary<string, Genre> _genres;
 
     public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
 
@@ -64,16 +65,16 @@ public class MusicDatabase : IMusicLibrary
         _excludedDirectories = library.ExcludedDirectories.ToHashSet();
         
         foreach (Track track in library.Tracks)
-            _tracks.Add(track.Path, track);
+            _tracks.TryAdd(track.Path, track);
         
         foreach (Album album in library.Albums)
-            _albums.Add(album.Name, album);
+            _albums.TryAdd(album.Name, album);
         
         foreach (Artist artist in library.Artists)
-            _artists.Add(artist.Name, artist);
+            _artists.TryAdd(artist.Name, artist);
 
         foreach (Genre genre in library.Genres)
-            _genres.Add(genre.Name, genre);
+            _genres.TryAdd(genre.Name, genre);
     }
     
     public SizedCollection<Track> GetTracks()
@@ -214,8 +215,9 @@ public class MusicDatabase : IMusicLibrary
     private void SaveLibrary()
     {
         _logger.Log($"Saving library to {_databasePath}.");
-        Library library = new Library(DatabaseVersion, _libraryPaths, _excludedDirectories, _tracks.Values, _albums.Values, _artists.Values,
-            _genres.Values);
+        Library library = new Library(DatabaseVersion, _libraryPaths, _excludedDirectories,
+            (IReadOnlyCollection<Track>) _tracks.Values, (IReadOnlyCollection<Album>) _albums.Values,
+            (IReadOnlyCollection<Artist>) _artists.Values, (IReadOnlyCollection<Genre>) _genres.Values);
         string json = JsonConvert.SerializeObject(library, Formatting.Indented);
         File.WriteAllText(_databasePath, json);
     }
@@ -237,7 +239,6 @@ public class MusicDatabase : IMusicLibrary
             {
                 foreach (string path in Directory.GetFiles(directory))
                 {
-                    // TODO: Excluded Paths
                     _logger.Log($"  Indexing {path}");
                     if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
                     {
@@ -281,10 +282,10 @@ public class MusicDatabase : IMusicLibrary
 
                         genre.Tracks.Add(track.Path);
                     }
-
-                    // TODO: Not having this here seems to cause major issues with the UI.
-                    //       obviously this is not a solution! Fix this!
-                    Thread.Sleep(10);
+                    
+                    // TODO: Test CPU and disk usage with and without this sleep. I have a strong suspicion this 1ms
+                    //       sleep is MUCH gentler on the CPU and disk.
+                    Thread.Sleep(1);
                 }
             }
         }

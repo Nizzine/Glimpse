@@ -709,8 +709,7 @@ public class GlimpsePlayer : Window
                         
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
-
-                        // TODO: DeltaTime
+                        
                         _newVersionBlinker += dt * 2;
                         if (_newVersionBlinker >= float.Pi * 2)
                             _newVersionBlinker -= float.Pi * 2;
