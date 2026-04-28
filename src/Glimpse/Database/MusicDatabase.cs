@@ -8,6 +8,8 @@ namespace Glimpse.Database;
 
 public class MusicDatabase : IMusicLibrary
 {
+    public event OnUpdate Update = delegate { };
+    
     public const string DatabaseName = "Library";
     public const uint DatabaseVersion = 1;
 
@@ -81,8 +83,8 @@ public class MusicDatabase : IMusicLibrary
     
     public void Index()
     {
-        //Task.Run(IndexLibrary);
-        IndexLibrary(); // TODO: Make this threaded again
+        Task.Run(IndexLibrary);
+        //IndexLibrary(); // TODO: Make this threaded again
     }
 
     public MusicDatabase(Logger logger, AudioPlayer player)
@@ -185,10 +187,10 @@ public class MusicDatabase : IMusicLibrary
     private void IndexLibrary()
     {
         // TODO: Make this thread safe.
-        Dictionary<string, Track> tracks = [];
+        /*Dictionary<string, Track> tracks = [];
         Dictionary<string, Album> albums = [];
         Dictionary<string, Artist> artists = [];
-        Dictionary<string, Genre> genres = [];
+        Dictionary<string, Genre> genres = [];*/
         
         foreach (string libraryPath in _libraryPaths)
         {
@@ -208,37 +210,56 @@ public class MusicDatabase : IMusicLibrary
 
                 TryGetTrack(path, out Track? oldTrack);
                 Track track = new Track(path, info, oldTrack);
-                tracks.Add(path, track);
+                _tracks[path] = track;
 
-                if (!albums.TryGetValue(track.Album, out Album album))
+                if (track.Album != null)
                 {
-                    album = new Album(track.Album, []);
-                    albums.Add(album.Name, album);
-                }
-                album.Tracks.Add(track.Path);
+                    if (!_albums.TryGetValue(track.Album, out Album album))
+                    {
+                        album = new Album(track.Album, []);
+                        _albums[album.Name] = album;
+                    }
 
-                if (!artists.TryGetValue(track.Artist, out Artist artist))
-                {
-                    artist = new Artist(track.Artist, []);
-                    artists.Add(artist.Name, artist);
+                    album.Tracks.Add(track.Path);
                 }
-                artist.Tracks.Add(track.Path);
 
-                if (!genres.TryGetValue(track.Genre, out Genre genre))
+                if (track.Artist != null)
                 {
-                    genre = new Genre(track.Genre, []);
-                    genres.Add(genre.Name, genre);
+                    if (!_artists.TryGetValue(track.Artist, out Artist artist))
+                    {
+                        artist = new Artist(track.Artist, []);
+                        _artists[artist.Name] = artist;
+                    }
+
+                    artist.Tracks.Add(track.Path);
                 }
-                genre.Tracks.Add(track.Path);
+
+                if (track.Genre != null)
+                {
+                    if (!_genres.TryGetValue(track.Genre, out Genre genre))
+                    {
+                        genre = new Genre(track.Genre, []);
+                        _genres[genre.Name] = genre;
+                    }
+
+                    genre.Tracks.Add(track.Path);
+                }
+                
+                // TODO: Not having this here seems to cause major issues with the UI.
+                //       obviously this is not a solution! Fix this!
+                Thread.Sleep(10);
+
+                Update();
             }
         }
 
-        _tracks = tracks;
+        /*_tracks = tracks;
         _albums = albums;
         _artists = artists;
-        _genres = genres;
+        _genres = genres;*/
         
         SaveLibrary();
+        _logger.Log("Indexing complete!");
     }
 
     /*public void AddIndexToDatabase(in IndexResult index)
@@ -337,4 +358,6 @@ public class MusicDatabase : IMusicLibrary
 
         return new IndexResult(directory, tracks, albums, artists, genres);
     }*/
+
+    public delegate void OnUpdate();
 }

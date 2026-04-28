@@ -32,10 +32,10 @@ public class GlimpsePlayer : Window
     private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
-    
+
+    private bool _hasDatabaseUpdate;
     private string? _currentAlbum;
     private SizedCollection<Track> _currentTracks;
-
     private SizedCollection<string> _albums;
     
     private bool _wasSeekClicked;
@@ -115,6 +115,7 @@ public class GlimpsePlayer : Window
         RefreshLayout();
         ChangeView(AlbumView.Albums);
         ChangeAlbum(null); // Change to the default album view where all tracks are displayed.
+        Glimpse.Database.Update += DatabaseOnUpdate;
 
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
@@ -185,6 +186,17 @@ public class GlimpsePlayer : Window
             player.Seek(_seekPosition.Value);
             _seekPosition = null;
             _wasSeekClicked = false;
+        }
+
+        lock (_defaultAlbumArt)
+        {
+            if (_hasDatabaseUpdate)
+            {
+                Console.WriteLine("true!");
+                _hasDatabaseUpdate = false;
+                ChangeAlbum(_currentAlbum);
+                ChangeView(AlbumView.Albums);
+            }
         }
 
         Renderer.Clear(Color.Black);
@@ -1158,6 +1170,12 @@ public class GlimpsePlayer : Window
                 break;
             }
         }
+    }
+    
+    private void DatabaseOnUpdate()
+    {
+        lock (_defaultAlbumArt)
+            _hasDatabaseUpdate = true;
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)
