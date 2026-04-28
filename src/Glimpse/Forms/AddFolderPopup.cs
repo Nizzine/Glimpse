@@ -16,7 +16,7 @@ public class AddFolderPopup : Popup
 
     public string Selected;
     
-    public override void Update()
+    public override void Update(float dt)
     {
         Locale locale = Glimpse.Locale;
         string popupName = locale.GetString("Popup.AddDirs.Name");

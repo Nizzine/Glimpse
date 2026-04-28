@@ -26,7 +26,7 @@ public class SettingsPopup : Popup
         _currentConfig.EnabledPlugins = new HashSet<string>(Glimpse.Config.EnabledPlugins);
     }
 
-    public override void Update()
+    public override void Update(float dt)
     {
         Locale locale = Glimpse.Locale;
         string popupName = locale.GetString("Popup.Settings.Name");

@@ -32,8 +32,7 @@ public class GlimpsePlayer : Window
     private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
-
-    private bool _hasDatabaseUpdate;
+    
     private string? _currentAlbum;
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
@@ -115,7 +114,6 @@ public class GlimpsePlayer : Window
         RefreshLayout();
         ChangeView(AlbumView.Albums);
         ChangeAlbum(null); // Change to the default album view where all tracks are displayed.
-        Glimpse.Database.Update += DatabaseOnUpdate;
 
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
@@ -187,16 +185,11 @@ public class GlimpsePlayer : Window
             _seekPosition = null;
             _wasSeekClicked = false;
         }
-
-        lock (_defaultAlbumArt)
+        
+        if (Glimpse.Database.IsIndexing)
         {
-            if (_hasDatabaseUpdate)
-            {
-                Console.WriteLine("true!");
-                _hasDatabaseUpdate = false;
-                ChangeAlbum(_currentAlbum);
-                ChangeView(AlbumView.Albums);
-            }
+            ChangeAlbum(_currentAlbum);
+            ChangeView(AlbumView.Albums);
         }
 
         Renderer.Clear(Color.Black);
@@ -741,7 +734,8 @@ public class GlimpsePlayer : Window
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16), Vector4.Zero, iconsColor))
-                        AddPopup(new AddFolderPopup());
+                        //AddPopup(new AddFolderPopup());
+                        AddPopup(new LibraryIndexPopup());
                     ImGui.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
@@ -1170,12 +1164,6 @@ public class GlimpsePlayer : Window
                 break;
             }
         }
-    }
-    
-    private void DatabaseOnUpdate()
-    {
-        lock (_defaultAlbumArt)
-            _hasDatabaseUpdate = true;
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)

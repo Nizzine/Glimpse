@@ -8,14 +8,14 @@ namespace Glimpse.Database;
 
 public class MusicDatabase : IMusicLibrary
 {
-    public event OnUpdate Update = delegate { };
-    
     public const string DatabaseName = "Library";
     public const uint DatabaseVersion = 1;
 
     private readonly Logger _logger;
     private readonly AudioPlayer _player;
     private readonly string _databasePath;
+
+    private Task? _indexTask;
 
     /// <summary>
     /// A list of directories that have been explicitly added to the library.
@@ -33,6 +33,8 @@ public class MusicDatabase : IMusicLibrary
     private Dictionary<string, Album> _albums;
     private Dictionary<string, Artist> _artists;
     private Dictionary<string, Genre> _genres;
+
+    public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
 
     public SizedCollection<Track> GetTracks()
     {
@@ -68,7 +70,21 @@ public class MusicDatabase : IMusicLibrary
 
     public IReadOnlyCollection<string> GetLibraryPaths()
     {
-        throw new NotImplementedException();
+        List<string> paths = [];
+        foreach (string libraryPath in _libraryPaths)
+        {
+            paths.Add(libraryPath);
+            
+            foreach (string directory in Directory.GetDirectories(libraryPath))
+            {
+                if (_excludedDirectories.Contains(directory))
+                    continue;
+                
+                paths.Add(directory);
+            }
+        }
+
+        return paths;
     }
     
     public void AddLibraryPath(string path, bool includeSubdirectories = true)
@@ -83,7 +99,7 @@ public class MusicDatabase : IMusicLibrary
     
     public void Index()
     {
-        Task.Run(IndexLibrary);
+        _indexTask = Task.Run(IndexLibrary);
         //IndexLibrary(); // TODO: Make this threaded again
     }
 
@@ -247,9 +263,7 @@ public class MusicDatabase : IMusicLibrary
                 
                 // TODO: Not having this here seems to cause major issues with the UI.
                 //       obviously this is not a solution! Fix this!
-                Thread.Sleep(10);
-
-                Update();
+                Thread.Sleep(1);
             }
         }
 

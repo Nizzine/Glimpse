@@ -2,6 +2,8 @@ namespace Glimpse.API.Library;
 
 public interface IMusicLibrary
 {
+    public bool IsIndexing { get; }
+    
     /// <summary>
     /// Gets the <see cref="Track"/>s in the library.
     /// </summary>

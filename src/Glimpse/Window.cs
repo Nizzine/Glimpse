@@ -226,7 +226,7 @@ public abstract unsafe class Window : IDisposable
         for (int i = 0; i < _popups.Count; i++)
         {
             Popup popup = _popups[i];
-            popup.Update();
+            popup.Update(dt);
 
             if (popup.IsRemoved)
             {

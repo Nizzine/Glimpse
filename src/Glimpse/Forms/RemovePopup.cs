@@ -22,7 +22,7 @@ public sealed class RemovePopup : Popup
         _removeSongs = isAlbum && delete;
     }
     
-    public override void Update()
+    public override void Update(float dt)
     {
         Locale locale = Glimpse.Locale;
         string popupName = locale.GetString("Popup.Remove.Name");
