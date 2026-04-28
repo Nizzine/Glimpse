@@ -138,7 +138,7 @@ public class GlimpsePlayer : Window
 
         _hasIncrementedPlayCount = true;
         // TODO: I don't like this.
-        if (Glimpse.Database.TryGetTrack(player.CurrentTrackPath, out Track? trk) && trk is Track track)
+        if (Glimpse.Database.TryGetTrack(player.CurrentTrackPath, out Track? track))
         {
             track.PlayCount++;
             track.LastPlayed = DateTime.Now;
@@ -599,7 +599,7 @@ public class GlimpsePlayer : Window
                             
                             if (ImGui.Selectable(albumName, _currentAlbum == data.Name))
                             {
-                                _currentAlbum = data.Name;
+                                ChangeAlbum(albumName);
                                 switchToTrackList = true;
                             }
 
@@ -842,10 +842,16 @@ public class GlimpsePlayer : Window
                                 for (int i = 0; i < 5; i++)
                                 {
                                     if (ImGui.ImageButton($"{path}rating{i}", i < rating ? _starFilled : _star, ScaleVec(16), Vector4.Zero, iconsColor))
-                                        Glimpse.Database.UpdateTrack(track with { Rating = (byte) (i + 1) });
+                                    {
+                                        track.Rating = (byte) (i + 1);
+                                        Glimpse.Database.UpdateTrack(track);
+                                    }
 
                                     if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
-                                        Glimpse.Database.UpdateTrack(track with { Rating = 0 });
+                                    {
+                                        track.Rating = 0;
+                                        Glimpse.Database.UpdateTrack(track);
+                                    }
 
                                     if (ImGui.IsItemHovered())
                                     {
@@ -1124,7 +1130,16 @@ public class GlimpsePlayer : Window
     private void ChangeAlbum(string? albumName)
     {
         _currentAlbum = albumName;
-        _currentTracks = Glimpse.Database.Tracks;
+        if (albumName == null)
+            _currentTracks = Glimpse.Database.Tracks;
+        else
+        {
+            if (!Glimpse.Database.TryGetTracksFromAlbum(albumName, out _currentTracks))
+            {
+                Glimpse.Logger.Log($"Failed to get tracks for album {albumName}!");
+                _currentTracks = Glimpse.Database.Tracks;
+            }
+        }
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)

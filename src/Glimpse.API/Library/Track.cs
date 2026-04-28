@@ -1,6 +1,6 @@
 ﻿namespace Glimpse.API.Library;
 
-public record struct Track
+public record Track
 {
     public string Path;
     
@@ -21,6 +21,8 @@ public record struct Track
     public byte PlayCount;
 
     public DateTime? LastPlayed;
+
+    public Track() { }
 
     public Track(string path, TrackInfo info, Track? oldTrack = null)
     {

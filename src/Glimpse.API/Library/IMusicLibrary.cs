@@ -67,4 +67,6 @@ public interface IMusicLibrary
     /// </summary>
     /// <param name="track">The <see cref="Track"/> to update.</param>
     public bool UpdateTrack(Track track);
+
+    public bool TryGetTracksFromAlbum(string albumName, out IReadOnlyCollection<Track> tracks);
 }

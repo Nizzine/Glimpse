@@ -122,6 +122,27 @@ public class MusicDatabase : IMusicLibrary
         return true;
     }
 
+    public bool TryGetTracksFromAlbum(string albumName, out IReadOnlyCollection<Track> tracks)
+    {
+        if (!_albums.TryGetValue(albumName, out Album album))
+        {
+            tracks = [];
+            return false;
+        }
+
+        List<Track> trackList = [];
+        foreach (string path in album.Tracks)
+        {
+            if (!TryGetTrack(path, out Track? track))
+                continue;
+            
+            trackList.Add(track);
+        }
+
+        tracks = trackList;
+        return true;
+    }
+
     private void SaveLibrary()
     {
         _logger.Log($"Saving library to {_databasePath}.");
@@ -155,8 +176,15 @@ public class MusicDatabase : IMusicLibrary
 
                 TryGetTrack(path, out Track? oldTrack);
                 Track track = new Track(path, info, oldTrack);
-                
                 tracks.Add(path, track);
+
+                if (!albums.TryGetValue(track.Album, out Album album))
+                {
+                    album = new Album(track.Album, []);
+                    albums.Add(album.Name, album);
+                }
+
+                album.Tracks.Add(track.Path);
             }
         }
 
