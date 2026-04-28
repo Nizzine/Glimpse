@@ -2,7 +2,7 @@ using Glimpse.Audio;
 using Glimpse.Database;
 using Glimpse.Locales;
 using Hexa.NET.ImGui;
-using Track = Glimpse.Database.Track;
+using Track = Glimpse.API.Library.Track;
 
 namespace Glimpse.Forms;
 
@@ -75,7 +75,7 @@ public sealed class RemovePopup : Popup
                         File.Delete(_nameOrPath);
                 }
                 
-                db.Refresh();
+                //db.Refresh();
                 Close();
             }
             

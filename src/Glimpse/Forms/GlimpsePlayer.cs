@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 using SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
-using Track = Glimpse.Database.Track;
+using Track = Glimpse.API.Library.Track;
 
 namespace Glimpse.Forms;
 

@@ -1,4 +1,6 @@
-﻿namespace Glimpse.Database;
+﻿using Glimpse.API.Library;
+
+namespace Glimpse.Database;
 
 public struct IndexResult(
     string directory,

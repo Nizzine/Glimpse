@@ -150,14 +150,15 @@ public class Glimpse : IGlimpse, IDisposable
             Config.Language = defaultLocale;
         }
 
-        if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
+        /*if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
             ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
-        }
+        }*/
 
-        Database!.Logger = Logger;
-        Database!.Refresh();
+        //Database!.Logger = Logger;
+        //Database!.Refresh();
+        Database = new MusicDatabase(Logger);
         
         Logger.Log("Searching for 'Plugins' directory.");
         string pluginsLocation = Utils.GetPath("Plugins");
@@ -366,7 +367,7 @@ public class Glimpse : IGlimpse, IDisposable
         }
         
         Player.Dispose();
-        ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
+        //ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         Platform.Dispose();
         _pipeServer.Close();
         

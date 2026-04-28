@@ -1,46 +1,54 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using Glimpse.API;
-using Glimpse.Audio;
-using Glimpse.Configs;
+﻿using Glimpse.API;
+using Glimpse.API.Library;
 using Newtonsoft.Json;
 
 namespace Glimpse.Database;
 
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
-public class MusicDatabase : IConfig
+public class MusicDatabase : IMusicLibrary
 {
-    public const string DatabaseName = "Database";
+    public const string DatabaseName = "Library";
     public const uint DatabaseVersion = 1;
 
-    [JsonIgnore] public Logger Logger;
+    private readonly Logger _logger;
+    private readonly string _databasePath;
 
-    public uint Version;
+    private readonly Dictionary<string, Track> _tracks;
     
-    public Dictionary<string, Track> Tracks;
-    public Dictionary<string, Album> Albums;
-    public Dictionary<string, Artist> Artists;
-    public Dictionary<string, Genre> Genres;
+    //public Dictionary<string, Track> Tracks = [];
+    public Dictionary<string, Album> Albums = [];
+    public Dictionary<string, Artist> Artists = [];
+    public Dictionary<string, Genre> Genres = [];
     
-    public MusicDatabase()
+    public MusicDatabase(Logger logger)
     {
-        Version = DatabaseVersion;
-        Tracks = [];
-        Albums = [];
-        Artists = [];
-        Genres = [];
+        _logger = logger;
+        _databasePath = Path.Combine(IConfigManager.BaseDir, $"{DatabaseName}.json");
+
+        _tracks = [];
+
+        // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
+        if (!File.Exists(_databasePath))
+        {
+            SaveLibrary();
+            return;
+        }
+
+        // TODO: Handle null
+        Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
+        foreach (Track track in library.Tracks)
+            _tracks.Add(track.Path, track);
     }
 
-    public void Refresh()
+    private void SaveLibrary()
     {
-        Tracks = Tracks.OrderBy(pair => pair.Value.Album).ThenBy(pair => pair.Value.TrackNumber).ToDictionary();
-        Albums = Albums.OrderBy(pair => pair.Key).ToDictionary();
-        Artists = Artists.OrderBy(pair => pair.Key).ToDictionary();
-        Genres = Genres.OrderBy(pair => pair.Key).ToDictionary();
+        Library library = new Library(DatabaseVersion, [], [], _tracks.Values);
+        string json = JsonConvert.SerializeObject(library);
+        File.WriteAllText(_databasePath, json);
     }
 
-    public void AddIndexToDatabase(in IndexResult index)
+    /*public void AddIndexToDatabase(in IndexResult index)
     {
-        Logger.Log($"Adding indexed directory {index.Directory} to dataabase.");
+        _logger.Log($"Adding indexed directory {index.Directory} to dataabase.");
 
         foreach ((string path, Track track) in index.Tracks)
         {
@@ -133,5 +141,5 @@ public class MusicDatabase : IConfig
         }
 
         return new IndexResult(directory, tracks, albums, artists, genres);
-    }
+    }*/
 }
