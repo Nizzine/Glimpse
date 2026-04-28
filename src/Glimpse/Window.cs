@@ -119,8 +119,12 @@ public abstract unsafe class Window : IDisposable
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateOpenGLBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
         SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
-        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
-        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
+        // Apparently hiding the window and then showing it later once everything is ready breaks wayland. The scale
+        // values it reports are entirely incorrect. I think this is an SDL bug, or perhaps wayland just being stupid.
+        // Either way, can't hide the window now. Thanks wayland!
+        // TODO: Probably can hide the window on everything except wayland. Or perhaps just re-load the scale values
+        //       once the window is shown.
+        //SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
 
         // Attempt to set the window centered on the display the mouse cursor is on.
         // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
@@ -130,8 +134,8 @@ public abstract unsafe class Window : IDisposable
         uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
         //float displayScale = SDL.GetDisplayContentScale(display);
         
-        //SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (int) (_size.Width * displayScale));
-        //SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (int) (_size.Height * displayScale));
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, _size.Width);
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, _size.Height);
         
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
@@ -144,7 +148,7 @@ public abstract unsafe class Window : IDisposable
         _scale = SDL.GetWindowDisplayScale(_window);
         _pixelDensity = SDL.GetWindowPixelDensity(_window);
 
-        SDL.SetWindowSize(_window, _size.Width, _size.Height);
+        //SDL.SetWindowSize(_window, _size.Width, _size.Height);
 
         using (Image<Rgba32> icon = Image.Load<Rgba32>(Utils.GetPath("Assets/Icons/Glimpse.png")))
         {
@@ -191,7 +195,7 @@ public abstract unsafe class Window : IDisposable
         _isCreated = true;
 
         SDL.GLMakeCurrent(_window, _glContext);
-        Renderer = new Renderer(GL.GetApi(SDL.GLGetProcAddress), Size, _scale);
+        Renderer = new Renderer(GL.GetApi(SDL.GLGetProcAddress), Size);
         
         Initialize();
         
@@ -201,8 +205,6 @@ public abstract unsafe class Window : IDisposable
             nint hwnd = SDL.GetPointerProperty(props, SDL.Props.WindowWin32HWNDPointer, 0);
             platform.InitializeMainWindow(hwnd);
         }
-        
-        SDL.ShowWindow(_window);
 
         return SDL.GetWindowID(_window);
     }

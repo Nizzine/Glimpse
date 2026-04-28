@@ -122,6 +122,7 @@ public class Glimpse : IGlimpse, IDisposable
         
         SDL.SetHint(SDL.Hints.MouseFocusClickthrough, "1");
         SDL.SetHint(SDL.Hints.VideoAllowScreensaver, "1");
+        //SDL.SetHint(SDL.Hints.VideoWaylandScaleToDisplay, "1");
         
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Events))
             throw new Exception("Failed to initialize SDL.");
