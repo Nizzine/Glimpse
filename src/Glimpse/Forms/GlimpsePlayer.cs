@@ -277,7 +277,7 @@ public class GlimpsePlayer : Window
                     Size windowSize = Size;
 
                     if (_restoreSize.IsEmpty)
-                        _restoreSize = new Size(450, 122);
+                        _restoreSize = new Size(470, 122);
                     
                     _miniplayer = !_miniplayer;
                     Size = _restoreSize;
@@ -344,7 +344,7 @@ public class GlimpsePlayer : Window
                 Vector2 centerPos;
                 if (_miniplayer)
                 {
-                    centerPos = new Vector2(winSize.X - totalButtonsWidth, ImGui.GetCursorScreenPos().Y + (int) (15 * Scale));
+                    centerPos = new Vector2(winSize.X - totalButtonsWidth - 15, ImGui.GetCursorScreenPos().Y + (int) (40 * Scale));
                 }
                 else
                 {
@@ -411,7 +411,7 @@ public class GlimpsePlayer : Window
                 Vector2 cursorPos = ImGui.GetCursorPos();
 
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - (_miniplayer ? 45 : 150) * Scale, _miniplayer ? 0 : 20));
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (_miniplayer ? 55 : 150) * Scale, _miniplayer ? 20 : 20));
                 //if (!_miniplayer)
                 {
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
@@ -424,22 +424,45 @@ public class GlimpsePlayer : Window
                         ImGui.PopStyleColor();
                         ImGui.EndDisabled();
 
-                        if (!_miniplayer)
+                        //if (!_miniplayer)
                         {
-                            ImGui.SameLine(0, 2);
-
-                            contentRegion = ImGui.GetContentRegionAvail();
                             int volume = (int) (Glimpse.Player.Volume * 100);
-                            ImGui.SetNextItemWidth(contentRegion.X);
-                            if (ImGui.SliderInt("##Volume", ref volume, 0, 100))
+
+                            string format = "%d";
+                            ImGuiSliderFlags sliderFlags = ImGuiSliderFlags.None;
+                            if (_miniplayer)
+                            {
+                                ImGui.EndChild();
+                                ImGui.SetCursorPos(new Vector2(contentRegion.X - 10, 0));
+                                ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4));
+                                ImGui.PushFont(ImFontPtr.Null, 60);
+                                sliderFlags |= (ImGuiSliderFlags) ImGuiSliderFlagsPrivate.Vertical;
+                                ImGui.SetNextItemWidth(10);
+                                format = "";
+                            }
+                            else
+                            {
+                                ImGui.SameLine(0, 2);
+                                contentRegion = ImGui.GetContentRegionAvail();
+                                ImGui.SetNextItemWidth(contentRegion.X);
+                            }
+                            
+                            if (ImGui.SliderInt("##Volume", ref volume, 0, 100, format, sliderFlags))
                             {
                                 float fVol = (float) volume / 100;
                                 Glimpse.Player.Volume = fVol;
                                 Glimpse.Config.Volume = fVol;
                             }
+
+                            if (_miniplayer)
+                            {
+                                ImGui.PopFont();
+                                ImGui.PopStyleVar();
+                            }
                         }
 
-                        ImGui.EndChild();
+                        if (!_miniplayer)
+                            ImGui.EndChild();
                     }
                 }
 
