@@ -7,17 +7,24 @@ namespace Glimpse.Forms;
 
 public class LibraryIndexPopup : Popup
 {
-    private Image _plus;
-    private Image _refresh;
+    private readonly SDL.DialogFileCallback _folderCallback;
+    
+    private Image _plus = null!;
+    private Image _refresh = null!;
 
     private float _refreshFlipTimer;
     private bool _flipRefresh;
 
     private bool _needsRefresh;
 
-    private IReadOnlyCollection<string> _libraryPaths;
+    private IReadOnlyCollection<string> _libraryPaths = null!;
 
     private string? _selectedLibrary;
+
+    public LibraryIndexPopup()
+    {
+        _folderCallback = FolderCallback;
+    }
 
     public override void Open()
     {
@@ -63,7 +70,7 @@ public class LibraryIndexPopup : Popup
                     if (string.IsNullOrWhiteSpace(defaultLocation))
                         defaultLocation = null;
 
-                    SDL.ShowOpenFolderDialog(FolderCallback, 0, Glimpse.MainWindow.Handle, defaultLocation, true);
+                    SDL.ShowOpenFolderDialog(_folderCallback, 0, Glimpse.MainWindow.Handle, defaultLocation, true);
                 }
                 ImGui.SetItemTooltipUnformatted("Add Folders to Library");
                 ImGui.SameLine();
