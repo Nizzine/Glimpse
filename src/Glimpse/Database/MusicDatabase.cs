@@ -176,7 +176,7 @@ public class MusicDatabase : IMusicLibrary
         return true;
     }
     
-    public bool TryGetTracksFromAlbum(string albumName, out SizedCollection<Track> tracks)
+    public bool TryGetTracksForAlbum(string albumName, out SizedCollection<Track> tracks)
     {
         if (!_albums.TryGetValue(albumName, out Album album))
         {
@@ -184,20 +184,34 @@ public class MusicDatabase : IMusicLibrary
             return false;
         }
 
-        List<Track> trackList = [];
-        foreach (string path in album.Tracks)
+        tracks = GetTracksFromPathList(album.Tracks);
+        return true;
+    }
+
+    public bool TryGetTracksForArtist(string artistName, out SizedCollection<Track> tracks)
+    {
+        if (!_artists.TryGetValue(artistName, out Artist artist))
         {
-            if (!TryGetTrack(path, out Track? track))
-                continue;
-            
-            trackList.Add(track);
+            tracks = [];
+            return false;
         }
 
-        IEnumerable<Track> trackEnumerable = trackList.OrderBy(track => track.TrackNumber).ThenBy(track => track.Title);
-        tracks = new SizedCollection<Track>(trackEnumerable, (uint) trackList.Count);
+        tracks = GetTracksFromPathList(artist.Tracks);
         return true;
     }
     
+    public bool TryGetTracksForGenre(string genreName, out SizedCollection<Track> tracks)
+    {
+        if (!_genres.TryGetValue(genreName, out Genre genre))
+        {
+            tracks = [];
+            return false;
+        }
+
+        tracks = GetTracksFromPathList(genre.Tracks);
+        return true;
+    }
+
     public bool UpdateTrack(Track track)
     {
         _tracks[track.Path] = track;
@@ -210,6 +224,21 @@ public class MusicDatabase : IMusicLibrary
     public bool TryGetAlbum(string albumName, out Album album)
     {
         return _albums.TryGetValue(albumName, out album);
+    }
+
+    private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths)
+    {
+        List<Track> trackList = [];
+        foreach (string path in paths)
+        {
+            if (!TryGetTrack(path, out Track? track))
+                continue;
+            
+            trackList.Add(track);
+        }
+
+        IEnumerable<Track> trackEnumerable = trackList.OrderBy(track => track.TrackNumber).ThenBy(track => track.Title);
+        return new SizedCollection<Track>(trackEnumerable, (uint) trackList.Count);
     }
 
     private void SaveLibrary()

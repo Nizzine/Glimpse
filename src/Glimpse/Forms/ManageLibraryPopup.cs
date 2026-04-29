@@ -5,7 +5,7 @@ using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;
 
-public class LibraryIndexPopup : Popup
+public class ManageLibraryPopup : Popup
 {
     private readonly SDL.DialogFileCallback _folderCallback;
     
@@ -21,7 +21,7 @@ public class LibraryIndexPopup : Popup
 
     private string? _selectedLibrary;
 
-    public LibraryIndexPopup()
+    public ManageLibraryPopup()
     {
         _folderCallback = FolderCallback;
     }
@@ -39,7 +39,7 @@ public class LibraryIndexPopup : Popup
         if (_needsRefresh)
             _libraryPaths = Glimpse.Database.GetLibraryPaths();
         
-        string popupName = "Library";
+        string popupName = "Manage Library";
         
         if (!ImGui.IsPopupOpen(popupName))
             ImGui.OpenPopup(popupName);

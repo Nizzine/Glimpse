@@ -752,7 +752,7 @@ public class GlimpsePlayer : Window
             
                     if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16), Vector4.Zero, iconsColor))
                         //AddPopup(new AddFolderPopup());
-                        AddPopup(new LibraryIndexPopup());
+                        AddPopup(new ManageLibraryPopup());
                     ImGui.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
@@ -1161,11 +1161,34 @@ public class GlimpsePlayer : Window
             _currentTracks = Glimpse.Database.GetTracks();
         else
         {
-            if (!Glimpse.Database.TryGetTracksFromAlbum(albumName, out _currentTracks))
+            switch (_currentView)
             {
-                Glimpse.Logger.Log($"Failed to get tracks for album {albumName}!");
-                _currentTracks = Glimpse.Database.GetTracks();
+                case AlbumView.Albums:
+                {
+                    if (!Glimpse.Database.TryGetTracksForAlbum(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+
+                case AlbumView.Artists:
+                {
+                    if (!Glimpse.Database.TryGetTracksForArtist(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+
+                case AlbumView.Genres:
+                {
+                    if (!Glimpse.Database.TryGetTracksForGenre(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+                
+                default:
+                    _currentTracks = Glimpse.Database.GetTracks();
+                    break;
             }
+            
         }
     }
 

@@ -64,7 +64,11 @@ public interface IMusicLibrary
     /// <returns>The <see cref="Track"/>.</returns>
     public bool TryGetTrack(string path, out Track? track);
 
-    public bool TryGetTracksFromAlbum(string albumName, out SizedCollection<Track> tracks);
+    public bool TryGetTracksForAlbum(string albumName, out SizedCollection<Track> tracks);
+
+    public bool TryGetTracksForArtist(string artistName, out SizedCollection<Track> tracks);
+
+    public bool TryGetTracksForGenre(string genreName, out SizedCollection<Track> tracks);
     
     /// <summary>
     /// Update a <see cref="Track"/> in the library.
