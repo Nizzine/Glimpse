@@ -42,7 +42,7 @@ public static class CodecUtils
         using File file = File.Create(path);
 
         uint trackNumber = file.Tag.Track;
-        string title = file.Tag.Title;
+        string title = file.Tag.Title ?? Path.GetFileNameWithoutExtension(path); // Better UX to show filename if song is not recognized. TODO: Put this in TrackInfo itself. Or perhaps handle it from within the UI?
         string artist = file.Tag.FirstPerformer;
         string album = file.Tag.Album;
         TimeSpan length = file.Properties.Duration;
