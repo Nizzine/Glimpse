@@ -118,8 +118,8 @@ public class GlimpsePlayer : Window
 
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
-        //if (_currentTracks.Count == 0)
-        //    AddPopup(new AddFolderPopup());
+        if (_currentTracks.Count == 0)
+            AddPopup(new WelcomePopup());
 
 //#if !DEBUG
         // Only perform the update check if the user wants it!
