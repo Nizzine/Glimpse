@@ -291,8 +291,6 @@ public class SettingsPopup : Popup
                                     Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
                                 if (ImGui.TextLink("TerraFX.Interop.Windows"))
                                     Utils.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
-                                if (ImGui.TextLink("Newtonsoft.Json"))
-                                    Utils.OpenLink("https://www.newtonsoft.com/json");
 
                                 ImGui.EndChild();
                             }

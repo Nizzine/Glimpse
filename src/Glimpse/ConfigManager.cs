@@ -1,5 +1,5 @@
-﻿using Glimpse.API;
-using Newtonsoft.Json;
+﻿using System.Text.Json;
+using Glimpse.API;
 
 namespace Glimpse;
 
@@ -26,19 +26,26 @@ public class ConfigManager : IConfigManager
 
         string json = File.ReadAllText(fullPath);
 
-        config = JsonConvert.DeserializeObject<T>(json);
+        config = JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions()
+        {
+            IncludeFields = true
+        });
         
         _logger.Log("    ... loaded.");
 
         return config != null;
     }
 
-    public void WriteConfig(string name, IConfig config)
+    public void WriteConfig<T>(string name, T config) where T : IConfig
     {
         string fullPath = Path.Combine(IConfigManager.BaseDir, $"{name}.json");
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
         
-        File.WriteAllText(fullPath, JsonConvert.SerializeObject(config, Formatting.Indented));
+        File.WriteAllText(fullPath, JsonSerializer.Serialize(config, new JsonSerializerOptions()
+        {
+            IncludeFields = true,
+            WriteIndented = true
+        }));
     }
 }

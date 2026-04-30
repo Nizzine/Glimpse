@@ -1,7 +1,6 @@
-﻿using Glimpse.API;
+﻿using System.Text.Json.Serialization;
+using Glimpse.API;
 using Glimpse.Forms;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
 namespace Glimpse.Configs;
 
@@ -25,7 +24,7 @@ public struct GlimpseConfig : IConfig, IEquatable<GlimpseConfig>
 
     public bool EnableUpdateChecking;
 
-    [JsonConverter(typeof(StringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public Theme Theme;
 
     [JsonConstructor]

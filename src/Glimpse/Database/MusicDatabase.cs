@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using Glimpse.API;
 using Glimpse.Audio;
-using Glimpse.Configs;
-using Newtonsoft.Json;
 
 namespace Glimpse.Database;
 

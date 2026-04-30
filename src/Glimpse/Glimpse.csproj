@@ -16,7 +16,6 @@
 
     <ItemGroup>
       <PackageReference Include="Hexa.NET.ImGui" Version="2.2.9" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
       <PackageReference Include="SDL3-CS" Version="3.4.2" />
       <PackageReference Include="SDL3-CS.Native" Version="3.4.2" />
       <PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />

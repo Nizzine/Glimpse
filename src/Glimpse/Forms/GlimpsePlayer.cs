@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Numerics;
 using System.Text.Json.Nodes;
 using Glimpse.API;
@@ -11,7 +9,6 @@ using Glimpse.Database;
 using Glimpse.Locales;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
-using Newtonsoft.Json.Linq;
 using SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
@@ -1125,7 +1122,7 @@ public class GlimpsePlayer : Window
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
-            JObject obj = JObject.Parse(json);
+            JsonNode obj = JsonObject.Parse(json);
 
             SemVer thisVersion = Glimpse.Version;
 
