@@ -61,10 +61,22 @@ public class ImGuiRenderer : IDisposable
     public unsafe ImFontPtr AddFont(string path, uint size)
     {
         using Stream stream = Asset.GetAssetStream(path);
+        // Allocate the stream as a native pointer.
+        // Unlike before, the font atlas no longer owns the font data.
+        // I found when loading large fonts (like Chinese) that it would not
+        // load properly if the atlas owned the font data.
+        // This code may seem a bit convoluted but it is to avoid:
+        //   1. Allocating a memory stream
+        //   2. Copying the existing stream to the new memory stream
+        //   3. Converting the memory stream to a byte array (another allocation)
+        //   4. Allocating the native memory array
+        //   5. Copying that byte array to the native memory
+        //   6. Hoping and praying that the GC cleans it up
+        // The other alternative was GC handles. But I prefered this method:
         long streamSize = stream.Length;
         byte* pStream = (byte*) NativeMemory.Alloc((nuint) streamSize);
         Span<byte> pStreamSpan = new Span<byte>(pStream, (int) streamSize);
-        stream.ReadExactly(pStreamSpan);
+        stream.ReadExactly(pStreamSpan); // Load the entire stream into the native memory
         _loadedFonts.Add((nint) pStream);
         
         ImFontAtlasPtr fonts = ImGui.GetIO().Fonts;
@@ -78,8 +90,7 @@ public class ImGuiRenderer : IDisposable
             GlyphMaxAdvanceX = float.MaxValue,
         };
 
-        ImFontPtr font;
-        font = fonts.AddFontFromMemoryTTF(pStream, (int) streamSize, size, &config);
+        ImFontPtr font = fonts.AddFontFromMemoryTTF(pStream, (int) streamSize, size, &config);
         
         return font;
     }
