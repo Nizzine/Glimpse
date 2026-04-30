@@ -159,6 +159,7 @@ public class Glimpse : IGlimpse, IDisposable
         Database!.Logger = Logger;
         Database!.Refresh();
         
+#if !PUBLISH_AOT
         Logger.Log("Searching for 'Plugins' directory.");
         string pluginsLocation = Utils.GetPath("Plugins");
         if (Directory.Exists(pluginsLocation))
@@ -223,6 +224,7 @@ public class Glimpse : IGlimpse, IDisposable
                 }
             }
         }
+#endif
 
         _mainThreadID = Environment.CurrentManagedThreadId;
         _eventFilter = WindowExposedEventWatch;

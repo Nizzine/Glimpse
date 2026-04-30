@@ -168,7 +168,7 @@ public class SettingsPopup : Popup
 
                         ImGui.EndTabItem();
                     }*/
-
+#if !PUBLISH_AOT
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Plugins")))
                     {
                         if (Glimpse.Plugins == null || Glimpse.Plugins.Count == 0)
@@ -220,6 +220,7 @@ public class SettingsPopup : Popup
 
                         ImGui.EndTabItem();
                     }
+#endif
 
                     if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.About")))
                     {

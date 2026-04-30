@@ -4,6 +4,7 @@ using Glimpse.API;
 
 namespace Glimpse.Locales;
 
+[JsonSerializable(typeof(Locale))]
 public class Locale : ILocale
 {
     public string ID { get; }
@@ -45,10 +46,7 @@ public class Locale : ILocale
     public static Locale LoadLocale(string id)
     {
         string json = File.ReadAllText(AvailableLocales[id].path);
-        return JsonSerializer.Deserialize<Locale>(json, new JsonSerializerOptions()
-        {
-            IncludeFields = true
-        });
+        return JsonSerializer.Deserialize<Locale>(json, ConfigManager.GetDefaultSerializerOptions());
     }
 
     public static void LoadAvailableLocales()
@@ -57,10 +55,7 @@ public class Locale : ILocale
         //       I'd normally just load the entire locale in at once, but that feels even more inefficient...
         foreach (string path in Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "Locales"), "*.json"))
         {
-            Locale locale = JsonSerializer.Deserialize<Locale>(File.ReadAllText(path), new JsonSerializerOptions()
-            {
-                IncludeFields = true
-            });
+            Locale locale = JsonSerializer.Deserialize<Locale>(File.ReadAllText(path), ConfigManager.GetDefaultSerializerOptions());
             AvailableLocales.Add(locale.ID, (path, locale.DisplayName));
         }
     }
