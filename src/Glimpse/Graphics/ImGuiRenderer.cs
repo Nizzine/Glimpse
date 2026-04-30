@@ -2,6 +2,8 @@ using System.Drawing;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Glimpse.Assets;
 using Glimpse.Graphics.GLUtils;
 using Hexa.NET.ImGui;
 using Silk.NET.OpenGL;
@@ -11,8 +13,8 @@ namespace Glimpse.Graphics;
 
 public class ImGuiRenderer : IDisposable
 {
-    private GL _gl;
-    private Size _size;
+    private readonly GL _gl;
+    private readonly List<nint> _loadedFonts;
     
     private readonly ImGuiContextPtr _context;
     
@@ -21,14 +23,12 @@ public class ImGuiRenderer : IDisposable
 
     private BufferShaderSet<ImDrawVert, ImDrawIdx> _bufferSet;
 
-    private uint _imGuiTexture;
-
     public ImGuiContextPtr ImGuiContext => _context;
     
     public unsafe ImGuiRenderer(GL gl, Size size)
     {
         _gl = gl;
-        _size = size;
+        _loadedFonts = [];
         
         _context = ImGui.CreateContext();
         ImGui.SetCurrentContext(_context);
@@ -60,19 +60,27 @@ public class ImGuiRenderer : IDisposable
 
     public unsafe ImFontPtr AddFont(string path, uint size)
     {
-        string fullPath = Utils.GetPath(path);
+        using Stream stream = Asset.GetAssetStream(path);
+        long streamSize = stream.Length;
+        byte* pStream = (byte*) NativeMemory.Alloc((nuint) streamSize);
+        Span<byte> pStreamSpan = new Span<byte>(pStream, (int) streamSize);
+        stream.ReadExactly(pStreamSpan);
+        _loadedFonts.Add((nint) pStream);
+        
         ImFontAtlasPtr fonts = ImGui.GetIO().Fonts;
         
         ImFontConfig config = new()
         {
             MergeMode = (byte) (fonts.Fonts.Size > 0 ? 1 : 0),
-            FontDataOwnedByAtlas = 1,
+            FontDataOwnedByAtlas = 0,
             RasterizerDensity = 1,
             RasterizerMultiply = 1,
-            GlyphMaxAdvanceX = float.MaxValue
+            GlyphMaxAdvanceX = float.MaxValue,
         };
-        ImFontPtr font = fonts.AddFontFromFileTTF(fullPath, size, &config);
 
+        ImFontPtr font;
+        font = fonts.AddFontFromMemoryTTF(pStream, (int) streamSize, size, &config);
+        
         return font;
     }
 
@@ -180,7 +188,6 @@ public class ImGuiRenderer : IDisposable
 
     internal void Resize(in Size size)
     {
-        _size = size;
         ImGui.GetIO().DisplaySize = new Vector2(size.Width, size.Height);
     }
     
@@ -268,7 +275,7 @@ public class ImGuiRenderer : IDisposable
         _gl.PixelStore(PixelStoreParameter.UnpackRowLength, currentUnpackRowLength);
     }
     
-    public void Dispose()
+    public unsafe void Dispose()
     {
         ref ImVector<ImTextureDataPtr> textures = ref ImGui.GetPlatformIO().Textures;
         for (int i = 0; i < textures.Size; i++)
@@ -276,6 +283,9 @@ public class ImGuiRenderer : IDisposable
             textures[i].Status = ImTextureStatus.Destroyed;
             UpdateTexture(textures[i]);
         }
+        
+        foreach (nint font in _loadedFonts)
+            NativeMemory.Free((void*) font);
         
         ImGui.DestroyContext(_context);
     }

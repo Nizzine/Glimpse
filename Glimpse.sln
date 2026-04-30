@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.API", "src\Glimpse.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.Audio", "src\Glimpse.Audio\Glimpse.Audio.csproj", "{6F4CE475-A7CE-440E-B287-229322382628}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Glimpse.Assets", "src\Glimpse.Assets\Glimpse.Assets.csproj", "{3150FA2D-46D8-4A05-BF5D-6586DE407591}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{6F4CE475-A7CE-440E-B287-229322382628}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F4CE475-A7CE-440E-B287-229322382628}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F4CE475-A7CE-440E-B287-229322382628}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3150FA2D-46D8-4A05-BF5D-6586DE407591}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3150FA2D-46D8-4A05-BF5D-6586DE407591}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3150FA2D-46D8-4A05-BF5D-6586DE407591}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3150FA2D-46D8-4A05-BF5D-6586DE407591}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{07363D9A-CDDA-4856-9E1D-20123DCA1C7B} = {2D9BD12C-4E03-4DD8-8B8C-5A28494F46A9}

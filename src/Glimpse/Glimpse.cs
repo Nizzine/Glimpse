@@ -12,7 +12,6 @@ using Glimpse.Database;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
-using Locale = Glimpse.Locales.Locale;
 using Version = System.Version;
 
 namespace Glimpse;
@@ -133,12 +132,11 @@ public class Glimpse : IGlimpse, IDisposable
         Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust));
 
         Logger.Log("Loading locales.");
-        Locale.LoadAvailableLocales();
         
         const string defaultLocale = "en-gb";
         string requestedLocale = Config.Language ?? CultureInfo.CurrentUICulture.Name.ToLower();
         Logger.Log($"Requesting locale '{requestedLocale}'.");
-        if (Locale.AvailableLocales.ContainsKey(requestedLocale))
+        if (Locale.AvailableLocales.Locales.ContainsKey(requestedLocale))
         {
             Locale = Locale.LoadLocale(requestedLocale);
             Config.Language = requestedLocale;

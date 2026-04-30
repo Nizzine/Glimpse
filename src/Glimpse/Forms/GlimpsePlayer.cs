@@ -6,7 +6,6 @@ using System.Text.Json.Nodes;
 using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Database;
-using Glimpse.Locales;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
@@ -72,20 +71,20 @@ public class GlimpsePlayer : Window
 
     protected override unsafe void Initialize()
     {
-        _playButton = Renderer.CreateImage("Assets/Icons/PlayButton.png");
-        _pauseButton = Renderer.CreateImage("Assets/Icons/PauseButton.png");
-        _skipButton = Renderer.CreateImage("Assets/Icons/SkipButton.png");
-        _stopButton = Renderer.CreateImage("Assets/Icons/StopButton.png");
-        _plusButton = Renderer.CreateImage("Assets/Icons/Plus.png");
-        _star = Renderer.CreateImage("Assets/Icons/Star.png");
-        _starFilled = Renderer.CreateImage("Assets/Icons/Star-Filled.png");
-        _cogButton = Renderer.CreateImage("Assets/Icons/Cog.png");
-        _bugButton = Renderer.CreateImage("Assets/Icons/Bug.png");
-        _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
-        _shuffleButton = Renderer.CreateImage("Assets/Icons/Shuffle.png");
-        _repeatButton = Renderer.CreateImage("Assets/Icons/Repeat.png");
+        _playButton = Renderer.CreateImage("Icons.PlayButton.png");
+        _pauseButton = Renderer.CreateImage("Icons.PauseButton.png");
+        _skipButton = Renderer.CreateImage("Icons.SkipButton.png");
+        _stopButton = Renderer.CreateImage("Icons.StopButton.png");
+        _plusButton = Renderer.CreateImage("Icons.Plus.png");
+        _star = Renderer.CreateImage("Icons.Star.png");
+        _starFilled = Renderer.CreateImage("Icons.Star-Filled.png");
+        _cogButton = Renderer.CreateImage("Icons.Cog.png");
+        _bugButton = Renderer.CreateImage("Icons.Bug.png");
+        _updateButton = Renderer.CreateImage("Icons.Update.png");
+        _shuffleButton = Renderer.CreateImage("Icons.Shuffle.png");
+        _repeatButton = Renderer.CreateImage("Icons.Repeat.png");
         
-        _defaultAlbumArt = Renderer.CreateImage("Assets/Icons/Glimpse.png");
+        _defaultAlbumArt = Renderer.CreateImage("Icons.Glimpse.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -93,12 +92,12 @@ public class GlimpsePlayer : Window
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
 
         const uint fontSize = 18;
-        Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansJP-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansSC-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansKR-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoEmoji-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.Roboto-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansJP-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansSC-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansKR-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoEmoji-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.MaterialSymbolsOutlined-Regular.ttf", fontSize);
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;

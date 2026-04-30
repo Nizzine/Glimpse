@@ -36,22 +36,9 @@
     </ItemGroup>
     
     <ItemGroup>
-        <Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="Locales/**/*.json" CopyToOutputDirectory="PreserveNewest" />
-        <Content Remove="Assets/Icons/Glimpse-Dbg.png" />
-    </ItemGroup>
-    
-    <ItemGroup Condition="$(Configuration) == 'Debug'">
-        <Content Remove="Assets/Icons/Glimpse.png" />
-        <Content Include="Assets/Icons/Glimpse-Dbg.png">
-            <Link>Assets/Icons/Glimpse.png</Link>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-    
-    <ItemGroup>
       <ProjectReference Include="..\Glimpse.API\Glimpse.API.csproj" />
       <ProjectReference Include="..\..\MixrSharp\MixrSharp\MixrSharp.csproj" />
+      <ProjectReference Include="..\Glimpse.Assets\Glimpse.Assets.csproj" />
       <ProjectReference Include="..\Glimpse.Audio\Glimpse.Audio.csproj" />
     </ItemGroup>
     

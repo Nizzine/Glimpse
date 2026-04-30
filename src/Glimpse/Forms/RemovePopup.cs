@@ -1,6 +1,5 @@
 using Glimpse.Audio;
 using Glimpse.Database;
-using Glimpse.Locales;
 using Hexa.NET.ImGui;
 using Track = Glimpse.Database.Track;
 

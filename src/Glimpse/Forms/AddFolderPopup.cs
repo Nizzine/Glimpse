@@ -1,6 +1,5 @@
 ﻿using Glimpse.Configs;
 using Glimpse.Database;
-using Glimpse.Locales;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;

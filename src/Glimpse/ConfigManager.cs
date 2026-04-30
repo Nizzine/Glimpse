@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using Glimpse.API;
 using Glimpse.Configs;
 using Glimpse.Database;
-using Glimpse.Locales;
 
 namespace Glimpse;
 
@@ -65,5 +64,7 @@ public class ConfigManager : IConfigManager
 [JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true)]
 [JsonSerializable(typeof(GlimpseConfig))]
 [JsonSerializable(typeof(Locale))]
+[JsonSerializable(typeof(Locale.AvailableLocale))]
+[JsonSerializable(typeof(Locale.LocaleSet))]
 [JsonSerializable(typeof(MusicDatabase))]
 internal partial class ConfigSerializerContext : JsonSerializerContext;

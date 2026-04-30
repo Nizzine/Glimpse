@@ -1,0 +1,9 @@
+{
+  "FallbackLocale": "en-gb",
+  "Locales": {
+    "en-gb": {
+      "DisplayName": "English",
+      "Path": "en-gb.json"
+    }
+  }
+}
