@@ -52,6 +52,12 @@ public class Track : IDisposable
             return (double) samplesConsumed / _format.SampleRate;
         }
     }
+
+    public double Speed
+    {
+        get => _source.Speed;
+        set => _source.Speed = value;
+    }
     
     public TrackState State
     {
@@ -107,8 +113,6 @@ public class Track : IDisposable
             _buffers[i] = context.CreateBuffer(new ReadOnlySpan<byte>(_audioBuffer, 0, (int) amount));
             _source.SubmitBuffer(_buffers[i]);
         }
-        
-        //TODO: _source.Speed = settings.SpeedAdjust;
         
         _source.BufferFinished += BufferFinished;
         _source.StateChanged += StateChanged;

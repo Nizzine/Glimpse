@@ -26,13 +26,24 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private readonly List<ICodec> _codecs;
 
     public readonly List<string> QueuedTracks;
-
+    
     public IReadOnlyList<ICodec> Codecs => _codecs;
 
     public float Volume
     {
         get => _context.MasterVolume;
         set => _context.MasterVolume = value;
+    }
+
+    public double Speed
+    {
+        get => field;
+        set
+        {
+            double speed = double.Clamp(value, 0, 32);
+            field = speed;
+            _activeTrack?.Speed = speed;
+        }
     }
 
     public TimeSpan ElapsedTime => TimeSpan.FromSeconds(_activeTrack?.ElapsedSeconds ?? 0);
@@ -57,6 +68,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _logger?.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
         Volume = _settings.Volume;
+        Speed = settings.SpeedAdjust;
         
         _logger?.Log("Creating device.");
         _device = new AudioDevice(_context, _settings.SampleRate);
@@ -138,6 +150,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
         _logger?.Log("  Creating track.");
         _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
+        _activeTrack.Speed = Speed;
         //_activeTrack.UpdateBuffers += () => Stop();
 
         TrackChanged(info, path);

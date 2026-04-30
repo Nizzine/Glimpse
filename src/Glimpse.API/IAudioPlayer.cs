@@ -20,6 +20,11 @@ public interface IAudioPlayer
     public float Volume { get; set; }
     
     /// <summary>
+    /// The speed at which audio will be played, where 1.0 is normal playback.
+    /// </summary>
+    public double Speed { get; set; }
+    
+    /// <summary>
     /// Get the list of currently registered codecs.
     /// </summary>
     public IReadOnlyList<ICodec> Codecs { get; }
