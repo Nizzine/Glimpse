@@ -412,13 +412,25 @@ public class GlimpsePlayer : Window
                 {
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
                     {
-                        ImGui.BeginDisabled();
+                        bool shuffle = false;
+                        bool repeat = player.Repeat != RepeatMode.Off;
+
+                        Vector4 shuffleButtonTint = iconsColor;
+                        if (!shuffle)
+                            shuffleButtonTint.W = 0.5f;
+
+                        Vector4 repeatButtonTint = iconsColor;
+                        if (!repeat)
+                            repeatButtonTint.W = 0.5f;
+                        
                         ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint);
                         ImGui.SameLine(0, 0);
-                        ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        if (ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
+                        {
+                            player.Repeat = repeat ? RepeatMode.Off : RepeatMode.RepeatQueue;
+                        }
                         ImGui.PopStyleColor();
-                        ImGui.EndDisabled();
 
                         //if (!_miniplayer)
                         {

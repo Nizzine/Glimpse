@@ -25,6 +25,16 @@ public interface IAudioPlayer
     public double Speed { get; set; }
     
     /// <summary>
+    /// Get and set the current <see cref="RepeatMode"/>.
+    /// </summary>
+    public RepeatMode Repeat { get; set; }
+    
+    /// <summary>
+    /// Get and set the current <see cref="ShuffleMode"/>.
+    /// </summary>
+    public ShuffleMode Shuffle { get; set; }
+    
+    /// <summary>
     /// Get the list of currently registered codecs.
     /// </summary>
     public IReadOnlyList<ICodec> Codecs { get; }

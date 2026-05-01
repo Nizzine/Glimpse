@@ -1,4 +1,5 @@
-﻿using Glimpse.API;
+﻿using System.Collections;
+using Glimpse.API;
 using Glimpse.API.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
@@ -45,6 +46,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             _activeTrack?.Speed = speed;
         }
     }
+
+    public RepeatMode Repeat { get; set; }
+    
+    public ShuffleMode Shuffle { get; set; }
 
     public TimeSpan ElapsedTime => TimeSpan.FromSeconds(_activeTrack?.ElapsedSeconds ?? 0);
 
@@ -209,7 +214,21 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     {
         do
         {
-            _currentTrackIndex++;
+            switch (Repeat)
+            {
+                case RepeatMode.Off:
+                    _currentTrackIndex++;
+                    break;
+                case RepeatMode.RepeatQueue:
+                    _currentTrackIndex++;
+                    if (_currentTrackIndex >= QueuedTracks.Count)
+                        _currentTrackIndex = 0;
+                    break;
+                case RepeatMode.RepeatOne:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             if (_currentTrackIndex >= QueuedTracks.Count)
             {
