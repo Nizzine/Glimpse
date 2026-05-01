@@ -148,17 +148,25 @@ public static class GlimpseCli
         AudioPlayer player = new AudioPlayer(null, settings);
         
         foreach (string path in files)
-            player.QueueTrack(path, QueueSlot.AtEnd);
+            player.QueueTrack(path, QueueSlot.AtEnd, false);
 
         player.TryChangeTrack(startingTrack);
         
         PrintConsoleText(player.CurrentTrack, 0, (int) player.TrackLength.TotalSeconds, player.TrackState,
             player.CurrentTrackIndex, files.Count, true);
         
-        Console.CancelKeyPress += (sender, eventArgs) =>
+        Console.CancelKeyPress += (_, _) =>
         {
             ResetConsole();
         };
+
+        // Ensure the console is reset properly if there is any unhandled exception.
+        AppDomain.CurrentDomain.UnhandledException += (_, _) =>
+        {
+            ResetConsole();
+        };
+        
+        Console.CursorVisible = false;
 
         while (player.TrackState != TrackState.Stopped)
         {
@@ -201,6 +209,24 @@ public static class GlimpseCli
                         player.Previous();
                         break;
                     }
+                    
+                    case ConsoleKey.Z: // Volume down
+                    case ConsoleKey.DownArrow:
+                    {
+                        float newVolume = player.Volume - 0.05f;
+                        player.Volume = float.Clamp(newVolume, 0, 1);
+                        break;
+                    }
+                    case ConsoleKey.X: // Volume up
+                    case ConsoleKey.UpArrow:
+                    {
+                        float newVolume = player.Volume + 0.05f;
+                        player.Volume = float.Clamp(newVolume, 0, 1);
+                        break;
+                    }
+                    case ConsoleKey.C: // Reset volume
+                        player.Volume = 1.0f;
+                        break;
                 }
             }
             
@@ -237,7 +263,7 @@ public static class GlimpseCli
             if (i <= progress)
                 _sb.Append('=');
             else
-                _sb.Append('-');
+                _sb.Append(' ');
         }
     
         _sb.AppendLine($"] {total / 60}:{total % 60:00}\n");
@@ -284,6 +310,7 @@ public static class GlimpseCli
     private static void ResetConsole()
     {
         Console.ResetColor();
+        Console.CursorVisible = true;
     }
 
     private static bool ReadArg(string[] args, ref int index, out string arg)

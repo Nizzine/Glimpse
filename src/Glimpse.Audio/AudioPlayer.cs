@@ -20,6 +20,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private readonly AudioDevice _device;
     
     private Track? _activeTrack;
+    private TrackInfo? _currentTrackInfo;
+    private TrackState _currentTrackState;
 
     private int _currentTrackIndex;
 
@@ -57,9 +59,9 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public TimeSpan TrackLength => TimeSpan.FromSeconds(_activeTrack?.LengthInSeconds ?? 0);
 
-    public TrackInfo? CurrentTrack => _activeTrack?.Info;
+    public TrackInfo? CurrentTrack => _currentTrackInfo;
 
-    public TrackState TrackState => _activeTrack?.State ?? TrackState.Stopped;
+    public TrackState TrackState => _currentTrackState;
 
     public int CurrentTrackIndex => _currentTrackIndex;
 
@@ -145,7 +147,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         //_logger?.Log("  Locking device.");
         //_device.Lock();
-        Track oldTrack = _activeTrack;
+        Track? oldTrack = _activeTrack;
 
         _currentTrackIndex = queueIndex;
         
@@ -177,7 +179,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         _logger?.Log("Start playback.");
         _activeTrack.Play();
-        StateChanged(TrackState.Playing);
+        ChangeState(TrackState.Playing);
         _logger?.Log("  Playing device.");
         _device.Play();
     }
@@ -188,7 +190,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             return;
         
         _activeTrack.Pause();
-        StateChanged(TrackState.Paused);
+        ChangeState(TrackState.Paused);
     }
 
     public void Stop()
@@ -207,7 +209,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _logger?.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
         _currentTrackIndex = 0;
-        StateChanged(TrackState.Stopped);
+        ChangeState(TrackState.Stopped);
     }
 
     public void Next()
@@ -252,7 +254,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public void Seek(double second)
     {
         _activeTrack.Seek(second);
-        StateChanged(TrackState);
+        ChangeState(TrackState);
     }
 
     public void RegisterCodec(ICodec codec)
@@ -310,6 +312,14 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             QueuedTracks.Add(path);
         else
             QueuedTracks.Insert(index, path);
+    }
+
+    private void ChangeState(TrackState state)
+    {
+        _logger?.Log($"Changing state to {state}.");
+        _currentTrackInfo = _activeTrack?.Info;
+        _currentTrackState = state;
+        StateChanged(state);
     }
 
     private void OnTrackFinish()
