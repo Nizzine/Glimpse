@@ -25,6 +25,7 @@ public static class GlimpseCli
         float? volume = null;
         double? speed = null;
         bool shuffle = false;
+        bool repeat = false;
         int startingTrack = 0;
 
         int argIndex = 0;
@@ -46,9 +47,7 @@ public static class GlimpseCli
                             continue;
                         }
                         
-                        PrintHelp();
-                        Console.WriteLine();
-                        Console.WriteLine("ERROR: Volume was not parsable.");
+                        Console.WriteError("Volume was not parsable.");
                         return;
                     }
                 
@@ -60,9 +59,7 @@ public static class GlimpseCli
                             continue;
                         }
                         
-                        PrintHelp();
-                        Console.WriteLine();
-                        Console.WriteLine("ERROR: Speed was not parsable.");
+                        Console.WriteError("Speed was not parsable.");
                         return;
                     }
 
@@ -73,10 +70,8 @@ public static class GlimpseCli
                             startingTrack = trackNumber - 1;
                             continue;
                         }
-
-                        PrintHelp();
-                        Console.WriteLine();
-                        Console.WriteLine("ERROR: Track number was not parsable.");
+                        
+                        Console.WriteError("Track number was not parsable.");
                         return;
                     }
                     
@@ -84,10 +79,12 @@ public static class GlimpseCli
                         shuffle = true;
                         break;
                     
+                    case "--repeat":
+                        repeat = true;
+                        break;
+                    
                     default:
-                        PrintHelp();
-                        Console.WriteLine();
-                        Console.WriteLine($"ERROR: Invalid argument \"{arg}\".");
+                        Console.WriteError($"Invalid argument \"{arg}\".");
                         return;
                 }
             }
@@ -106,9 +103,7 @@ public static class GlimpseCli
                 }
                 else
                 {
-                    PrintHelp();
-                    Console.WriteLine();
-                    Console.WriteLine($"ERROR: Argument {argIndex}: An invalid file was provided.");
+                    Console.WriteError($"Argument {argIndex}: An invalid file was provided.");
                     return;
                 }
             }
@@ -116,9 +111,7 @@ public static class GlimpseCli
         
         if (files.Count == 0)
         {
-            PrintHelp();
-            Console.WriteLine();
-            Console.WriteLine("ERROR: No file was provided.");
+            Console.WriteError("No file was provided.");
             return;
         }
 
@@ -146,6 +139,7 @@ public static class GlimpseCli
             SpeedAdjust = speed ?? 1.0f
         };
         AudioPlayer player = new AudioPlayer(null, settings);
+        player.Repeat = repeat ? RepeatMode.RepeatQueue : RepeatMode.Off;
         
         foreach (string path in files)
             player.QueueTrack(path, QueueSlot.AtEnd, false);
@@ -340,6 +334,18 @@ public static class GlimpseCli
                                   Change the playback speed, where a value of 1.0 is 100% speed;
                               --shuffle
                                   Shuffle the playback.
+                              --repeat
+                                  Continuously plays the given track/queue on repeat.
                           """);
+    }
+
+    extension(Console)
+    {
+        private static void WriteError(string text)
+        {
+            PrintHelp();
+            Console.WriteLine();
+            Console.WriteLine($"\e[31mERROR: {text}\e[0m");
+        }
     }
 }

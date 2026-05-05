@@ -270,6 +270,11 @@ public class Glimpse : IGlimpse, IDisposable
             
             foreach (Window wnd in _windows)
             {
+                if (ImGui.GetIO().WantTextInput)
+                    SDL.StartTextInput(wnd.Handle);
+                else
+                    SDL.StopTextInput(wnd.Handle);
+                
                 wnd.SetActive();
                 wnd.UpdateWindow(_currentDeltaTime);
                 wnd.Present();
@@ -348,6 +353,176 @@ public class Glimpse : IGlimpse, IDisposable
             SDL.ButtonRight => ImGuiMouseButton.Right,
             SDL.ButtonMiddle => ImGuiMouseButton.Middle,
             _ => null
+        };
+    }
+
+    private ImGuiKey SdlKeyToImGui(SDL.Keycode key)
+    {
+        return key switch
+        {
+            SDL.Keycode.Tab => ImGuiKey.Tab,
+            SDL.Keycode.Left => ImGuiKey.LeftArrow,
+            SDL.Keycode.Right => ImGuiKey.RightArrow,
+            SDL.Keycode.Up => ImGuiKey.UpArrow,
+            SDL.Keycode.Down => ImGuiKey.DownArrow,
+            SDL.Keycode.Pageup => ImGuiKey.PageUp,
+            SDL.Keycode.Pagedown => ImGuiKey.PageDown,
+            SDL.Keycode.Home => ImGuiKey.Home,
+            SDL.Keycode.End => ImGuiKey.End,
+            SDL.Keycode.Insert => ImGuiKey.Insert,
+            SDL.Keycode.Delete => ImGuiKey.Delete,
+            SDL.Keycode.Backspace => ImGuiKey.Backspace,
+            SDL.Keycode.Space => ImGuiKey.Space,
+            SDL.Keycode.Return => ImGuiKey.Enter,
+            SDL.Keycode.Escape => ImGuiKey.Escape,
+            SDL.Keycode.LCtrl => ImGuiKey.LeftCtrl,
+            SDL.Keycode.LShift => ImGuiKey.LeftShift,
+            SDL.Keycode.LAlt => ImGuiKey.LeftAlt,
+            SDL.Keycode.LGUI => ImGuiKey.LeftSuper,
+            SDL.Keycode.RCtrl => ImGuiKey.RightCtrl,
+            SDL.Keycode.RShift => ImGuiKey.RightShift,
+            SDL.Keycode.RAlt => ImGuiKey.RightAlt,
+            SDL.Keycode.RGUI => ImGuiKey.RightSuper,
+            SDL.Keycode.Menu => ImGuiKey.Menu,
+            SDL.Keycode.Alpha0 => ImGuiKey.Key0,
+            SDL.Keycode.Alpha1 => ImGuiKey.Key1,
+            SDL.Keycode.Alpha2 => ImGuiKey.Key2,
+            SDL.Keycode.Alpha3 => ImGuiKey.Key3,
+            SDL.Keycode.Alpha4 => ImGuiKey.Key4,
+            SDL.Keycode.Alpha5 => ImGuiKey.Key5,
+            SDL.Keycode.Alpha6 => ImGuiKey.Key6,
+            SDL.Keycode.Alpha7 => ImGuiKey.Key7,
+            SDL.Keycode.Alpha8 => ImGuiKey.Key8,
+            SDL.Keycode.Alpha9 => ImGuiKey.Key9,
+            SDL.Keycode.A => ImGuiKey.A,
+            SDL.Keycode.B => ImGuiKey.B,
+            SDL.Keycode.C => ImGuiKey.C,
+            SDL.Keycode.D => ImGuiKey.D,
+            SDL.Keycode.E => ImGuiKey.E,
+            SDL.Keycode.F => ImGuiKey.F,
+            SDL.Keycode.G => ImGuiKey.G,
+            SDL.Keycode.H => ImGuiKey.H,
+            SDL.Keycode.I => ImGuiKey.I,
+            SDL.Keycode.J => ImGuiKey.J,
+            SDL.Keycode.K => ImGuiKey.K,
+            SDL.Keycode.L => ImGuiKey.L,
+            SDL.Keycode.M => ImGuiKey.M,
+            SDL.Keycode.N => ImGuiKey.N,
+            SDL.Keycode.O => ImGuiKey.O,
+            SDL.Keycode.P => ImGuiKey.P,
+            SDL.Keycode.Q => ImGuiKey.Q,
+            SDL.Keycode.R => ImGuiKey.R,
+            SDL.Keycode.S => ImGuiKey.S,
+            SDL.Keycode.T => ImGuiKey.T,
+            SDL.Keycode.U => ImGuiKey.U,
+            SDL.Keycode.V => ImGuiKey.V,
+            SDL.Keycode.W => ImGuiKey.W,
+            SDL.Keycode.X => ImGuiKey.X,
+            SDL.Keycode.Y => ImGuiKey.Y,
+            SDL.Keycode.Z => ImGuiKey.Z,
+            SDL.Keycode.F1 => ImGuiKey.F1,
+            SDL.Keycode.F2 => ImGuiKey.F2,
+            SDL.Keycode.F3 => ImGuiKey.F3,
+            SDL.Keycode.F4 => ImGuiKey.F4,
+            SDL.Keycode.F5 => ImGuiKey.F5,
+            SDL.Keycode.F6 => ImGuiKey.F6,
+            SDL.Keycode.F7 => ImGuiKey.F7,
+            SDL.Keycode.F8 => ImGuiKey.F8,
+            SDL.Keycode.F9 => ImGuiKey.F9,
+            SDL.Keycode.F10 => ImGuiKey.F10,
+            SDL.Keycode.F11 => ImGuiKey.F11,
+            SDL.Keycode.F12 => ImGuiKey.F12,
+            SDL.Keycode.F13 => ImGuiKey.F13,
+            SDL.Keycode.F14 => ImGuiKey.F14,
+            SDL.Keycode.F15 => ImGuiKey.F15,
+            SDL.Keycode.F16 => ImGuiKey.F16,
+            SDL.Keycode.F17 => ImGuiKey.F17,
+            SDL.Keycode.F18 => ImGuiKey.F18,
+            SDL.Keycode.F19 => ImGuiKey.F19,
+            SDL.Keycode.F20 => ImGuiKey.F20,
+            SDL.Keycode.F21 => ImGuiKey.F21,
+            SDL.Keycode.F22 => ImGuiKey.F22,
+            SDL.Keycode.F23 => ImGuiKey.F23,
+            SDL.Keycode.F24 => ImGuiKey.F24,
+            SDL.Keycode.Apostrophe => ImGuiKey.Apostrophe,
+            SDL.Keycode.Comma => ImGuiKey.Comma,
+            SDL.Keycode.Minus => ImGuiKey.Minus,
+            SDL.Keycode.Period => ImGuiKey.Period,
+            SDL.Keycode.Slash => ImGuiKey.Slash,
+            SDL.Keycode.Semicolon => ImGuiKey.Semicolon,
+            SDL.Keycode.Equals => ImGuiKey.Equal,
+            SDL.Keycode.LeftBracket => ImGuiKey.LeftBracket,
+            SDL.Keycode.Backslash => ImGuiKey.Backslash,
+            SDL.Keycode.RightBracket => ImGuiKey.RightBracket,
+            SDL.Keycode.Grave => ImGuiKey.GraveAccent,
+            SDL.Keycode.Capslock => ImGuiKey.CapsLock,
+            SDL.Keycode.ScrollLock => ImGuiKey.ScrollLock,
+            SDL.Keycode.NumLockClear => ImGuiKey.NumLock,
+            SDL.Keycode.PrintScreen => ImGuiKey.PrintScreen,
+            SDL.Keycode.Pause => ImGuiKey.Pause,
+            SDL.Keycode.Kp0 => ImGuiKey.Keypad0,
+            SDL.Keycode.Kp1 => ImGuiKey.Keypad1,
+            SDL.Keycode.Kp2 => ImGuiKey.Keypad2,
+            SDL.Keycode.Kp3 => ImGuiKey.Keypad3,
+            SDL.Keycode.Kp4 => ImGuiKey.Keypad4,
+            SDL.Keycode.Kp5 => ImGuiKey.Keypad5,
+            SDL.Keycode.Kp6 => ImGuiKey.Keypad6,
+            SDL.Keycode.Kp7 => ImGuiKey.Keypad7,
+            SDL.Keycode.Kp8 => ImGuiKey.Keypad8,
+            SDL.Keycode.Kp9 => ImGuiKey.Keypad9,
+            SDL.Keycode.KpDecimal => ImGuiKey.KeypadDecimal,
+            SDL.Keycode.KpDivide => ImGuiKey.KeypadDivide,
+            SDL.Keycode.KpMultiply => ImGuiKey.KeypadMultiply,
+            SDL.Keycode.KpMinus => ImGuiKey.KeypadSubtract,
+            SDL.Keycode.KpPlus => ImGuiKey.KeypadAdd,
+            SDL.Keycode.KpEnter => ImGuiKey.KeypadEnter,
+            SDL.Keycode.KpEquals => ImGuiKey.KeypadEqual,
+            /*SDL.Keycode.AppBack => ImGuiKey.AppBack,
+            SDL.Keycode.AppForward => ImGuiKey.AppForward,
+            SDL.Keycode.Oem102 => ImGuiKey.Oem102,
+            SDL.Keycode.GamepadStart => ImGuiKey.GamepadStart,
+            SDL.Keycode.GamepadBack => ImGuiKey.GamepadBack,
+            SDL.Keycode.GamepadFaceLeft => ImGuiKey.GamepadFaceLeft,
+            SDL.Keycode.GamepadFaceRight => ImGuiKey.GamepadFaceRight,
+            SDL.Keycode.GamepadFaceUp => ImGuiKey.GamepadFaceUp,
+            SDL.Keycode.GamepadFaceDown => ImGuiKey.GamepadFaceDown,
+            SDL.Keycode.GamepadDpadLeft => ImGuiKey.GamepadDpadLeft,
+            SDL.Keycode.GamepadDpadRight => ImGuiKey.GamepadDpadRight,
+            SDL.Keycode.GamepadDpadUp => ImGuiKey.GamepadDpadUp,
+            SDL.Keycode.GamepadDpadDown => ImGuiKey.GamepadDpadDown,
+            SDL.Keycode.GamepadL1 => ImGuiKey.GamepadL1,
+            SDL.Keycode.GamepadR1 => ImGuiKey.GamepadR1,
+            SDL.Keycode.GamepadL2 => ImGuiKey.GamepadL2,
+            SDL.Keycode.GamepadR2 => ImGuiKey.GamepadR2,
+            SDL.Keycode.GamepadL3 => ImGuiKey.GamepadL3,
+            SDL.Keycode.GamepadR3 => ImGuiKey.GamepadR3,
+            SDL.Keycode.GamepadLStickLeft => ImGuiKey.GamepadLStickLeft,
+            SDL.Keycode.GamepadLStickRight => ImGuiKey.GamepadLStickRight,
+            SDL.Keycode.GamepadLStickUp => ImGuiKey.GamepadLStickUp,
+            SDL.Keycode.GamepadLStickDown => ImGuiKey.GamepadLStickDown,
+            SDL.Keycode.GamepadRStickLeft => ImGuiKey.GamepadRStickLeft,
+            SDL.Keycode.GamepadRStickRight => ImGuiKey.GamepadRStickRight,
+            SDL.Keycode.GamepadRStickUp => ImGuiKey.GamepadRStickUp,
+            SDL.Keycode.GamepadRStickDown => ImGuiKey.GamepadRStickDown,
+            SDL.Keycode.MouseLeft => ImGuiKey.MouseLeft,
+            SDL.Keycode.MouseRight => ImGuiKey.MouseRight,
+            SDL.Keycode.MouseMiddle => ImGuiKey.MouseMiddle,
+            SDL.Keycode.MouseX1 => ImGuiKey.MouseX1,
+            SDL.Keycode.MouseX2 => ImGuiKey.MouseX2,
+            SDL.Keycode.MouseWheelX => ImGuiKey.MouseWheelX,
+            SDL.Keycode.MouseWheelY => ImGuiKey.MouseWheelY,
+            SDL.Keycode.ReservedForModCtrl => ImGuiKey.ReservedForModCtrl,
+            SDL.Keycode.ReservedForModShift => ImGuiKey.ReservedForModShift,
+            SDL.Keycode.ReservedForModAlt => ImGuiKey.ReservedForModAlt,
+            SDL.Keycode.ReservedForModSuper => ImGuiKey.ReservedForModSuper,
+            SDL.Keycode.NamedKeyEnd => ImGuiKey.NamedKeyEnd,
+            SDL.Keycode.NamedKeyCount => ImGuiKey.NamedKeyCount,
+            SDL.Keycode.LCtrl => ImGuiKey.ModCtrl,
+            SDL.Keycode.ModShift => ImGuiKey.ModShift,
+            SDL.Keycode.ModAlt => ImGuiKey.ModAlt,
+            SDL.Keycode.ModSuper => ImGuiKey.ModSuper,
+            SDL.Keycode.ModMask => ImGuiKey.ModMask*/
+            _ => ImGuiKey.None
         };
     }
     
@@ -435,6 +610,35 @@ public class Glimpse : IGlimpse, IDisposable
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                 
                 ImGui.GetIO().AddMouseWheelEvent(-winEvent.Wheel.X, winEvent.Wheel.Y);
+                break;
+            }
+
+            case SDL.EventType.TextInput:
+            {
+                Window wnd = _windowIds[winEvent.Text.WindowID];
+                ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
+
+                unsafe
+                {
+                    foreach (char c in new string((sbyte*) winEvent.Text.Text))
+                        ImGui.GetIO().AddInputCharacter(c);
+                }
+
+                break;
+            }
+
+            case SDL.EventType.KeyDown:
+            {
+                if (winEvent.Key.Repeat)
+                    break;
+                
+                ImGui.GetIO().AddKeyEvent(SdlKeyToImGui(winEvent.Key.Key), true);
+                break;
+            }
+
+            case SDL.EventType.KeyUp:
+            {
+                ImGui.GetIO().AddKeyEvent(SdlKeyToImGui(winEvent.Key.Key), false);
                 break;
             }
         }

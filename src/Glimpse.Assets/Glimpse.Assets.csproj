@@ -11,6 +11,7 @@
         <EmbeddedResource Include="Icons/**/*" />
         <EmbeddedResource Include="Images/**/*" />
         <EmbeddedResource Include="Locales/**/*" />
+        <EmbeddedResource Include="Themes/**/*" />
         <EmbeddedResource Remove="Icons/Glimpse-Dbg.png" />
     </ItemGroup>
 
