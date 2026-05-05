@@ -146,7 +146,7 @@ public class GlimpsePlayer : Window
 
     protected override unsafe void Update(float dt)
     {
-        ImGui.ShowStyleEditor();
+        //ImGui.ShowStyleEditor();
         
         Locale locale = Glimpse.Locale;
         
