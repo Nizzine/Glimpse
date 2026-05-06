@@ -122,9 +122,8 @@ public class Glimpse : IGlimpse, IDisposable
             {
                 Logger.Log("   ... Populating new config.");
                 oldConfig.PopulateNewConfig(ref Config);
-                // TODO: Re-enable this once 0.1.0 is ready
-               // string configPath = Path.Combine(IConfigManager.BaseDir, OldConfig.ConfigName + ".json");
-               // File.Delete(configPath); // Delete old config as its no longer needed, and will prevent confusion if the user tries to edit the file.
+                string configPath = Path.Combine(IConfigManager.BaseDir, OldConfig.ConfigName + ".json");
+                File.Delete(configPath); // Delete old config as its no longer needed, and will prevent confusion if the user tries to edit the file.
             }
             else
                 Logger.Log("   ... Failed: Creating new config.");
