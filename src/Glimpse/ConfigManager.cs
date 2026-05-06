@@ -1,5 +1,9 @@
-﻿using Glimpse.API;
-using Newtonsoft.Json;
+﻿using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Glimpse.API;
+using Glimpse.Configs;
+using Glimpse.Database;
 
 namespace Glimpse;
 
@@ -25,20 +29,43 @@ public class ConfigManager : IConfigManager
         }
 
         string json = File.ReadAllText(fullPath);
-
-        config = JsonConvert.DeserializeObject<T>(json);
+        
+        config = JsonSerializer.Deserialize<T>(json, GetDefaultSerializerOptions());
         
         _logger.Log("    ... loaded.");
 
         return config != null;
     }
 
-    public void WriteConfig(string name, IConfig config)
+    public void WriteConfig<T>(string name, T config) where T : IConfig
     {
         string fullPath = Path.Combine(IConfigManager.BaseDir, $"{name}.json");
 
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
         
-        File.WriteAllText(fullPath, JsonConvert.SerializeObject(config, Formatting.Indented));
+        File.WriteAllText(fullPath, JsonSerializer.Serialize(config, GetDefaultSerializerOptions()));
+    }
+
+    public static JsonSerializerOptions GetDefaultSerializerOptions()
+    {
+        JsonSerializerOptions options = new JsonSerializerOptions()
+        {
+            IncludeFields = true,
+            WriteIndented = true,
+        };
+        
+        if (!JsonSerializer.IsReflectionEnabledByDefault)
+            options.TypeInfoResolver = ConfigSerializerContext.Default;
+
+        return options;
     }
 }
+
+[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true)]
+[JsonSerializable(typeof(GlimpseConfig))]
+[JsonSerializable(typeof(Locale))]
+[JsonSerializable(typeof(Locale.AvailableLocale))]
+[JsonSerializable(typeof(Locale.LocaleSet))]
+[JsonSerializable(typeof(MusicDatabase))]
+[JsonSerializable(typeof(Theme))]
+internal partial class ConfigSerializerContext : JsonSerializerContext;

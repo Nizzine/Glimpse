@@ -6,7 +6,7 @@ if [ $# -ne 1 ]; then
 fi
 
 VERSION=$1
-GLIMPSE_ICON="../../src/Glimpse/Assets/Icons/Glimpse.png"
+GLIMPSE_ICON="../../src/Glimpse.Assets/Icons/Glimpse.png"
 ICON_NAME="Glimpse"
 ICON_DIR="$ICON_NAME.iconset"
 OUT_DIR="Glimpse.app"

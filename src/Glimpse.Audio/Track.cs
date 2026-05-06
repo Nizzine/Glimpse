@@ -52,6 +52,12 @@ public class Track : IDisposable
             return (double) samplesConsumed / _format.SampleRate;
         }
     }
+
+    public double Speed
+    {
+        get => _source.Speed;
+        set => _source.Speed = value;
+    }
     
     public TrackState State
     {
@@ -107,8 +113,6 @@ public class Track : IDisposable
             _buffers[i] = context.CreateBuffer(new ReadOnlySpan<byte>(_audioBuffer, 0, (int) amount));
             _source.SubmitBuffer(_buffers[i]);
         }
-        
-        //TODO: _source.Speed = settings.SpeedAdjust;
         
         _source.BufferFinished += BufferFinished;
         _source.StateChanged += StateChanged;
@@ -210,15 +214,21 @@ public class Track : IDisposable
     {
         lock (_lockObj)
         {
+            // TODO: Now that the bug in glimpsecli causing crashes is fixed, this shouldn't cause issues anymore and
+            //   there shouldn't be a need for a load of null checking.
+            _logger?.Log($"Dispose {Info.Title}");
             _logger?.Log("Disposing source.");
             _source?.Dispose();
             _source = null;
             _logger?.Log("Disposing buffers.");
-            foreach (AudioBuffer buffer in _buffers)
-                buffer?.Dispose();
+            if (_buffers != null)
+            {
+                foreach (AudioBuffer buffer in _buffers)
+                    buffer.Dispose();
+            }
             _buffers = null;
             _logger?.Log("Disposing stream.");
-            _stream!.Dispose();
+            _stream?.Dispose();
             _stream = null;
         }
     }

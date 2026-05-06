@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Reflection;
+using Glimpse.Assets;
 using Glimpse.Graphics.GLUtils;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
@@ -70,8 +71,8 @@ public unsafe class Renderer : IDisposable
 
     public Image CreateImage(string path)
     {
-        string fullPath = Utils.GetPath(path);
-        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(fullPath);
+        using Stream stream = Asset.GetAssetStream(path); 
+        using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(stream);
         byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
         image.CopyPixelDataTo(pixels);
 

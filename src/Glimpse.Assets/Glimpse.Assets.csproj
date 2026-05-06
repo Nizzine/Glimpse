@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Fonts/**/*" />
+        <EmbeddedResource Include="Icons/**/*" />
+        <EmbeddedResource Include="Images/**/*" />
+        <EmbeddedResource Include="Locales/**/*" />
+        <EmbeddedResource Include="Themes/**/*" />
+        <EmbeddedResource Remove="Icons/Glimpse-Dbg.png" />
+    </ItemGroup>
+
+    <ItemGroup Condition="$(Configuration) == 'Debug'">
+        <EmbeddedResource Remove="Icons/Glimpse.png" />
+        <EmbeddedResource Include="Icons/Glimpse-Dbg.png">
+            <Link>Icons/Glimpse.png</Link>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Images\Themes\" />
+    </ItemGroup>
+
+</Project>

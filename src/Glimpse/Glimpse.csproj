@@ -6,17 +6,19 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <TrimMode>full</TrimMode>
         <ApplicationIcon Condition="$(Configuration) != 'Debug'">Icon.ico</ApplicationIcon>
         <ApplicationIcon Condition="$(Configuration) == 'Debug'">Icon-Dbg.ico</ApplicationIcon>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <!--<VersionPrefix>$([System.DateTime]::Now.ToString("yyyy.MM.dd"))</VersionPrefix>-->
-        <Version>0.0.0</Version>
+        <VersionPrefix>$([System.DateTime]::Now.ToString("yyyy.MM.dd"))</VersionPrefix>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="$(PublishAot) == true">
+        <PublishTrimmed>true</PublishTrimmed>
+        <DefineConstants>$(DefineConstants);PUBLISH_AOT</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="Hexa.NET.ImGui" Version="2.2.9" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
       <PackageReference Include="SDL3-CS" Version="3.4.2" />
       <PackageReference Include="SDL3-CS.Native" Version="3.4.2" />
       <PackageReference Include="Silk.NET.OpenGL" Version="2.21.0" />
@@ -25,27 +27,18 @@
       <PackageReference Include="TerraFX.Interop.Windows" Version="10.0.26100" />
     </ItemGroup>
     
+    <ItemGroup Condition="$(PublishAot) == true">
+        <RdXmlFile Include="rd.xml" />
+    </ItemGroup>
+    
     <ItemGroup>
         <EmbeddedResource Include="Graphics/Shaders/**/*" />
     </ItemGroup>
     
     <ItemGroup>
-        <Content Include="Assets/**/*" CopyToOutputDirectory="PreserveNewest" />
-        <Content Include="Locales/**/*.json" CopyToOutputDirectory="PreserveNewest" />
-        <Content Remove="Assets/Icons/Glimpse-Dbg.png" />
-    </ItemGroup>
-    
-    <ItemGroup Condition="$(Configuration) == 'Debug'">
-        <Content Remove="Assets/Icons/Glimpse.png" />
-        <Content Include="Assets/Icons/Glimpse-Dbg.png">
-            <Link>Assets/Icons/Glimpse.png</Link>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-    
-    <ItemGroup>
       <ProjectReference Include="..\Glimpse.API\Glimpse.API.csproj" />
       <ProjectReference Include="..\..\MixrSharp\MixrSharp\MixrSharp.csproj" />
+      <ProjectReference Include="..\Glimpse.Assets\Glimpse.Assets.csproj" />
       <ProjectReference Include="..\Glimpse.Audio\Glimpse.Audio.csproj" />
     </ItemGroup>
     

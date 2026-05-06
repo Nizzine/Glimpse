@@ -1,18 +1,17 @@
-﻿using System.Collections;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
-using System.Net.Http.Headers;
 using System.Numerics;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Glimpse.API;
+using Glimpse.Assets;
 using Glimpse.API.Library;
 using Glimpse.Audio;
+using Glimpse.Configs;
 using Glimpse.Database;
-using Glimpse.Locales;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
-using Newtonsoft.Json.Linq;
 using SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
@@ -24,7 +23,6 @@ public class GlimpsePlayer : Window
 {
     private bool _init;
     private ImGuiStyle _defaultStyle;
-    private bool _isLightModeTheme;
 
     private Size _restoreSize;
     private bool _miniplayer;
@@ -73,24 +71,25 @@ public class GlimpsePlayer : Window
         Title = "Glimpse";
 #endif
         Size = new Size(1100, 650);
+        //Size = new Size(620, 400);
     }
 
     protected override unsafe void Initialize()
     {
-        _playButton = Renderer.CreateImage("Assets/Icons/PlayButton.png");
-        _pauseButton = Renderer.CreateImage("Assets/Icons/PauseButton.png");
-        _skipButton = Renderer.CreateImage("Assets/Icons/SkipButton.png");
-        _stopButton = Renderer.CreateImage("Assets/Icons/StopButton.png");
-        _plusButton = Renderer.CreateImage("Assets/Icons/Plus.png");
-        _star = Renderer.CreateImage("Assets/Icons/Star.png");
-        _starFilled = Renderer.CreateImage("Assets/Icons/Star-Filled.png");
-        _cogButton = Renderer.CreateImage("Assets/Icons/Cog.png");
-        _bugButton = Renderer.CreateImage("Assets/Icons/Bug.png");
-        _updateButton = Renderer.CreateImage("Assets/Icons/Update.png");
-        _shuffleButton = Renderer.CreateImage("Assets/Icons/Shuffle.png");
-        _repeatButton = Renderer.CreateImage("Assets/Icons/Repeat.png");
+        _playButton = Renderer.CreateImage("Icons.PlayButton.png");
+        _pauseButton = Renderer.CreateImage("Icons.PauseButton.png");
+        _skipButton = Renderer.CreateImage("Icons.SkipButton.png");
+        _stopButton = Renderer.CreateImage("Icons.StopButton.png");
+        _plusButton = Renderer.CreateImage("Icons.Plus.png");
+        _star = Renderer.CreateImage("Icons.Star.png");
+        _starFilled = Renderer.CreateImage("Icons.Star-Filled.png");
+        _cogButton = Renderer.CreateImage("Icons.Cog.png");
+        _bugButton = Renderer.CreateImage("Icons.Bug.png");
+        _updateButton = Renderer.CreateImage("Icons.Update.png");
+        _shuffleButton = Renderer.CreateImage("Icons.Shuffle.png");
+        _repeatButton = Renderer.CreateImage("Icons.Repeat.png");
         
-        _defaultAlbumArt = Renderer.CreateImage("Assets/Icons/Glimpse.png");
+        _defaultAlbumArt = Renderer.CreateImage("Icons.Glimpse.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -98,12 +97,12 @@ public class GlimpsePlayer : Window
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
 
         const uint fontSize = 18;
-        Renderer.ImGui.AddFont("Assets/Fonts/Roboto-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansJP-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansSC-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoSansKR-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/NotoEmoji-Regular.ttf", fontSize);
-        Renderer.ImGui.AddFont("Assets/Fonts/MaterialSymbolsOutlined-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.Roboto-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansJP-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansSC-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoSansKR-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.NotoEmoji-Regular.ttf", fontSize);
+        Renderer.ImGui.AddFont("Fonts.MaterialSymbolsOutlined-Regular.ttf", fontSize);
         
         ImGuiIOPtr io = ImGui.GetIO();
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -123,7 +122,7 @@ public class GlimpsePlayer : Window
 
 //#if !DEBUG
         // Only perform the update check if the user wants it!
-        if (Glimpse.Config.EnableUpdateChecking)
+        if (Glimpse.Config.General.EnableUpdateChecking)
             Task.Run(CheckForNewerVersion);
 //#endif
     }
@@ -151,6 +150,8 @@ public class GlimpsePlayer : Window
 
     protected override unsafe void Update(float dt)
     {
+        //ImGui.ShowStyleEditor();
+        
         Locale locale = Glimpse.Locale;
         
         if (_newAlbumArt != null)
@@ -228,7 +229,7 @@ public class GlimpsePlayer : Window
 
             if (!_miniplayer)
             {
-                ImGuiDir dir = Glimpse.Config.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
+                ImGuiDir dir = Glimpse.Config.Appearance.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
                 
                 uint albumsSongsId;
                 ImGuiP.DockBuilderSplitNode(id, dir, 0, &transportId, &albumsSongsId);
@@ -243,6 +244,7 @@ public class GlimpsePlayer : Window
 
                 ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
                 albumsNode.SizeRef = ScaleVec(327, 650);
+                //albumsNode.SizeRef = ScaleVec(200, 650);
 
                 ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
                 songsNode.SizeRef = ScaleVec(772, 650);
@@ -257,7 +259,7 @@ public class GlimpsePlayer : Window
             ImGuiP.DockBuilderFinish(id);
         }
 
-        Vector4 iconsColor = _isLightModeTheme ? new Vector4(0, 0, 0, 1) : new Vector4(1, 1, 1, 1);
+        Vector4 iconsColor = ImGui.GetStyle().Colors[(int) ImGuiCol.Text];
 
         bool switchToTrackList = false;
         bool switchToQueueView = false;
@@ -424,13 +426,25 @@ public class GlimpsePlayer : Window
                 {
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
                     {
-                        ImGui.BeginDisabled();
+                        bool shuffle = false;
+                        bool repeat = player.Repeat != RepeatMode.Off;
+
+                        Vector4 shuffleButtonTint = iconsColor;
+                        if (!shuffle)
+                            shuffleButtonTint.W = 0.5f;
+
+                        Vector4 repeatButtonTint = iconsColor;
+                        if (!repeat)
+                            repeatButtonTint.W = 0.5f;
+                        
                         ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint);
                         ImGui.SameLine(0, 0);
-                        ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, iconsColor);
+                        if (ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
+                        {
+                            player.Repeat = repeat ? RepeatMode.Off : RepeatMode.RepeatQueue;
+                        }
                         ImGui.PopStyleColor();
-                        ImGui.EndDisabled();
 
                         //if (!_miniplayer)
                         {
@@ -459,7 +473,7 @@ public class GlimpsePlayer : Window
                             {
                                 float fVol = (float) volume / 100;
                                 Glimpse.Player.Volume = fVol;
-                                Glimpse.Config.Volume = fVol;
+                                Glimpse.Config.Audio.Volume = fVol;
                             }
 
                             if (_miniplayer)
@@ -842,7 +856,7 @@ public class GlimpsePlayer : Window
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                         AddPopup(new RemovePopup(path, false, false));
-                                    if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
+                                    if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
                                         AddPopup(new RemovePopup(path, false, true));
 
                                     ImGui.EndPopup();
@@ -1000,22 +1014,13 @@ public class GlimpsePlayer : Window
     public void RefreshLayout()
     {
         _init = false;
-
-        _isLightModeTheme = Glimpse.Config.Theme switch
-        {
-            Theme.SyncToOS => SDL.GetSystemTheme() == SDL.SystemTheme.Light ? true : false,
-            Theme.Dark => false,
-            Theme.Light => true,
-            _ => throw new ArgumentOutOfRangeException()
-        };
-        
         SetupStyle(ImGui.GetStyle());
     }
     
     private void PlayerOnTrackChanged(TrackInfo info, string path)
     {
         _hasIncrementedPlayCount = false;
-        TrackInfo.Image art = info.AlbumArt;
+        TrackInfo.Image? art = info.AlbumArt;
 
         if (art?.Data == null)
             _shouldDeleteArt = true;
@@ -1094,7 +1099,7 @@ public class GlimpsePlayer : Window
             response.EnsureSuccessStatusCode();
 
             string json = await response.Content.ReadAsStringAsync();
-            JObject obj = JObject.Parse(json);
+            JsonNode obj = JsonObject.Parse(json);
 
             SemVer thisVersion = Glimpse.Version;
 
@@ -1233,138 +1238,34 @@ public class GlimpsePlayer : Window
         style.DockingSeparatorSize = (int) float.Ceiling(1 * Scale);
         style.ScaleAllSizes(Scale);
         style.FontScaleDpi = Scale;
+
+        // TODO: This system is terrible!!!
+        //   The theme should be stored in the config file as the theme's "Friendly Name", not as a "path" to the theme.
+        string themeName = $"Themes.{Glimpse.Config.Appearance.Theme}.json";
+        Stream stream;
+        try
+        {
+            stream = Asset.GetAssetStream(themeName);
+        }
+        catch (Exception e)
+        {
+            Glimpse.Logger.Log("Couldn't load theme. Using default.");
+            stream = Asset.GetAssetStream($"Themes.{Theme.DefaultTheme}.json");
+        }
+
+        bool useLightMode = Glimpse.Config.Appearance.PreferredColorScheme switch
+        {
+            PreferredColorScheme.SyncToOS => SDL.GetSystemTheme() == SDL.SystemTheme.Light,
+            PreferredColorScheme.Dark => false,
+            PreferredColorScheme.Light => true,
+            _ => throw new ArgumentOutOfRangeException()
+        };
         
-        if (_isLightModeTheme)
-            LightMode(style);
-        else
-            DarkMode(style);
-    }
-
-    private void DarkMode(ImGuiStylePtr style)
-    {
-        Span<Vector4> colors = style.Colors;
-        colors[(int) ImGuiCol.Text]                   = new Vector4(0.93f, 0.93f, 0.93f, 1.00f);
-        colors[(int) ImGuiCol.TextDisabled]           = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
-        colors[(int) ImGuiCol.WindowBg]               = new Vector4(0.12f, 0.12f, 0.14f, 0.94f);
-        colors[(int) ImGuiCol.ChildBg]                = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.PopupBg]                = new Vector4(0.08f, 0.08f, 0.08f, 0.94f);
-        colors[(int) ImGuiCol.Border]                 = new Vector4(0.43f, 0.43f, 0.50f, 0.50f);
-        colors[(int) ImGuiCol.BorderShadow]           = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.FrameBg]                = new Vector4(0.16f, 0.29f, 0.48f, 0.54f);
-        colors[(int) ImGuiCol.FrameBgHovered]         = new Vector4(0.26f, 0.59f, 0.98f, 0.40f);
-        colors[(int) ImGuiCol.FrameBgActive]          = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
-        colors[(int) ImGuiCol.TitleBg]                = new Vector4(0.04f, 0.04f, 0.04f, 1.00f);
-        colors[(int) ImGuiCol.TitleBgActive]          = new Vector4(0.16f, 0.29f, 0.48f, 1.00f);
-        colors[(int) ImGuiCol.TitleBgCollapsed]       = new Vector4(0.00f, 0.00f, 0.00f, 0.51f);
-        colors[(int) ImGuiCol.MenuBarBg]              = new Vector4(0.14f, 0.14f, 0.14f, 1.00f);
-        colors[(int) ImGuiCol.ScrollbarBg]            = new Vector4(0.02f, 0.02f, 0.02f, 0.20f);
-        colors[(int) ImGuiCol.ScrollbarGrab]          = new Vector4(0.44f, 0.53f, 0.64f, 0.71f);
-        colors[(int) ImGuiCol.ScrollbarGrabHovered]   = new Vector4(0.44f, 0.53f, 0.64f, 1.00f);
-        colors[(int) ImGuiCol.ScrollbarGrabActive]    = new Vector4(0.26f, 0.93f, 0.59f, 1.00f);
-        colors[(int) ImGuiCol.CheckMark]              = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
-        colors[(int) ImGuiCol.SliderGrab]             = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
-        colors[(int) ImGuiCol.SliderGrabActive]       = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
-        colors[(int) ImGuiCol.Button]                 = new Vector4(1.00f, 0.69f, 0.22f, 0.78f);
-        colors[(int) ImGuiCol.ButtonHovered]          = new Vector4(0.62f, 0.93f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.ButtonActive]           = new Vector4(0.06f, 0.53f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.Header]                 = new Vector4(0.23f, 0.66f, 0.87f, 0.16f);
-        colors[(int) ImGuiCol.HeaderHovered]          = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
-        colors[(int) ImGuiCol.HeaderActive]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        //colors[(int) ImGuiCol.Separator]              = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
-        colors[(int) ImGuiCol.SeparatorHovered]       = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
-        colors[(int) ImGuiCol.SeparatorActive]        = new Vector4(0.10f, 0.40f, 0.75f, 1.00f);
-        colors[(int) ImGuiCol.ResizeGrip]             = new Vector4(0.26f, 0.59f, 0.98f, 0.20f);
-        colors[(int) ImGuiCol.ResizeGripHovered]      = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
-        colors[(int) ImGuiCol.ResizeGripActive]       = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
-        colors[(int) ImGuiCol.TabHovered]             = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
-        colors[(int) ImGuiCol.Tab]                    = new Vector4(0.27f, 0.27f, 0.27f, 0.78f);
-        colors[(int) ImGuiCol.TabSelected]            = new Vector4(0.23f, 0.66f, 0.87f, 1.00f);
-        colors[(int) ImGuiCol.TabSelectedOverline]    = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.TabDimmed]              = new Vector4(0.07f, 0.10f, 0.15f, 0.97f);
-        colors[(int) ImGuiCol.TabDimmedSelected]      = new Vector4(0.14f, 0.26f, 0.42f, 1.00f);
-        colors[(int) ImGuiCol.TabDimmedSelectedOverline]  = new Vector4(0.50f, 0.50f, 0.50f, 1.00f);
-        colors[(int) ImGuiCol.DockingPreview]         = new Vector4(0.26f, 0.59f, 0.98f, 0.70f);
-        colors[(int) ImGuiCol.DockingEmptyBg]         = new Vector4(0.20f, 0.20f, 0.20f, 1.00f);
-        colors[(int) ImGuiCol.PlotLines]              = new Vector4(0.61f, 0.61f, 0.61f, 1.00f);
-        colors[(int) ImGuiCol.PlotLinesHovered]       = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.60f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.TableHeaderBg]          = new Vector4(0.19f, 0.19f, 0.26f, 1.00f);
-        colors[(int) ImGuiCol.TableBorderStrong]      = new Vector4(0.31f, 0.31f, 0.35f, 1.00f);
-        colors[(int) ImGuiCol.TableBorderLight]       = new Vector4(0.23f, 0.23f, 0.25f, 1.00f);
-        colors[(int) ImGuiCol.TableRowBg]             = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.TableRowBgAlt]          = new Vector4(1.00f, 1.00f, 1.00f, 0.06f);
-        colors[(int) ImGuiCol.TextLink]               = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.TextSelectedBg]         = new Vector4(0.26f, 0.59f, 0.98f, 0.35f);
-        colors[(int) ImGuiCol.DragDropTarget]         = new Vector4(1.00f, 1.00f, 0.00f, 0.90f);
-        colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(1.00f, 1.00f, 1.00f, 0.70f);
-        colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.80f, 0.80f, 0.80f, 0.20f);
-        colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.80f, 0.80f, 0.80f, 0.35f);
-    }
-
-    private void LightMode(ImGuiStylePtr style)
-    {
-        Span<Vector4> colors = style.Colors;
-        colors[(int) ImGuiCol.Text]                   = new Vector4(0.00f, 0.00f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.TextDisabled]           = new Vector4(0.60f, 0.60f, 0.60f, 1.00f);
-        colors[(int) ImGuiCol.WindowBg]               = new Vector4(0.94f, 0.94f, 0.94f, 1.00f);
-        colors[(int) ImGuiCol.ChildBg]                = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.PopupBg]                = new Vector4(1.00f, 1.00f, 1.00f, 0.98f);
-        colors[(int) ImGuiCol.Border]                 = new Vector4(0.00f, 0.00f, 0.00f, 0.30f);
-        colors[(int) ImGuiCol.BorderShadow]           = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.FrameBg]                = new Vector4(1.00f, 1.00f, 1.00f, 1.00f);
-        colors[(int) ImGuiCol.FrameBgHovered]         = new Vector4(0.26f, 0.59f, 0.98f, 0.40f);
-        colors[(int) ImGuiCol.FrameBgActive]          = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
-        colors[(int) ImGuiCol.TitleBg]                = new Vector4(0.96f, 0.96f, 0.96f, 1.00f);
-        colors[(int) ImGuiCol.TitleBgActive]          = new Vector4(0.82f, 0.82f, 0.82f, 1.00f);
-        colors[(int) ImGuiCol.TitleBgCollapsed]       = new Vector4(1.00f, 1.00f, 1.00f, 0.51f);
-        colors[(int) ImGuiCol.MenuBarBg]              = new Vector4(0.86f, 0.86f, 0.86f, 1.00f);
-        colors[(int) ImGuiCol.ScrollbarBg]            = new Vector4(0.98f, 0.98f, 0.98f, 0.53f);
-        colors[(int) ImGuiCol.ScrollbarGrab]          = new Vector4(0.69f, 0.69f, 0.69f, 0.80f);
-        colors[(int) ImGuiCol.ScrollbarGrabHovered]   = new Vector4(0.49f, 0.49f, 0.49f, 0.80f);
-        colors[(int) ImGuiCol.ScrollbarGrabActive]    = new Vector4(0.49f, 0.49f, 0.49f, 1.00f);
-        colors[(int) ImGuiCol.CheckMark]              = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.SliderGrab]             = new Vector4(0.26f, 0.59f, 0.98f, 0.78f);
-        colors[(int) ImGuiCol.SliderGrabActive]       = new Vector4(0.46f, 0.54f, 0.80f, 0.60f);
-        colors[(int) ImGuiCol.Button]                 = new Vector4(1.00f, 0.69f, 0.22f, 0.78f);
-        colors[(int) ImGuiCol.ButtonHovered]          = new Vector4(0.62f, 0.93f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.ButtonActive]           = new Vector4(0.06f, 0.53f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.Header]                 = new Vector4(0.26f, 0.59f, 0.98f, 0.31f);
-        colors[(int) ImGuiCol.HeaderHovered]          = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
-        colors[(int) ImGuiCol.HeaderActive]           = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        //colors[(int) ImGuiCol.Separator]              = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
-        colors[(int) ImGuiCol.SeparatorHovered]       = new Vector4(1.00f, 0.34f, 0.43f, 1.00f);
-        colors[(int) ImGuiCol.SeparatorActive]        = new Vector4(0.10f, 0.40f, 0.75f, 1.00f);
-        colors[(int) ImGuiCol.ResizeGrip]             = new Vector4(0.35f, 0.35f, 0.35f, 0.17f);
-        colors[(int) ImGuiCol.ResizeGripHovered]      = new Vector4(0.26f, 0.59f, 0.98f, 0.67f);
-        colors[(int) ImGuiCol.ResizeGripActive]       = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
-        colors[(int) ImGuiCol.InputTextCursor]        = new Vector4(0.00f, 0.00f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.TabHovered]             = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
-        colors[(int) ImGuiCol.Tab]                    = new Vector4(0.76f, 0.80f, 0.84f, 0.93f);
-        colors[(int) ImGuiCol.TabSelected]            = new Vector4(0.60f, 0.73f, 0.88f, 1.00f);
-        colors[(int) ImGuiCol.TabSelectedOverline]    = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.TabDimmed]              = new Vector4(0.92f, 0.93f, 0.94f, 0.99f);
-        colors[(int) ImGuiCol.TabDimmedSelected]      = new Vector4(0.74f, 0.82f, 0.91f, 1.00f);
-        colors[(int) ImGuiCol.TabDimmedSelectedOverline] = new Vector4(0.26f, 0.59f, 1.00f, 0.00f);
-        colors[(int) ImGuiCol.DockingPreview]         = new Vector4(0.26f, 0.59f, 0.98f, 0.22f);
-        colors[(int) ImGuiCol.DockingEmptyBg]         = new Vector4(0.20f, 0.20f, 0.20f, 1.00f);
-        colors[(int) ImGuiCol.PlotLines]              = new Vector4(0.39f, 0.39f, 0.39f, 1.00f);
-        colors[(int) ImGuiCol.PlotLinesHovered]       = new Vector4(1.00f, 0.43f, 0.35f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogram]          = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.PlotHistogramHovered]   = new Vector4(1.00f, 0.45f, 0.00f, 1.00f);
-        colors[(int) ImGuiCol.TableHeaderBg]          = new Vector4(0.78f, 0.87f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.TableBorderStrong]      = new Vector4(0.57f, 0.57f, 0.64f, 1.00f);
-        colors[(int) ImGuiCol.TableBorderLight]       = new Vector4(0.68f, 0.68f, 0.74f, 1.00f);
-        colors[(int) ImGuiCol.TableRowBg]             = new Vector4(0.00f, 0.00f, 0.00f, 0.00f);
-        colors[(int) ImGuiCol.TableRowBgAlt]          = new Vector4(0.30f, 0.30f, 0.30f, 0.09f);
-        colors[(int) ImGuiCol.TextLink]               = new Vector4(0.26f, 0.59f, 0.98f, 1.00f);
-        colors[(int) ImGuiCol.TextSelectedBg]         = new Vector4(0.26f, 0.59f, 0.98f, 0.35f);
-        colors[(int) ImGuiCol.TreeLines]              = new Vector4(0.00f, 0.00f, 0.00f, 0.30f);
-        colors[(int) ImGuiCol.DragDropTarget]         = new Vector4(0.26f, 0.59f, 0.98f, 0.95f);
-        colors[(int) ImGuiCol.NavCursor]              = new Vector4(0.26f, 0.59f, 0.98f, 0.80f);
-        colors[(int) ImGuiCol.NavWindowingHighlight]  = new Vector4(0.70f, 0.70f, 0.70f, 0.70f);
-        colors[(int) ImGuiCol.NavWindowingDimBg]      = new Vector4(0.20f, 0.20f, 0.20f, 0.20f);
-        colors[(int) ImGuiCol.ModalWindowDimBg]       = new Vector4(0.20f, 0.20f, 0.20f, 0.35f);
+        Theme theme =
+            JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
+        theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
+        
+        stream.Dispose();
     }
 
     private enum AlbumView

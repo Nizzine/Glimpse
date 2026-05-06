@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using Glimpse.API;
 using Glimpse.API.Library;
 using Glimpse.Audio;

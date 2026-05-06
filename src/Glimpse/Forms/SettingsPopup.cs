@@ -1,8 +1,9 @@
 ﻿using System.Numerics;
+using System.Text.Json;
 using Glimpse.API;
+using Glimpse.Assets;
 using Glimpse.Configs;
 using Glimpse.Graphics;
-using Glimpse.Locales;
 using Hexa.NET.ImGui;
 
 namespace Glimpse.Forms;
@@ -14,8 +15,7 @@ public class SettingsPopup : Popup
     private Image? _glimpseLogo;
     private string? _currentPlugin;
 
-    private Image? _darkMode;
-    private Image? _lightMode;
+    private List<(string name, Theme theme)> _themes = [];
 
     private Image? _transportDown;
     private Image? _transportUp;
@@ -23,13 +23,23 @@ public class SettingsPopup : Popup
     public override void Open()
     {
         _currentConfig = Glimpse.Config;
-        _currentConfig.EnabledPlugins = new HashSet<string>(Glimpse.Config.EnabledPlugins);
+        _currentConfig.Plugins.EnabledPlugins = new HashSet<string>(Glimpse.Config.Plugins.EnabledPlugins);
+
+        _themes.Clear();
+        foreach (string name in Asset.GetAllNamesInFolder("Themes"))
+        {
+            using Stream stream = Asset.GetAssetStream(name);
+            Theme theme = JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
+            _themes.Add((name.Replace("Themes.", "").Replace(".json", ""), theme));
+        }
+        
+        _themes.Sort((theme, theme1) => theme.theme.Name.CompareTo(theme1.theme.Name, StringComparison.InvariantCulture));
     }
 
     public override void Update(float dt)
     {
-        Locale locale = Glimpse.Locale;
-        string popupName = locale.GetString("Popup.Settings.Name");
+        Locale currentLocale = Glimpse.Locale;
+        string popupName = currentLocale.GetString("Popup.Settings.Name");
         
         if (!ImGui.IsPopupOpen(popupName))
             ImGui.OpenPopup(popupName);
@@ -44,17 +54,16 @@ public class SettingsPopup : Popup
             {
                 if (ImGui.BeginTabBar("SettingsTab"))
                 {
-                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.General")))
+                    if (ImGui.BeginTabItem(currentLocale.GetString("Popup.Settings.Tab.General")))
                     {
-                        if (ImGui.BeginCombo(locale.GetString("Popup.Settings.Tab.General.Language"),
-                                locale.DisplayName))
+                        if (ImGui.BeginCombo(currentLocale.GetString("Popup.Settings.Tab.General.Language"),
+                                currentLocale.DisplayName))
                         {
-                            foreach ((string id, (_, string name)) in Locale.AvailableLocales)
+                            foreach ((string id, Locale.AvailableLocale locale) in Locale.AvailableLocales.Locales)
                             {
-                                if (ImGui.Selectable(name,
-                                        locale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
+                                if (ImGui.Selectable(locale.DisplayName, currentLocale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
                                 {
-                                    _currentConfig.Language = id;
+                                    _currentConfig.General.Language = id;
                                     Glimpse.Locale = Locale.LoadLocale(id);
                                 }
                             }
@@ -62,68 +71,72 @@ public class SettingsPopup : Popup
                             ImGui.EndCombo();
                         }
 
-                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"),
-                            ref _currentConfig.EnableFileDeletion);
+                        ImGui.Checkbox(currentLocale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"),
+                            ref _currentConfig.General.EnableFileDeletion);
                         ImGui.SetItemTooltipUnformatted(
-                            locale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
+                            currentLocale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
 
-                        ImGui.Checkbox(locale.GetString("Popup.Settings.Tab.General.CheckForUpdates"),
-                            ref _currentConfig.EnableUpdateChecking);
-                        ImGui.SetItemTooltipUnformatted(locale.GetString("Popup.Settings.Tab.General.CheckForUpdates.Tooltip"));
+                        ImGui.Checkbox(currentLocale.GetString("Popup.Settings.Tab.General.CheckForUpdates"),
+                            ref _currentConfig.General.EnableUpdateChecking);
+                        ImGui.SetItemTooltipUnformatted(currentLocale.GetString("Popup.Settings.Tab.General.CheckForUpdates.Tooltip"));
 
                         ImGui.EndTabItem();
                     }
                     
-                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Appearance")))
+                    if (ImGui.BeginTabItem(currentLocale.GetString("Popup.Settings.Tab.Appearance")))
                     {
-                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Appearance.Theme"));
+                        ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme"));
 
-                        string syncToOS = locale.GetString("Popup.Settings.Tab.Appearance.Theme.SyncToOS");
-                        string dark = locale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
-                        string light = locale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
+                        string syncToOS = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.SyncToOS");
+                        string dark = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
+                        string light = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
 
-                        bool shouldSyncToOS = _currentConfig.Theme == Theme.SyncToOS;
+                        ref PreferredColorScheme scheme = ref _currentConfig.Appearance.PreferredColorScheme;
+                        bool shouldSyncToOS = scheme == PreferredColorScheme.SyncToOS;
                         if (ImGui.Checkbox(syncToOS, ref shouldSyncToOS))
-                            _currentConfig.Theme = shouldSyncToOS ? Theme.SyncToOS : Theme.Dark;
-
-                        _lightMode ??= Renderer.CreateImage("Assets/Images/LightMode.png");
-                        _darkMode ??= Renderer.CreateImage("Assets/Images/DarkMode.png");
-
+                            scheme = shouldSyncToOS ? PreferredColorScheme.SyncToOS : PreferredColorScheme.Dark;
+                        
                         ImGui.BeginDisabled(shouldSyncToOS);
-                        
-                        if (ImGui.SelectButton("LightMode", _lightMode,
-                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
-                                _currentConfig.Theme == Theme.Light))
+
+                        if (ImGui.BeginCombo("Colour Scheme", scheme == PreferredColorScheme.Light ? light : dark))
                         {
-                            _currentConfig.Theme = Theme.Light;
+                            if (ImGui.Selectable(dark, scheme == PreferredColorScheme.Dark))
+                                scheme = PreferredColorScheme.Dark;
+                            if (ImGui.Selectable(light, scheme == PreferredColorScheme.Light))
+                                scheme = PreferredColorScheme.Light;
+                            
+                            ImGui.EndCombo();
                         }
-                        ImGui.SetItemTooltipUnformatted(light);
-                        
-                        ImGui.SameLine();
-                        
-                        if (ImGui.SelectButton("DarkMode", _darkMode,
-                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
-                                _currentConfig.Theme == Theme.Dark))
-                        {
-                            _currentConfig.Theme = Theme.Dark;
-                        }
-                        ImGui.SetItemTooltipUnformatted(dark);
                         
                         ImGui.EndDisabled();
-                        
-                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
-                        _transportDown ??= Renderer.CreateImage("Assets/Images/TransportDown.png");
-                        _transportUp ??= Renderer.CreateImage("Assets/Images/TransportUp.png");
+                        //_lightMode ??= Renderer.CreateImage("Images.LightMode.png");
+                        //_darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
+
+                        if (ImGui.BeginListBox("##ThemesList"))
+                        {
+                            foreach ((string name, Theme theme) in _themes)
+                            {
+                                if (ImGui.Selectable(theme.Name, _currentConfig.Appearance.Theme == name))
+                                    _currentConfig.Appearance.Theme = name;
+                            }
+
+                            ImGui.EndListBox();
+                        } 
                         
-                        string up = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Up");
-                        string down = locale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Down");
+                        ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
+
+                        _transportDown ??= Renderer.CreateImage("Images.TransportDown.png");
+                        _transportUp ??= Renderer.CreateImage("Images.TransportUp.png");
+                        
+                        string up = currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Up");
+                        string down = currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Down");
                         
                         if (ImGui.SelectButton("TransportDown", _transportDown,
                             ScaleVec(_transportDown.Width * 0.25f, _transportDown.Height * 0.25f),
-                            !_currentConfig.SwapTransportControls))
+                            !_currentConfig.Appearance.SwapTransportControls))
                         {
-                            _currentConfig.SwapTransportControls = false;
+                            _currentConfig.Appearance.SwapTransportControls = false;
                         }
                         ImGui.SetItemTooltipUnformatted(down);
 
@@ -131,9 +144,9 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.SelectButton("TransportUp", _transportUp,
                                 ScaleVec(_transportUp.Width * 0.25f, _transportUp.Height * 0.25f),
-                                _currentConfig.SwapTransportControls))
+                                _currentConfig.Appearance.SwapTransportControls))
                         {
-                            _currentConfig.SwapTransportControls = true;
+                            _currentConfig.Appearance.SwapTransportControls = true;
                         }
                         ImGui.SetItemTooltipUnformatted(up);
                         
@@ -168,12 +181,12 @@ public class SettingsPopup : Popup
 
                         ImGui.EndTabItem();
                     }*/
-
-                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.Plugins")))
+#if !PUBLISH_AOT
+                    if (ImGui.BeginTabItem(currentLocale.GetString("Popup.Settings.Tab.Plugins")))
                     {
                         if (Glimpse.Plugins == null || Glimpse.Plugins.Count == 0)
                         {
-                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
+                            ImGui.TextUnformatted(currentLocale.GetString("Popup.Settings.Tab.Plugins.NoneAvailable"));
                         }
                         else
                         {
@@ -193,13 +206,13 @@ public class SettingsPopup : Popup
                                 {
                                     if (name == _currentPlugin)
                                     {
-                                        bool enabled = _currentConfig.EnabledPlugins.Contains(_currentPlugin);
-                                        if (ImGui.Checkbox(locale.GetString("Checkbox.Enabled"), ref enabled))
+                                        bool enabled = _currentConfig.Plugins.EnabledPlugins.Contains(_currentPlugin);
+                                        if (ImGui.Checkbox(currentLocale.GetString("Checkbox.Enabled"), ref enabled))
                                         {
                                             if (enabled)
-                                                _currentConfig.EnabledPlugins.Add(_currentPlugin);
+                                                _currentConfig.Plugins.EnabledPlugins.Add(_currentPlugin);
                                             else
-                                                _currentConfig.EnabledPlugins.Remove(_currentPlugin);
+                                                _currentConfig.Plugins.EnabledPlugins.Remove(_currentPlugin);
                                         }
                                         
                                         // TODO: Hack - ideally would display the GUI for all plugins even if disabled
@@ -220,10 +233,11 @@ public class SettingsPopup : Popup
 
                         ImGui.EndTabItem();
                     }
+#endif
 
-                    if (ImGui.BeginTabItem(locale.GetString("Popup.Settings.Tab.About")))
+                    if (ImGui.BeginTabItem(currentLocale.GetString("Popup.Settings.Tab.About")))
                     {
-                        _glimpseLogo ??= Renderer.CreateImage("Assets/Icons/Glimpse.png");
+                        _glimpseLogo ??= Renderer.CreateImage("Icons.Glimpse.png");
 
                         if (ImGui.BeginChild("GlimpseLogo", ImGuiChildFlags.AlwaysAutoResize | ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
@@ -236,36 +250,36 @@ public class SettingsPopup : Popup
                         if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
                         {
                             ImGui.PushFont(null, 32);
-                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
+                            ImGui.TextUnformatted(currentLocale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
                             ImGui.PopFont();
                             ImGui.TextUnformatted("2026 aquagoose");
 
                             ImGui.Spacing();
-                            ImGui.TextUnformatted(locale.GetString("Popup.Settings.Tab.About.Credits"));
+                            ImGui.TextUnformatted(currentLocale.GetString("Popup.Settings.Tab.About.Credits"));
                             
                             ImGui.Spacing();
-                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Website")))
+                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Website")))
                                 Utils.OpenLink("https://glimpseaudio.co.uk");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Donate")))
+                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Donate")))
                                 Utils.OpenLink("https://glimpseaudio.co.uk/donate");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Repository")))
+                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Repository")))
                                 Utils.OpenLink("https://glimpseaudio.co.uk/repo");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(locale.GetString("Popup.Settings.Tab.About.Discord")))
+                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Discord")))
                                 Utils.OpenLink("https://glimpseaudio.co.uk/discord");
                             
                             ImGui.EndChild();
                         }
 
-                        ImGui.SeparatorText(locale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries"));
+                        ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.About.OpenSourceLibraries"));
                         {
                             ImGui.BeginChild("OSLibraries");
                             {
@@ -291,8 +305,6 @@ public class SettingsPopup : Popup
                                     Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
                                 if (ImGui.TextLink("TerraFX.Interop.Windows"))
                                     Utils.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
-                                if (ImGui.TextLink("Newtonsoft.Json"))
-                                    Utils.OpenLink("https://www.newtonsoft.com/json");
 
                                 ImGui.EndChild();
                             }
@@ -306,7 +318,7 @@ public class SettingsPopup : Popup
                     ImGui.EndChild();
                 }
 
-                if (ImGui.Button(locale.GetString("Button.Save")))
+                if (ImGui.Button(currentLocale.GetString("Button.Save")))
                 {
                     Apply();
                     Close();
@@ -314,7 +326,7 @@ public class SettingsPopup : Popup
                 
                 ImGui.SameLine();
                 
-                if (ImGui.Button(locale.GetString("Button.Cancel")))
+                if (ImGui.Button(currentLocale.GetString("Button.Cancel")))
                     Close();
             }
             
@@ -336,7 +348,7 @@ public class SettingsPopup : Popup
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
-        if (_currentConfig.SwapTransportControls != oldConfig.SwapTransportControls || _currentConfig.Theme != oldConfig.Theme)
+        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls || _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme || _currentConfig.Appearance.PreferredColorScheme != oldConfig.Appearance.PreferredColorScheme)
             ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
         if (Glimpse.Plugins == null)
@@ -345,13 +357,13 @@ public class SettingsPopup : Popup
         foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
         {
             // Plugin has been disabled
-            if (oldConfig.EnabledPlugins.Contains(name) && !_currentConfig.EnabledPlugins.Contains(name))
+            if (oldConfig.Plugins.EnabledPlugins.Contains(name) && !_currentConfig.Plugins.EnabledPlugins.Contains(name))
             {
                 logger.Log($"Disabling plugin {name}");
                 plugin.Dispose();
             }
             // Plugin has been enabled
-            else if (_currentConfig.EnabledPlugins.Contains(name) && !oldConfig.EnabledPlugins.Contains(name))
+            else if (_currentConfig.Plugins.EnabledPlugins.Contains(name) && !oldConfig.Plugins.EnabledPlugins.Contains(name))
             {
                 logger.Log($"Enabling plugin {name}");
                 plugin.Initialize(Glimpse);

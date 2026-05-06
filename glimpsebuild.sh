@@ -4,10 +4,24 @@
 # Commented because I almost always immediately forget how to read and write bash scripts.
 # I swear this stuff is black magic... And then I look at winetricks and I just think HOW?? and WHY??
 
-if [ $# -ne 3 ]; then
-  echo "Usage: glimpsebuild <out_name> <runtime> <version>"
+if [ $# -lt 3 ]; then
+  echo "Usage: glimpsebuild <out_name> <runtime> <version> [--nozip] [--aot]"
   exit 2
 fi
+
+NOZIP=false
+AOT=false
+
+for arg in "$@"; do
+  if [ $arg == "--nozip" ]; then
+    NOZIP=true
+  fi
+  if [ $arg == "--aot" ]; then
+    AOT=true
+    echo "AOT compilation not yet implemented!"
+    exit 0
+  fi
+done
 
 OUT_NAME="$1"
 BUILD_DIR_NAME="${OUT_NAME}"
@@ -61,6 +75,7 @@ for dir in Plugins/*; do
     
     # Read the list of dependencies. Native dependencies are marked with a *, which get special treatment.
     # Only the native deps that fit the output runtime are copied.
+    # TODO: This doesn't read the last line of the file... A blank line at the end of the file has to be inserted.
     while read dep; do
       if [[ $dep == *"*" ]]; then
         dep=${dep%%"*"} 
@@ -78,6 +93,11 @@ for dir in Plugins/*; do
 done
 
 rm -rf $PLUGINS_DIR_TEMP || exit 1
+
+# If --nozip, don't compress the output.
+if $NOZIP; then
+  exit 0
+fi
 
 if [[ $RUNTIME == "win"* ]]; then
   zip -r "$OUT_NAME-$RUNTIME.zip" "$BUILD_DIR_NAME/" || exit 1

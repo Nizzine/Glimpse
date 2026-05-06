@@ -1,4 +1,5 @@
-﻿using Glimpse.API;
+﻿using System.Collections;
+using Glimpse.API;
 using Glimpse.API.Codecs;
 using Glimpse.Audio.Codecs.Flac;
 using Glimpse.Audio.Codecs.Mp3;
@@ -19,6 +20,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private readonly AudioDevice _device;
     
     private Track? _activeTrack;
+    private TrackInfo? _currentTrackInfo;
+    private TrackState _currentTrackState;
 
     private int _currentTrackIndex;
 
@@ -26,7 +29,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private readonly List<ICodec> _codecs;
 
     public readonly List<string> QueuedTracks;
-
+    
     public IReadOnlyList<ICodec> Codecs => _codecs;
 
     public float Volume
@@ -35,15 +38,30 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         set => _context.MasterVolume = value;
     }
 
+    public double Speed
+    {
+        get => field;
+        set
+        {
+            double speed = double.Clamp(value, 0, 32);
+            field = speed;
+            _activeTrack?.Speed = speed;
+        }
+    }
+
+    public RepeatMode Repeat { get; set; }
+    
+    public ShuffleMode Shuffle { get; set; }
+
     public TimeSpan ElapsedTime => TimeSpan.FromSeconds(_activeTrack?.ElapsedSeconds ?? 0);
 
     public TimeSpan ConsumedTime => TimeSpan.FromSeconds(_activeTrack?.SecondsConsumed ?? 0);
 
     public TimeSpan TrackLength => TimeSpan.FromSeconds(_activeTrack?.LengthInSeconds ?? 0);
 
-    public TrackInfo? CurrentTrack => _activeTrack?.Info;
+    public TrackInfo? CurrentTrack => _currentTrackInfo;
 
-    public TrackState TrackState => _activeTrack?.State ?? TrackState.Stopped;
+    public TrackState TrackState => _currentTrackState;
 
     public int CurrentTrackIndex => _currentTrackIndex;
 
@@ -57,6 +75,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _logger?.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
         Volume = _settings.Volume;
+        Speed = settings.SpeedAdjust;
         
         _logger?.Log("Creating device.");
         _device = new AudioDevice(_context, _settings.SampleRate);
@@ -128,7 +147,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         //_logger?.Log("  Locking device.");
         //_device.Lock();
-        Track oldTrack = _activeTrack;
+        Track? oldTrack = _activeTrack;
 
         _currentTrackIndex = queueIndex;
         
@@ -138,6 +157,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
         _logger?.Log("  Creating track.");
         _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
+        _activeTrack.Speed = Speed;
         //_activeTrack.UpdateBuffers += () => Stop();
 
         TrackChanged(info, path);
@@ -159,7 +179,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         _logger?.Log("Start playback.");
         _activeTrack.Play();
-        StateChanged(TrackState.Playing);
+        ChangeState(TrackState.Playing);
         _logger?.Log("  Playing device.");
         _device.Play();
     }
@@ -170,7 +190,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             return;
         
         _activeTrack.Pause();
-        StateChanged(TrackState.Paused);
+        ChangeState(TrackState.Paused);
     }
 
     public void Stop()
@@ -189,14 +209,28 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _logger?.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
         _currentTrackIndex = 0;
-        StateChanged(TrackState.Stopped);
+        ChangeState(TrackState.Stopped);
     }
 
     public void Next()
     {
         do
         {
-            _currentTrackIndex++;
+            switch (Repeat)
+            {
+                case RepeatMode.Off:
+                    _currentTrackIndex++;
+                    break;
+                case RepeatMode.RepeatQueue:
+                    _currentTrackIndex++;
+                    if (_currentTrackIndex >= QueuedTracks.Count)
+                        _currentTrackIndex = 0;
+                    break;
+                case RepeatMode.RepeatOne:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
 
             if (_currentTrackIndex >= QueuedTracks.Count)
             {
@@ -220,7 +254,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public void Seek(double second)
     {
         _activeTrack.Seek(second);
-        StateChanged(TrackState);
+        ChangeState(TrackState);
     }
 
     public void RegisterCodec(ICodec codec)
@@ -282,6 +316,14 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             QueuedTracks.Add(path);
         else
             QueuedTracks.Insert(index, path);
+    }
+
+    private void ChangeState(TrackState state)
+    {
+        _logger?.Log($"Changing state to {state}.");
+        _currentTrackInfo = _activeTrack?.Info;
+        _currentTrackState = state;
+        StateChanged(state);
     }
 
     private void OnTrackFinish()
