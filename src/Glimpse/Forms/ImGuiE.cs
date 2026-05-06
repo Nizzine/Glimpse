@@ -61,14 +61,10 @@ public static class ImGuiE
             return false;
         }
 
-        public static bool ColorEdit4(string label, ref uint color, string tooltip)
+        public static bool ColorEdit4(string label, ref Vector4 color, string tooltip)
         {
-            Vector4 vecColor = Theme.UintToVector4(color);
-            bool isEdited = ImGui.ColorEdit4(label, ref vecColor, ImGuiColorEditFlags.AlphaBar);
+            bool isEdited = ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar);
             ImGui.SetItemTooltipUnformatted(tooltip);
-            if (isEdited)
-                color = Theme.Vector4ToUint(vecColor);
-
             return isEdited;
         }
     }
