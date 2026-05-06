@@ -13,8 +13,7 @@ public class SettingsPopup : Popup
     private Image? _glimpseLogo;
     private string? _currentPlugin;
 
-    private Image? _darkMode;
-    private Image? _lightMode;
+    private Image[] _themes;
 
     private Image? _transportDown;
     private Image? _transportUp;
@@ -22,7 +21,7 @@ public class SettingsPopup : Popup
     public override void Open()
     {
         _currentConfig = Glimpse.Config;
-        _currentConfig.EnabledPlugins = new HashSet<string>(Glimpse.Config.EnabledPlugins);
+        _currentConfig.Plugins.EnabledPlugins = new HashSet<string>(Glimpse.Config.Plugins.EnabledPlugins);
     }
 
     public override void Update()
@@ -52,7 +51,7 @@ public class SettingsPopup : Popup
                             {
                                 if (ImGui.Selectable(locale.DisplayName, currentLocale.ID == id ? ImGuiSelectableFlags.Highlight : ImGuiSelectableFlags.None))
                                 {
-                                    _currentConfig.Language = id;
+                                    _currentConfig.General.Language = id;
                                     Glimpse.Locale = Locale.LoadLocale(id);
                                 }
                             }
@@ -61,12 +60,12 @@ public class SettingsPopup : Popup
                         }
 
                         ImGui.Checkbox(currentLocale.GetString("Popup.Settings.Tab.General.EnableDeleteFile"),
-                            ref _currentConfig.EnableFileDeletion);
+                            ref _currentConfig.General.EnableFileDeletion);
                         ImGui.SetItemTooltipUnformatted(
                             currentLocale.GetString("Popup.Settings.Tab.General.EnableDeleteFile.Tooltip"));
 
                         ImGui.Checkbox(currentLocale.GetString("Popup.Settings.Tab.General.CheckForUpdates"),
-                            ref _currentConfig.EnableUpdateChecking);
+                            ref _currentConfig.General.EnableUpdateChecking);
                         ImGui.SetItemTooltipUnformatted(currentLocale.GetString("Popup.Settings.Tab.General.CheckForUpdates.Tooltip"));
 
                         ImGui.EndTabItem();
@@ -80,34 +79,14 @@ public class SettingsPopup : Popup
                         string dark = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
                         string light = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
 
-                        bool shouldSyncToOS = _currentConfig.Theme == Theme.SyncToOS;
+                        bool shouldSyncToOS = _currentConfig.Appearance.PreferredColorScheme == PreferredColorScheme.SyncToOS;
                         if (ImGui.Checkbox(syncToOS, ref shouldSyncToOS))
-                            _currentConfig.Theme = shouldSyncToOS ? Theme.SyncToOS : Theme.Dark;
+                            _currentConfig.Appearance.PreferredColorScheme = shouldSyncToOS ? PreferredColorScheme.SyncToOS : PreferredColorScheme.Dark;
 
-                        _lightMode ??= Renderer.CreateImage("Images.LightMode.png");
-                        _darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
-
-                        ImGui.BeginDisabled(shouldSyncToOS);
+                        //_lightMode ??= Renderer.CreateImage("Images.LightMode.png");
+                        //_darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
                         
-                        if (ImGui.SelectButton("LightMode", _lightMode,
-                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
-                                _currentConfig.Theme == Theme.Light))
-                        {
-                            _currentConfig.Theme = Theme.Light;
-                        }
-                        ImGui.SetItemTooltipUnformatted(light);
-                        
-                        ImGui.SameLine();
-                        
-                        if (ImGui.SelectButton("DarkMode", _darkMode,
-                                ScaleVec(_darkMode.Width * 0.25f, _darkMode.Height * 0.25f),
-                                _currentConfig.Theme == Theme.Dark))
-                        {
-                            _currentConfig.Theme = Theme.Dark;
-                        }
-                        ImGui.SetItemTooltipUnformatted(dark);
-                        
-                        ImGui.EndDisabled();
+                        // TODO
                         
                         ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
@@ -119,9 +98,9 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.SelectButton("TransportDown", _transportDown,
                             ScaleVec(_transportDown.Width * 0.25f, _transportDown.Height * 0.25f),
-                            !_currentConfig.SwapTransportControls))
+                            !_currentConfig.Appearance.SwapTransportControls))
                         {
-                            _currentConfig.SwapTransportControls = false;
+                            _currentConfig.Appearance.SwapTransportControls = false;
                         }
                         ImGui.SetItemTooltipUnformatted(down);
 
@@ -129,9 +108,9 @@ public class SettingsPopup : Popup
                         
                         if (ImGui.SelectButton("TransportUp", _transportUp,
                                 ScaleVec(_transportUp.Width * 0.25f, _transportUp.Height * 0.25f),
-                                _currentConfig.SwapTransportControls))
+                                _currentConfig.Appearance.SwapTransportControls))
                         {
-                            _currentConfig.SwapTransportControls = true;
+                            _currentConfig.Appearance.SwapTransportControls = true;
                         }
                         ImGui.SetItemTooltipUnformatted(up);
                         
@@ -191,13 +170,13 @@ public class SettingsPopup : Popup
                                 {
                                     if (name == _currentPlugin)
                                     {
-                                        bool enabled = _currentConfig.EnabledPlugins.Contains(_currentPlugin);
+                                        bool enabled = _currentConfig.Plugins.EnabledPlugins.Contains(_currentPlugin);
                                         if (ImGui.Checkbox(currentLocale.GetString("Checkbox.Enabled"), ref enabled))
                                         {
                                             if (enabled)
-                                                _currentConfig.EnabledPlugins.Add(_currentPlugin);
+                                                _currentConfig.Plugins.EnabledPlugins.Add(_currentPlugin);
                                             else
-                                                _currentConfig.EnabledPlugins.Remove(_currentPlugin);
+                                                _currentConfig.Plugins.EnabledPlugins.Remove(_currentPlugin);
                                         }
                                         
                                         // TODO: Hack - ideally would display the GUI for all plugins even if disabled
@@ -333,7 +312,7 @@ public class SettingsPopup : Popup
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
-        if (_currentConfig.SwapTransportControls != oldConfig.SwapTransportControls || _currentConfig.Theme != oldConfig.Theme)
+        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls || _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme)
             ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
         if (Glimpse.Plugins == null)
@@ -342,13 +321,13 @@ public class SettingsPopup : Popup
         foreach ((string name, IPlugin plugin) in Glimpse.Plugins)
         {
             // Plugin has been disabled
-            if (oldConfig.EnabledPlugins.Contains(name) && !_currentConfig.EnabledPlugins.Contains(name))
+            if (oldConfig.Plugins.EnabledPlugins.Contains(name) && !_currentConfig.Plugins.EnabledPlugins.Contains(name))
             {
                 logger.Log($"Disabling plugin {name}");
                 plugin.Dispose();
             }
             // Plugin has been enabled
-            else if (_currentConfig.EnabledPlugins.Contains(name) && !oldConfig.EnabledPlugins.Contains(name))
+            else if (_currentConfig.Plugins.EnabledPlugins.Contains(name) && !oldConfig.Plugins.EnabledPlugins.Contains(name))
             {
                 logger.Log($"Enabling plugin {name}");
                 plugin.Initialize(Glimpse);

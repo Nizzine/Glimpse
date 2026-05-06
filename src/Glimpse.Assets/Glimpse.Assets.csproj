@@ -22,4 +22,8 @@
         </EmbeddedResource>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Images\Themes\" />
+    </ItemGroup>
+
 </Project>

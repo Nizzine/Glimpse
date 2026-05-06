@@ -68,6 +68,7 @@ public class GlimpsePlayer : Window
         Title = "Glimpse";
 #endif
         Size = new Size(1100, 650);
+        //Size = new Size(620, 400);
     }
 
     protected override unsafe void Initialize()
@@ -119,7 +120,7 @@ public class GlimpsePlayer : Window
 
 //#if !DEBUG
         // Only perform the update check if the user wants it!
-        if (Glimpse.Config.EnableUpdateChecking)
+        if (Glimpse.Config.General.EnableUpdateChecking)
             Task.Run(CheckForNewerVersion);
 //#endif
     }
@@ -219,7 +220,7 @@ public class GlimpsePlayer : Window
 
             if (!_miniplayer)
             {
-                ImGuiDir dir = Glimpse.Config.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
+                ImGuiDir dir = Glimpse.Config.Appearance.SwapTransportControls ? ImGuiDir.Up : ImGuiDir.Down;
                 
                 uint albumsSongsId;
                 ImGuiP.DockBuilderSplitNode(id, dir, 0, &transportId, &albumsSongsId);
@@ -234,6 +235,7 @@ public class GlimpsePlayer : Window
 
                 ImGuiDockNodePtr albumsNode = ImGuiP.DockBuilderGetNode(albumsId);
                 albumsNode.SizeRef = ScaleVec(327, 650);
+                //albumsNode.SizeRef = ScaleVec(200, 650);
 
                 ImGuiDockNodePtr songsNode = ImGuiP.DockBuilderGetNode(songsId);
                 songsNode.SizeRef = ScaleVec(772, 650);
@@ -462,7 +464,7 @@ public class GlimpsePlayer : Window
                             {
                                 float fVol = (float) volume / 100;
                                 Glimpse.Player.Volume = fVol;
-                                Glimpse.Config.Volume = fVol;
+                                Glimpse.Config.Audio.Volume = fVol;
                             }
 
                             if (_miniplayer)
@@ -653,7 +655,7 @@ public class GlimpsePlayer : Window
                             
                                 if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                     AddPopup(new RemovePopup(data.Name, true, false));
-                                if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
+                                if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
                                     AddPopup(new RemovePopup(data.Name, true, true));
                             
                                 ImGui.EndPopup();
@@ -884,7 +886,7 @@ public class GlimpsePlayer : Window
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                         AddPopup(new RemovePopup(path, false, false));
-                                    if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
+                                    if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
                                         AddPopup(new RemovePopup(path, false, true));
 
                                     ImGui.EndPopup();
@@ -1196,10 +1198,10 @@ public class GlimpsePlayer : Window
         style.ScaleAllSizes(Scale);
         style.FontScaleDpi = Scale;
 
-        using Stream stream = Asset.GetAssetStream("Themes.Night.json");
-        GlimpseTheme theme =
-            JsonSerializer.Deserialize<GlimpseTheme>(stream, ConfigManager.GetDefaultSerializerOptions());
-        theme.ApplyImGuiStyle(ImGui.GetStyle().Colors);
+        using Stream stream = Asset.GetAssetStream("Themes.Default.json");
+        Theme theme =
+            JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
+        //theme.ApplyImGuiStyle("Dark", ImGui.GetStyle().Colors);
     }
 
     private enum AlbumView

@@ -14,4 +14,16 @@ public static class Asset
 
         return stream;
     }
+
+    /// <summary>
+    /// Gets all asset names in a certain folder.
+    /// </summary>
+    /// <param name="folder">The folder to get the names from.</param>
+    /// <returns>A list of asset names.</returns>
+    /// <remarks>This is horribly inefficient. Call this sparingly.</remarks>
+    public static IEnumerable<string> GetAllNamesInFolder(string folder)
+    {
+        Assembly assembly = Assembly.GetExecutingAssembly();
+        return assembly.GetManifestResourceNames().Where(s => s.StartsWith(folder));
+    }
 }

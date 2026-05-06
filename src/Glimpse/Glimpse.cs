@@ -114,8 +114,21 @@ public class Glimpse : IGlimpse, IDisposable
         Logger.Log("Loading player configuration.");
         if (!ConfigManager.TryGetConfig(GlimpseConfig.ConfigName, out Config))
         {
-            Logger.Log("   ... Failed: Creating new config.");
+            Logger.Log("   ... Failed: Searching for alpha config.");
+            
             Config = new GlimpseConfig();
+            // Seamlessly transition an alpha configuration (< 0.1.0) over to the new config system. 
+            if (ConfigManager.TryGetConfig(OldConfig.ConfigName, out OldConfig oldConfig))
+            {
+                Logger.Log("   ... Populating new config.");
+                oldConfig.PopulateNewConfig(ref Config);
+                // TODO: Re-enable this once 0.1.0 is ready
+               // string configPath = Path.Combine(IConfigManager.BaseDir, OldConfig.ConfigName + ".json");
+               // File.Delete(configPath); // Delete old config as its no longer needed, and will prevent confusion if the user tries to edit the file.
+            }
+            else
+                Logger.Log("   ... Failed: Creating new config.");
+            
             ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
         }
         
@@ -129,23 +142,23 @@ public class Glimpse : IGlimpse, IDisposable
         _windows = new List<Window>();
         _windowIds = new Dictionary<uint, Window>();
 
-        Player = new AudioPlayer(Logger, new PlayerSettings(Config.SampleRate, Config.Volume, Config.SpeedAdjust));
+        Player = new AudioPlayer(Logger, new PlayerSettings(Config.Audio.SampleRate, Config.Audio.Volume, Config.Audio.SpeedAdjust));
 
         Logger.Log("Loading locales.");
         
         const string defaultLocale = "en-gb";
-        string requestedLocale = Config.Language ?? CultureInfo.CurrentUICulture.Name.ToLower();
+        string requestedLocale = Config.General.Language ?? CultureInfo.CurrentUICulture.Name.ToLower();
         Logger.Log($"Requesting locale '{requestedLocale}'.");
         if (Locale.AvailableLocales.Locales.ContainsKey(requestedLocale))
         {
             Locale = Locale.LoadLocale(requestedLocale);
-            Config.Language = requestedLocale;
+            Config.General.Language = requestedLocale;
         }
         else
         {
             Logger.Log($"Requested locale '{requestedLocale}' is not available. Loading default locale '{defaultLocale}'.");
             Locale = Locale.LoadLocale(defaultLocale);
-            Config.Language = defaultLocale;
+            Config.General.Language = defaultLocale;
         }
 
         if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
@@ -212,7 +225,7 @@ public class Glimpse : IGlimpse, IDisposable
 
                     string assemblyName = assembly.GetName().Name;
 
-                    if (Config.EnabledPlugins.Contains(assemblyName))
+                    if (Config.Plugins.EnabledPlugins.Contains(assemblyName))
                     {
                         Logger.Log("    ... Initialize()");
                         plugin.Initialize(this);

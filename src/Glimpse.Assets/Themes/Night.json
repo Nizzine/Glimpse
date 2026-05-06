@@ -1,6 +1,7 @@
 {
   "Name": "Night",
-  "Colors": {
+  "Image": "Images.Themes.Night.png",
+  "DarkColors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#0A0C26FF",
     "PopupBackground": "#0A0C26FF",
