@@ -1,5 +1,7 @@
 ﻿using System.Numerics;
+using System.Text.Json;
 using Glimpse.API;
+using Glimpse.Assets;
 using Glimpse.Configs;
 using Glimpse.Graphics;
 using Hexa.NET.ImGui;
@@ -13,7 +15,7 @@ public class SettingsPopup : Popup
     private Image? _glimpseLogo;
     private string? _currentPlugin;
 
-    private Image[] _themes;
+    private List<(string name, Theme theme)> _themes = [];
 
     private Image? _transportDown;
     private Image? _transportUp;
@@ -22,6 +24,16 @@ public class SettingsPopup : Popup
     {
         _currentConfig = Glimpse.Config;
         _currentConfig.Plugins.EnabledPlugins = new HashSet<string>(Glimpse.Config.Plugins.EnabledPlugins);
+
+        _themes.Clear();
+        foreach (string name in Asset.GetAllNamesInFolder("Themes"))
+        {
+            using Stream stream = Asset.GetAssetStream(name);
+            Theme theme = JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
+            _themes.Add((name.Replace("Themes.", "").Replace(".json", ""), theme));
+        }
+        
+        _themes.Sort((theme, theme1) => theme.theme.Name.CompareTo(theme1.theme.Name, StringComparison.InvariantCulture));
     }
 
     public override void Update()
@@ -79,14 +91,38 @@ public class SettingsPopup : Popup
                         string dark = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
                         string light = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
 
-                        bool shouldSyncToOS = _currentConfig.Appearance.PreferredColorScheme == PreferredColorScheme.SyncToOS;
+                        ref PreferredColorScheme scheme = ref _currentConfig.Appearance.PreferredColorScheme;
+                        bool shouldSyncToOS = scheme == PreferredColorScheme.SyncToOS;
                         if (ImGui.Checkbox(syncToOS, ref shouldSyncToOS))
-                            _currentConfig.Appearance.PreferredColorScheme = shouldSyncToOS ? PreferredColorScheme.SyncToOS : PreferredColorScheme.Dark;
+                            scheme = shouldSyncToOS ? PreferredColorScheme.SyncToOS : PreferredColorScheme.Dark;
+                        
+                        ImGui.BeginDisabled(shouldSyncToOS);
+
+                        if (ImGui.BeginCombo("Colour Scheme", scheme == PreferredColorScheme.Light ? light : dark))
+                        {
+                            if (ImGui.Selectable(dark, scheme == PreferredColorScheme.Dark))
+                                scheme = PreferredColorScheme.Dark;
+                            if (ImGui.Selectable(light, scheme == PreferredColorScheme.Light))
+                                scheme = PreferredColorScheme.Light;
+                            
+                            ImGui.EndCombo();
+                        }
+                        
+                        ImGui.EndDisabled();
 
                         //_lightMode ??= Renderer.CreateImage("Images.LightMode.png");
                         //_darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
-                        
-                        // TODO
+
+                        if (ImGui.BeginListBox("##ThemesList"))
+                        {
+                            foreach ((string name, Theme theme) in _themes)
+                            {
+                                if (ImGui.Selectable(theme.Name, _currentConfig.Appearance.Theme == name))
+                                    _currentConfig.Appearance.Theme = name;
+                            }
+
+                            ImGui.EndListBox();
+                        } 
                         
                         ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
@@ -312,7 +348,7 @@ public class SettingsPopup : Popup
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
         
-        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls || _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme)
+        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls || _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme || _currentConfig.Appearance.PreferredColorScheme != oldConfig.Appearance.PreferredColorScheme)
             ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
 
         if (Glimpse.Plugins == null)

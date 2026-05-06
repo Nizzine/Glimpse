@@ -7,7 +7,7 @@ namespace Glimpse;
 
 public struct Theme
 {
-    public const string DefaultThemePath = "Themes.Glimpse.json";
+    public const string DefaultTheme = "Glimpse";
     
     public string Name;
 

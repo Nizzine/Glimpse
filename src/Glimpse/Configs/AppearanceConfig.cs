@@ -7,7 +7,7 @@ public struct AppearanceConfig() : IEquatable<AppearanceConfig>
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public PreferredColorScheme PreferredColorScheme = PreferredColorScheme.SyncToOS;
     
-    public string Theme = "Glimpse";
+    public string Theme = global::Glimpse.Theme.DefaultTheme;
     
     public bool SwapTransportControls = false;
 

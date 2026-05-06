@@ -24,6 +24,16 @@ public static class Asset
     public static IEnumerable<string> GetAllNamesInFolder(string folder)
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
-        return assembly.GetManifestResourceNames().Where(s => s.StartsWith(folder));
+
+        List<string> resources = [];
+        foreach (string name in assembly.GetManifestResourceNames())
+        {
+            // mmmmm
+            // strip "Glimpse.Assets." from the name as GetAssetStream will insert it back again.
+            if (name.StartsWith($"Glimpse.Assets.{folder}"))
+                resources.Add(name["Glimpse.Assets.".Length..]);
+        }
+
+        return resources;
     }
 }

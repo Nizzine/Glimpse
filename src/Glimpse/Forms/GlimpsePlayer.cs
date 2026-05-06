@@ -7,6 +7,7 @@ using System.Text.Json.Nodes;
 using Glimpse.API;
 using Glimpse.Assets;
 using Glimpse.Audio;
+using Glimpse.Configs;
 using Glimpse.Database;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
@@ -1198,10 +1199,33 @@ public class GlimpsePlayer : Window
         style.ScaleAllSizes(Scale);
         style.FontScaleDpi = Scale;
 
-        using Stream stream = Asset.GetAssetStream("Themes.Default.json");
+        // TODO: This system is terrible!!!
+        //   The theme should be stored in the config file as the theme's "Friendly Name", not as a "path" to the theme.
+        string themeName = $"Themes.{Glimpse.Config.Appearance.Theme}.json";
+        Stream stream;
+        try
+        {
+            stream = Asset.GetAssetStream(themeName);
+        }
+        catch (Exception e)
+        {
+            Glimpse.Logger.Log("Couldn't load theme. Using default.");
+            stream = Asset.GetAssetStream($"Themes.{Theme.DefaultTheme}.json");
+        }
+
+        bool useLightMode = Glimpse.Config.Appearance.PreferredColorScheme switch
+        {
+            PreferredColorScheme.SyncToOS => SDL.GetSystemTheme() == SDL.SystemTheme.Light,
+            PreferredColorScheme.Dark => false,
+            PreferredColorScheme.Light => true,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+        
         Theme theme =
             JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
-        //theme.ApplyImGuiStyle("Dark", ImGui.GetStyle().Colors);
+        theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
+        
+        stream.Dispose();
     }
 
     private enum AlbumView
