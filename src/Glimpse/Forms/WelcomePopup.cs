@@ -23,7 +23,7 @@ public class WelcomePopup : Popup
 
     public override void Open()
     {
-        _glimpse = Renderer.CreateImage("Assets/Icons/Glimpse.png");
+        _glimpse = Renderer.CreateImage("Icons.Glimpse.png");
         _tabIndex = 0;
 
         _needsRefresh = true;
@@ -46,6 +46,8 @@ public class WelcomePopup : Popup
         ImGui.SetNextWindowSize(windowSize);
         if (ImGui.Begin("Welcome", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove))
         {
+            // TODO: Make this work with themes instead of being hardcoded.
+            // TODO: Because night theme has no transparency, the background is entirely opaque. It should perhaps have some transparency or something.
             ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(new Vector3(0.12f), 1.0f));
             ImGui.SetNextWindowPos(welcomePos);
             ImGui.BeginChild("TabChild", welcomeSize, ImGuiChildFlags.Borders);

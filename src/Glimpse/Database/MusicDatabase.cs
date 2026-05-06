@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using Glimpse.API;
 using Glimpse.API.Library;
 using Glimpse.Audio;
-using Newtonsoft.Json;
 using Track = Glimpse.API.Library.Track;
 
 namespace Glimpse.Database;
@@ -59,7 +59,7 @@ public class MusicDatabase : IMusicLibrary
         }
 
         // TODO: Handle null
-        Library library = JsonConvert.DeserializeObject<Library>(File.ReadAllText(_databasePath));
+        Library library = JsonSerializer.Deserialize<Library>(File.ReadAllText(_databasePath), ConfigManager.GetDefaultSerializerOptions());
 
         _libraryPaths = library.LibraryPaths.ToHashSet();
         _excludedDirectories = library.ExcludedDirectories.ToHashSet();
@@ -247,7 +247,7 @@ public class MusicDatabase : IMusicLibrary
         Library library = new Library(DatabaseVersion, _libraryPaths, _excludedDirectories,
             (IReadOnlyCollection<Track>) _tracks.Values, (IReadOnlyCollection<Album>) _albums.Values,
             (IReadOnlyCollection<Artist>) _artists.Values, (IReadOnlyCollection<Genre>) _genres.Values);
-        string json = JsonConvert.SerializeObject(library, Formatting.Indented);
+        string json = JsonSerializer.Serialize(library, ConfigManager.GetDefaultSerializerOptions());
         File.WriteAllText(_databasePath, json);
     }
 

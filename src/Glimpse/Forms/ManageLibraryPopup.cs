@@ -28,8 +28,8 @@ public class ManageLibraryPopup : Popup
 
     public override void Open()
     {
-        _plus = Renderer.CreateImage("Assets/Icons/Plus.png");
-        _refresh = Renderer.CreateImage("Assets/Icons/Update.png");
+        _plus = Renderer.CreateImage("Icons.Plus.png");
+        _refresh = Renderer.CreateImage("Icons.Update.png");
 
         _needsRefresh = true;
     }

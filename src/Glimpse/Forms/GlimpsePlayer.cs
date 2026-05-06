@@ -692,7 +692,7 @@ public class GlimpsePlayer : Window
                             
                                 if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
                                     AddPopup(new RemovePopup(albumName, true, false));
-                                if (Glimpse.Config.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
+                                if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
                                     AddPopup(new RemovePopup(albumName, true, true));
                             
                                 ImGui.EndPopup();
