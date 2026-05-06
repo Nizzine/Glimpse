@@ -52,6 +52,7 @@ public class ConfigManager : IConfigManager
         {
             IncludeFields = true,
             WriteIndented = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
         };
         
         if (!JsonSerializer.IsReflectionEnabledByDefault)
@@ -61,7 +62,7 @@ public class ConfigManager : IConfigManager
     }
 }
 
-[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true)]
+[JsonSourceGenerationOptions(WriteIndented = true, IncludeFields = true, ReadCommentHandling = JsonCommentHandling.Skip)]
 [JsonSerializable(typeof(GlimpseConfig))]
 [JsonSerializable(typeof(Locale))]
 [JsonSerializable(typeof(Locale.AvailableLocale))]

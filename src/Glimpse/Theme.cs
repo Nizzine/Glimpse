@@ -5,7 +5,7 @@ using Hexa.NET.ImGui;
 
 namespace Glimpse;
 
-public struct Theme
+public record struct Theme
 {
     public const string DefaultTheme = "Glimpse";
     
@@ -111,7 +111,7 @@ public struct Theme
         return theme;
     }
 
-    private static Vector4 UintToVector4(uint value)
+    public static Vector4 UintToVector4(uint value)
     {
         byte r = (byte) (value >> 24);
         byte g = (byte) ((value >> 16) & 0xFF);
@@ -122,7 +122,7 @@ public struct Theme
             a / (float) byte.MaxValue);
     }
 
-    private static uint Vector4ToUint(Vector4 value)
+    public static uint Vector4ToUint(Vector4 value)
     {
         byte r = (byte) (value.X * byte.MaxValue);
         byte g = (byte) (value.Y * byte.MaxValue);
@@ -132,7 +132,7 @@ public struct Theme
         return (uint) ((r << 24) | (g << 16) | (b << 8) | a);
     }
     
-    public struct ColorScheme
+    public record struct ColorScheme
     {
         /// <summary>
         /// Text color.
