@@ -1,7 +1,7 @@
 {
   "Name": "Oranghini",
   "Author": "Nizzine",
-  "Version": "1",
+  "Version": "2",
   "DarkColors": {
     "Text": "#FFFFFFDC",
     "MainBackground": "#222222FF",
@@ -21,7 +21,7 @@
     "ButtonHovered": "#FFAA00FF",
     "ButtonClicked": "#FF7700FF",
     "ListEntrySelected": "#E04D00DC",
-    "ListEntryHovered": "#FFAA00AA",
+    "ListEntryHovered": "#FF7700CC",
     "ListEntryClicked": "#FF7700AA",
     "Separator": "#FF77007F",
     "SeparatorHovered": "#FF770096",
