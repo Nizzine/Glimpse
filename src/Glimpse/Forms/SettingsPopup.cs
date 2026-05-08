@@ -122,8 +122,14 @@ public class SettingsPopup : Popup
                             }
 
                             ImGui.EndListBox();
-                        } 
-                        
+                        }
+
+                        if (ImGui.Button("Open Theme Editor"))
+                        {
+                            Close();
+                            Glimpse.MainWindow.AddPopup(new ThemeEditor());
+                        }
+
                         ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
                         _transportDown ??= Renderer.CreateImage("Images.TransportDown.png");

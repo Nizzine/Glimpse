@@ -90,7 +90,7 @@ public static class GlimpseCli
             }
             else
             {
-                string fileName = arg.Trim('"');
+                string fileName = arg.Trim();
 
                 if (File.Exists(fileName))
                 {
@@ -103,7 +103,7 @@ public static class GlimpseCli
                 }
                 else
                 {
-                    Console.WriteError($"Argument {argIndex}: An invalid file was provided.");
+                    Console.WriteError($"The file or directory \"{fileName}\" was not found.");
                     return;
                 }
             }

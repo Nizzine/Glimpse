@@ -60,5 +60,12 @@ public static class ImGuiE
 
             return false;
         }
+
+        public static bool ColorEdit4(string label, ref Vector4 color, string tooltip)
+        {
+            bool isEdited = ImGui.ColorEdit4(label, ref color, ImGuiColorEditFlags.AlphaBar);
+            ImGui.SetItemTooltipUnformatted(tooltip);
+            return isEdited;
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace Glimpse.Configs;
 
 public struct AppearanceConfig() : IEquatable<AppearanceConfig>
 {
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<PreferredColorScheme>))]
     public PreferredColorScheme PreferredColorScheme = PreferredColorScheme.SyncToOS;
     
     public string Theme = global::Glimpse.Theme.DefaultTheme;
