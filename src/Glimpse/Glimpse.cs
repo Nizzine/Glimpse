@@ -33,7 +33,7 @@ public class Glimpse : IGlimpse, IDisposable
     private NamedPipeServerStream _pipeServer;
     
     private bool _shouldFocusWindow;
-    private string? _playFile;
+    private List<string> _playFiles;
     private float _currentDeltaTime;
 
     public Logger Logger;
@@ -66,6 +66,8 @@ public class Glimpse : IGlimpse, IDisposable
 
     public void Run(Window window, string[] args)
     {
+        _playFiles = [];
+        
         Logger = new Logger();
         
         _pipeServer = new NamedPipeServerStream(PipeServerName, PipeDirection.In);
@@ -244,7 +246,8 @@ public class Glimpse : IGlimpse, IDisposable
         
         if (args.Length > 0)
         {
-            Player.QueueTrack(args[0], QueueSlot.Clear);
+            Player.QueueTracks(args, QueueSlot.Clear);
+            Player.TryChangeTrack(0);
             Player.Play();
         }
         
@@ -271,10 +274,12 @@ public class Glimpse : IGlimpse, IDisposable
                 SDL.RaiseWindow(handle);
             }
 
-            if (_playFile != null)
+            if (_playFiles.Count > 0)
             {
-                Player.QueueTrack(_playFile, QueueSlot.Clear);
-                _playFile = null;
+                Player.QueueTracks(_playFiles, QueueSlot.Clear);
+                Player.TryChangeTrack(0);
+                Player.Play();
+                _playFiles.Clear();
             }
 
             _currentDeltaTime = (float) sw.Elapsed.TotalSeconds;
@@ -672,19 +677,24 @@ public class Glimpse : IGlimpse, IDisposable
         }
 
         _shouldFocusWindow = true;
+        // Only copy to the global _playFiles when ready, as this may be called on a separate thread.
+        // Helps prevent race conditions.
+        List<string> playFiles = [];
 
-        int b = _pipeServer.ReadByte();
-        if (b != -1)
+        BinaryReader reader = new BinaryReader(_pipeServer);
+        
+        int b;
+        while ((b = _pipeServer.ReadByte()) != -1)
         {
             Program.CommunicationFlags flags = (Program.CommunicationFlags) b;
-            BinaryReader reader = new BinaryReader(_pipeServer);
 
             if ((flags & Program.CommunicationFlags.PlayFile) != 0)
-                _playFile = reader.ReadString();
+                playFiles.Add(reader.ReadString());
         }
-            
-        _pipeServer.Disconnect();
 
+        _playFiles = playFiles;
+
+        _pipeServer.Disconnect();
         _pipeServer.BeginWaitForConnection(OnPipeServerConnection, this);
     }
 

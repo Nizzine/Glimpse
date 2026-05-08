@@ -19,9 +19,20 @@ public static class Program
             Console.WriteLine("Found!");
             if (args.Length > 0)
             {
+                string cwd = Environment.CurrentDirectory;
+                
                 BinaryWriter writer = new BinaryWriter(pipeClient);
-                writer.Write((byte) CommunicationFlags.PlayFile);
-                writer.Write(args[0]);
+                foreach (string path in args)
+                {
+                    writer.Write((byte) CommunicationFlags.PlayFile);
+                    
+                    // Ensure the absolute path is always written otherwise the existing Glimpse instance won't know
+                    // what to do with it.
+                    if (Path.IsPathRooted(path))
+                        writer.Write(path);
+                    else
+                        writer.Write(Path.Combine(cwd, path));
+                }
             }
 
             return;
