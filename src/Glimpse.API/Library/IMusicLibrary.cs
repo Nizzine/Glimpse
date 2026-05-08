@@ -4,6 +4,10 @@ public interface IMusicLibrary
 {
     public bool IsIndexing { get; }
     
+    public IReadOnlyCollection<string> LibraryPaths { get; }
+    
+    public IReadOnlyCollection<string> ExcludedDirectories { get; }
+    
     /// <summary>
     /// Gets the <see cref="Track"/>s in the library.
     /// </summary>
@@ -50,6 +54,11 @@ public interface IMusicLibrary
     /// <param name="path">The path to the directory.</param>
     /// <param name="includeSubdirectories">If <see langword="true"/>, all subdirectories will also be removed.</param>
     public void RemoveLibaryPath(string path, bool includeSubdirectories = true);
+
+    /// <summary>
+    /// Removes <b>ALL</b> library paths.
+    /// </summary>
+    public void RemoveAllLibraryPaths();
 
     /// <summary>
     /// Re-index the music library.

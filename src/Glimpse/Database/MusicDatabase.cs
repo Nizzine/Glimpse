@@ -37,6 +37,10 @@ public class MusicDatabase : IMusicLibrary
 
     public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
 
+    public IReadOnlyCollection<string> LibraryPaths => _libraryPaths;
+
+    public IReadOnlyCollection<string> ExcludedDirectories => _excludedDirectories;
+
     public MusicDatabase(Logger logger, AudioPlayer player)
     {
         _logger = logger;
@@ -109,6 +113,7 @@ public class MusicDatabase : IMusicLibrary
         return new SizedCollection<Genre>(genreEnumerable, (uint) genres.Count);
     }
 
+    // TODO: Rename this method to EnumerateLibraryPaths() ?
     public IReadOnlyCollection<string> GetLibraryPaths()
     {
         List<string> paths = [];
@@ -157,7 +162,13 @@ public class MusicDatabase : IMusicLibrary
         
         SaveLibrary();
     }
-    
+
+    public void RemoveAllLibraryPaths()
+    {
+        _libraryPaths.Clear();
+        _excludedDirectories.Clear();
+    }
+
     public void Index()
     {
         _indexTask = Task.Run(IndexLibrary);

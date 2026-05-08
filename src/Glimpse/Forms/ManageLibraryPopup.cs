@@ -1,4 +1,5 @@
 using System.Numerics;
+using Glimpse.Database;
 using Hexa.NET.ImGui;
 using SDL3;
 using Image = Glimpse.Graphics.Image;
@@ -10,6 +11,7 @@ public class ManageLibraryPopup : Popup
     private readonly SDL.DialogFileCallback _folderCallback;
     
     private Image _plus = null!;
+    private Image _minus = null!;
     private Image _refresh = null!;
 
     private float _refreshFlipTimer;
@@ -17,7 +19,7 @@ public class ManageLibraryPopup : Popup
 
     private bool _needsRefresh;
 
-    private IReadOnlyCollection<string> _libraryPaths = null!;
+    private List<LibraryDirectory> _libraryPaths = null!;
 
     private string? _selectedLibrary;
 
@@ -29,33 +31,32 @@ public class ManageLibraryPopup : Popup
     public override void Open()
     {
         _plus = Renderer.CreateImage("Icons.Plus.png");
+        _minus = Renderer.CreateImage("Icons.Minus.png");
         _refresh = Renderer.CreateImage("Icons.Update.png");
 
+        _libraryPaths = [];
         _needsRefresh = true;
     }
 
     public override void Update(float dt)
     {
         if (_needsRefresh)
-            _libraryPaths = Glimpse.Database.GetLibraryPaths();
+            RefreshLibrary();
         
         string popupName = "Manage Library";
         
         if (!ImGui.IsPopupOpen(popupName))
             ImGui.OpenPopup(popupName);
 
-        ImGui.SetNextWindowSize(new Vector2(600, 500));
+        ImGui.SetNextWindowSize(ScaleVec(600, 500));
         if (ImGui.BeginPopupModal(popupName))
         {
             ImGui.BeginDisabled(Glimpse.Database.IsIndexing);
             
             ImGui.BeginChild("PathsList", ScaleVec(400, 400), ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
             {
-                foreach (string path in _libraryPaths)
-                {
-                    if (ImGui.Selectable(path, path == _selectedLibrary))
-                        _selectedLibrary = path;
-                }
+                foreach (LibraryDirectory dir in _libraryPaths)
+                    dir.Update(Glimpse.Database, ref _selectedLibrary);
                 
                 ImGui.EndChild();
             }
@@ -73,6 +74,18 @@ public class ManageLibraryPopup : Popup
                     SDL.ShowOpenFolderDialog(_folderCallback, 0, Glimpse.MainWindow.Handle, defaultLocation, true);
                 }
                 ImGui.SetItemTooltipUnformatted("Add Folders to Library");
+                ImGui.SameLine();
+                
+                ImGui.BeginDisabled(_selectedLibrary == null);
+                if (ImGui.ImageButton("Remove", _minus, ScaleVec(16)))
+                {
+                    Glimpse.Database.RemoveLibaryPath(_selectedLibrary);
+                    _selectedLibrary = null;
+                    _needsRefresh = true;
+                }
+                ImGui.EndDisabled();
+                
+                ImGui.SetItemTooltipUnformatted("Remove selected folder from library");
                 ImGui.SameLine();
 
                 Vector2 uv0 = new Vector2(0, 0);
@@ -101,15 +114,17 @@ public class ManageLibraryPopup : Popup
 
                 ImGui.Separator();
                 
-                ImGui.BeginDisabled(_selectedLibrary == null);
-
-                if (ImGui.Button("Remove"))
+                if (ImGui.Button("Remove All"))
                 {
-                    Glimpse.Database.RemoveLibaryPath(_selectedLibrary);
-                    _needsRefresh = true;
+                    Glimpse.Database.RemoveAllLibraryPaths();
                 }
+
+                bool bFalse = false;
                 
-                ImGui.EndDisabled();
+                /*ImGui.Checkbox("Refresh on launch", ref bFalse);
+                ImGui.SetItemTooltipUnformatted("Refresh the music library when Glimpse is launched.");
+                ImGui.Checkbox("Auto remove deleted files", ref bFalse);
+                ImGui.SetItemTooltipUnformatted("Automatically remove tracks that no longer exist on the filesystem.");*/
                 
                 ImGui.EndChild();
             }
@@ -142,15 +157,81 @@ public class ManageLibraryPopup : Popup
         _plus.Dispose();
     }
 
-    private struct LibraryDirectory
+    private void RefreshLibrary()
     {
-        public string DirectoryName;
-        public Dictionary<string, LibraryDirectory> SubDirectories;
+        _libraryPaths = [];
 
-        public LibraryDirectory(string name)
+        foreach (string path in Glimpse.Database.LibraryPaths)
+            _libraryPaths.Add(new LibraryDirectory(path, true, true));
+    }
+
+    private class LibraryDirectory
+    {
+        /// <summary>
+        /// The path of the directory.
+        /// </summary>
+        public string Path;
+
+        /// <summary>
+        /// If the directory is a base library path. The full directory path will only be displayed if true.
+        /// </summary>
+        public bool IsBaseDir;
+        
+        /// <summary>
+        /// Whether the directory is enabled. If disabled, the directory will not be indexed.
+        /// </summary>
+        public bool Enabled;
+        
+        /// <summary>
+        /// Subdirectories contained in this directory.
+        /// </summary>
+        public Dictionary<string, LibraryDirectory>? SubDirectories;
+
+        public LibraryDirectory(string path, bool isBaseDir, bool enabled)
         {
-            DirectoryName = name;
-            SubDirectories = [];
+            Path = path;
+            IsBaseDir = isBaseDir;
+            Enabled = enabled;
+        }
+
+        public unsafe void Update(MusicDatabase database, ref string selectedDirectory)
+        {
+            if (SubDirectories == null)
+            {
+                SubDirectories = [];
+                EnumerationOptions options = new()
+                {
+                    IgnoreInaccessible = true
+                };
+                foreach (string directory in Directory.GetDirectories(Path, "*", options))
+                {
+                    bool enabled = true;
+                    // TODO: Expose the hash set.
+                    if (database.ExcludedDirectories.Contains(directory))
+                        enabled = false;
+                    
+                    SubDirectories.Add(directory, new LibraryDirectory(directory, false, enabled));
+                }
+            }
+            
+            string pathName = IsBaseDir ? Path : System.IO.Path.GetFileName(Path);
+            
+            if (!Enabled)
+                ImGui.PushStyleColor(ImGuiCol.Text, *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled));
+            
+            bool treeNodeOpened = ImGui.TreeNodeEx(pathName, ImGuiTreeNodeFlags.OpenOnArrow | (Path == selectedDirectory ? ImGuiTreeNodeFlags.Selected : 0));
+            if (ImGui.IsItemClicked())
+                selectedDirectory = Path;
+            if (treeNodeOpened)
+            {
+                foreach ((_, LibraryDirectory directory) in SubDirectories)
+                    directory.Update(database, ref selectedDirectory);
+                
+                ImGui.TreePop();
+            }
+            
+            if (!Enabled)
+                ImGui.PopStyleColor();
         }
     }
 }
