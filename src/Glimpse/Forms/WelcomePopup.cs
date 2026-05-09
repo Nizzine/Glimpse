@@ -1,4 +1,7 @@
 using System.Numerics;
+using Glimpse.API;
+using Glimpse.API.Library;
+using Glimpse.Database;
 using Hexa.NET.ImGui;
 using SDL3;
 using Image = Glimpse.Graphics.Image;
@@ -7,6 +10,8 @@ namespace Glimpse.Forms;
 
 public class WelcomePopup : Popup
 {
+    private bool _hasOldLibrary;
+    
     private string? _disableNext;
     private readonly SDL.DialogFileCallback _folderDialog;
     
@@ -23,6 +28,8 @@ public class WelcomePopup : Popup
 
     public override void Open()
     {
+        _hasOldLibrary = File.Exists(Path.Combine(IConfigManager.BaseDir, OldMusicDatabase.DatabaseName + ".json"));
+        
         _glimpse = Renderer.CreateImage("Icons.Glimpse.png");
         _tabIndex = 0;
 
@@ -138,6 +145,62 @@ public class WelcomePopup : Popup
 
     private void ImportTab()
     {
+        string importOldLibraryName = "Migration Assistant";
+        
+        if (_hasOldLibrary && !ImGui.IsPopupOpen(importOldLibraryName))
+            ImGui.OpenPopup(importOldLibraryName);
+
+        if (ImGui.BeginPopupModal(importOldLibraryName, ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            ImGui.Text("An alpha (< 0.1.0) music library was found.\nWould you like to import it?\nThe original library will NOT be deleted!");
+
+            if (ImGui.Button("Yes"))
+            {
+                Glimpse.ConfigManager.TryGetConfig(OldMusicDatabase.DatabaseName, out OldMusicDatabase oldDb);
+
+                string basePath = string.Empty;
+                List<string> basePaths = [];
+                foreach ((string path, Track track) in oldDb.Tracks)
+                {
+                    track.Path = path;
+                    Glimpse.Database.InsertOrUpdateTrack(track);
+
+                    if (string.IsNullOrEmpty(basePath))
+                        basePath = Path.GetDirectoryName(path);
+                    else
+                    {
+                        while (!path.StartsWith(basePath))
+                            basePath = Path.GetDirectoryName(basePath);
+                    }
+                }
+
+                foreach ((_, Album album) in oldDb.Albums)
+                    Glimpse.Database.InsertOrUpdateAlbum(album);
+
+                foreach ((_, Artist artist) in oldDb.Artists)
+                    Glimpse.Database.InsertOrUpdateArtist(artist);
+
+                foreach ((_, Genre genre) in oldDb.Genres)
+                    Glimpse.Database.InsertOrUpdateGenre(genre);
+                
+                //basePaths.Add(basePath);
+                Glimpse.Database.AddLibraryPath(basePath);
+                _needsRefresh = true;
+                _hasOldLibrary = false;
+                ImGui.CloseCurrentPopup();
+            }
+            
+            ImGui.SameLine();
+
+            if (ImGui.Button("No"))
+            {
+                _hasOldLibrary = false;
+                ImGui.CloseCurrentPopup();
+            }
+
+            ImGui.EndPopup();
+        }
+        
         if (_libraryPaths.Count == 0)
             _disableNext = "Add a folder to your library first!";
         

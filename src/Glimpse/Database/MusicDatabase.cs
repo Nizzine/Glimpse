@@ -237,6 +237,34 @@ public class MusicDatabase : IMusicLibrary
         return _albums.TryGetValue(albumName, out album);
     }
 
+    public bool InsertOrUpdateTrack(Track track)
+    {
+        bool trackExists = _tracks.ContainsKey(track.Path);
+        _tracks[track.Path] = track;
+        return !trackExists;
+    }
+    
+    public bool InsertOrUpdateAlbum(Album album)
+    {
+        bool albumExists = _albums.ContainsKey(album.Name);
+        _albums[album.Name] = album;
+        return !albumExists;
+    }
+    
+    public bool InsertOrUpdateArtist(Artist artist)
+    {
+        bool artistExists = _artists.ContainsKey(artist.Name);
+        _artists[artist.Name] = artist;
+        return !artistExists;
+    }
+    
+    public bool InsertOrUpdateGenre(Genre genre)
+    {
+        bool genreExists = _genres.ContainsKey(genre.Name);
+        _genres[genre.Name] = genre;
+        return !genreExists;
+    }
+
     private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths)
     {
         List<Track> trackList = [];
@@ -338,103 +366,6 @@ public class MusicDatabase : IMusicLibrary
         SaveLibrary();
         _logger.Log("Indexing complete!");
     }
-
-    /*public void AddIndexToDatabase(in IndexResult index)
-    {
-        _logger.Log($"Adding indexed directory {index.Directory} to dataabase.");
-
-        foreach ((string path, Track track) in index.Tracks)
-        {
-            Track trk = track;
-            
-            if (Tracks.TryGetValue(path, out Track oldTrack))
-            {
-                // Copy over playback metadata to the new track.
-                trk.Rating = oldTrack.Rating;
-                trk.PlayCount = oldTrack.PlayCount;
-                trk.LastPlayed = oldTrack.LastPlayed;
-            }
-            
-            Tracks[path] = trk;
-        }
-
-        foreach ((string name, Album album) in index.Albums)
-            Albums[name] = album;
-
-        foreach ((string name, Artist artist) in index.Artists)
-            Artists[name] = artist;
-        
-        foreach ((string name, Genre genre) in index.Genres)
-            Genres[name] = genre;
-        
-        Refresh();
-    }
-
-    public static IndexResult IndexDirectory(string directory, AudioPlayer player, Logger logger, ref string current)
-    {
-        logger.Log($"Indexing directory {directory}.");
-
-        Dictionary<string, Track> tracks = [];
-        Dictionary<string, Album> albums = [];
-        Dictionary<string, Artist> artists = [];
-        Dictionary<string, Genre> genres = [];
-
-        foreach (FileInfo file in new DirectoryInfo(directory).EnumerateFiles("*.*", SearchOption.AllDirectories).OrderBy(info => info.Name))
-        {
-            logger.Log($"Indexing {file}");
-            current = file.FullName;
-            
-            TrackInfo info;
-
-            // As GetTrackInfoForFile throws an exception if the track is supported, simply catch all errors, log them,
-            // then carry on.
-            try
-            {
-                info = player.GetTrackInfoForFile(file.FullName);
-            }
-            catch (Exception e)
-            {
-                logger.Log($"Exception occurred while getting track info: {e}");
-                continue;
-            }
-
-            tracks.Add(file.FullName, new Track(info));
-
-            //if (info.Album != null)
-            string albumName = info.Album ?? string.Empty;
-            if (!albums.TryGetValue(albumName, out Album album))
-            {
-                album = new Album(albumName);
-                albums.Add(albumName, album);
-            }
-            
-            album.Tracks.Add(file.FullName);
-
-            if (info.Artist != null)
-            {
-                if (!artists.TryGetValue(info.Artist, out Artist artist))
-                {
-                    artist = new Artist(info.Artist);
-                    artists.Add(info.Artist, artist);
-                }
-                
-                artist.Tracks.Add(file.FullName);
-            }
-
-            if (info.Genre != null)
-            {
-                if (!genres.TryGetValue(info.Genre, out Genre genre))
-                {
-                    genre = new Genre(info.Genre);
-                    genres.Add(info.Genre, genre);
-                }
-                
-                genre.Tracks.Add(file.FullName);
-            }
-        }
-
-        return new IndexResult(directory, tracks, albums, artists, genres);
-    }*/
 
     public delegate void OnUpdate();
 }

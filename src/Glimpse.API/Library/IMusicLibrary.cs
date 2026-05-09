@@ -86,4 +86,12 @@ public interface IMusicLibrary
     public bool UpdateTrack(Track track);
 
     public bool TryGetAlbum(string albumName, out Album album);
+
+    public bool InsertOrUpdateTrack(Track track);
+
+    public bool InsertOrUpdateAlbum(Album album);
+
+    public bool InsertOrUpdateArtist(Artist artist);
+
+    public bool InsertOrUpdateGenre(Genre genre);
 }

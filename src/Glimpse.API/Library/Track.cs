@@ -18,7 +18,7 @@ public record Track
 
     public byte Rating;
 
-    public byte PlayCount;
+    public uint PlayCount;
 
     public DateTime? LastPlayed;
 
