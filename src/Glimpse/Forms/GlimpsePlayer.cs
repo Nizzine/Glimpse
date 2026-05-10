@@ -119,11 +119,11 @@ public class GlimpsePlayer : Window
         if (Glimpse.Database.Tracks.Count == 0)
             AddPopup(new AddFolderPopup());
 
-//#if !DEBUG
+#if !DISABLE_AUTOUPDATE
         // Only perform the update check if the user wants it!
         if (Glimpse.Config.General.EnableUpdateChecking)
             Task.Run(CheckForNewerVersion);
-//#endif
+#endif
     }
 
     private void CheckIncrementPlayCount(object? state)

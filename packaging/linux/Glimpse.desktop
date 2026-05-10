@@ -5,8 +5,8 @@ Name=Glimpse
 GenericName=Music Player
 Comment=The free, fast, and extensible music player.
 Path=~/.local/share/Glimpse
-Exec=~/.local/share/Glimpse/Glimpse
+Exec=~/.local/share/Glimpse/Glimpse %F
 Icon=Glimpse
 Terminal=false
 Categories=Audio;AudioVideo
-
+MimeType=audio/mpeg;audio/wav;audio/ogg;audio/flac;
