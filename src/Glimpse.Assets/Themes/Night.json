@@ -1,6 +1,7 @@
 {
   "Name": "Night",
-  "Image": "Images.Themes.Night.png",
+  "Author": "aquagoose",
+  "Version": "1.0.0",
   "DarkColors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#0A0C26FF",

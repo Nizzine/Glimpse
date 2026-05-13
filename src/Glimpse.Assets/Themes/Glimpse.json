@@ -1,6 +1,7 @@
 {
   "Name": "Glimpse",
-  "Image": "Images.Themes.Default.png",
+  "Author": "aquagoose",
+  "Version": "1.0.0",
   "DarkColors": {
     "Text": "#EDEDEDFF",
     "MainBackground": "#1E1E23EF",

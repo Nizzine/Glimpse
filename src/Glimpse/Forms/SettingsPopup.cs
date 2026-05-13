@@ -3,8 +3,9 @@ using System.Text.Json;
 using Glimpse.API;
 using Glimpse.Assets;
 using Glimpse.Configs;
-using Glimpse.Graphics;
 using Hexa.NET.ImGui;
+using SDL3;
+using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;
 
@@ -15,7 +16,8 @@ public class SettingsPopup : Popup
     private Image? _glimpseLogo;
     private string? _currentPlugin;
 
-    private List<(string name, Theme theme)> _themes = [];
+    private Dictionary<string, Theme> _themes = [];
+    private bool _isSystemThemeLightMode;
 
     private Image? _transportDown;
     private Image? _transportUp;
@@ -30,10 +32,10 @@ public class SettingsPopup : Popup
         {
             using Stream stream = Asset.GetAssetStream(name);
             Theme theme = JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
-            _themes.Add((name.Replace("Themes.", "").Replace(".json", ""), theme));
+            _themes.Add(name.Replace("Themes.", "").Replace(".json", ""), theme);
         }
-        
-        _themes.Sort((theme, theme1) => theme.theme.Name.CompareTo(theme1.theme.Name, StringComparison.InvariantCulture));
+
+        _isSystemThemeLightMode = SDL.GetSystemTheme() == SDL.SystemTheme.Light;
     }
 
     public override void Update()
@@ -115,12 +117,24 @@ public class SettingsPopup : Popup
                         //_lightMode ??= Renderer.CreateImage("Images.LightMode.png");
                         //_darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
 
+                        ImGuiStylePtr currentStyle = ImGui.GetStyle();
+                        bool lightMode = shouldSyncToOS
+                            ? _isSystemThemeLightMode
+                            : scheme == PreferredColorScheme.Light;
+                        
+                        Theme currentTheme = _themes[_currentConfig.Appearance.Theme];
+                        currentTheme.ApplyImGuiStyle(lightMode, currentStyle.Colors);
+
                         if (ImGui.BeginListBox("##ThemesList"))
                         {
-                            foreach ((string name, Theme theme) in _themes)
+                            foreach ((string name, Theme theme) in _themes.OrderBy(pair => pair.Key))
                             {
                                 if (ImGui.Selectable(theme.Name, _currentConfig.Appearance.Theme == name))
                                     _currentConfig.Appearance.Theme = name;
+                                
+                                ImGui.SetItemTooltipUnformatted($"Version: {theme.Version}\nAuthor: {theme.Author}");
+                                if (ImGui.IsItemHovered())
+                                    theme.ApplyImGuiStyle(lightMode, currentStyle.Colors);
                             }
 
                             ImGui.EndListBox();

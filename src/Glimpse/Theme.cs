@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Glimpse.API;
 using Hexa.NET.ImGui;
 
 namespace Glimpse;
@@ -10,6 +11,11 @@ public record struct Theme
     public const string DefaultTheme = "Glimpse";
     
     public string Name;
+
+    public string Author;
+    
+    [JsonConverter(typeof(SemVerConverter))]
+    public SemVer Version;
 
     public ColorScheme? DarkColors;
 
@@ -317,5 +323,22 @@ public sealed class HexColorConverter : JsonConverter<Vector4>
     private static uint SwapEndianness(uint value)
     {
         return ((value & 0xFF) << 24) | (((value >> 8) & 0xFF) << 16) | (((value >> 16) & 0xFF) << 8) | (value >> 24);
+    }
+}
+
+public sealed class SemVerConverter : JsonConverter<SemVer>
+{
+    public override SemVer Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        string? versionString = reader.GetString();
+        if (string.IsNullOrWhiteSpace(versionString))
+            return new SemVer(1);
+
+        return new SemVer(versionString);
+    }
+    
+    public override void Write(Utf8JsonWriter writer, SemVer value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString());
     }
 }
