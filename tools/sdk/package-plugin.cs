@@ -1,0 +1,235 @@
+#!/usr/bin/env -S dotnet --
+
+// ----------------------------- Glimpse SDK Plugin Packager -----------------------------
+// -- Build & package plugins so they're ready to be installed as a single package file --
+// ---------------------------------------------------------------------------------------
+
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO.Compression;
+using System.Text.Json.Nodes;
+
+bool pack = true;
+string? projectName = null;
+string? pluginDir = null;
+
+int argPos = 0;
+while (ReadArg(args, ref argPos, out string? arg))
+{
+    if (arg.StartsWith('-'))
+    {
+        switch (arg)
+        {
+            case "-h" or "--help":
+                PrintHelp();
+                return 0;
+            
+            // Set a project file directly.
+            case "-p" or "--project":
+            {
+                if (!ReadArg(args, ref argPos, out arg))
+                {
+                    PrintError("Missing project name!");
+                    return 1;
+                }
+
+                // It's likely people will add .csproj, so we must remove it.
+                projectName = arg.Replace(".csproj", "");
+                break;
+            }
+            
+            // Does not pack into a gplg file.
+            case "--no-pack":
+                pack = false;
+                break;
+            
+            default:
+                PrintError($"Unrecognized argument \"{arg}\"!");
+                return 1;
+        }
+    }
+    else if (pluginDir == null)
+        pluginDir = arg;
+    else
+    {
+        PrintError("Can only specify 1 plugin directory!");
+        return 1;
+    }
+}
+
+if (pluginDir == null)
+{
+    PrintError("No plugin dir defined!");
+    return 1;
+}
+
+// Ensure the plugin directory is always an absolute path. Why? Because
+pluginDir = Path.GetFullPath(pluginDir);
+
+if (!Directory.Exists(pluginDir))
+{
+    PrintError($"Directory '{pluginDir}' does not exist.");
+    return 1;
+}
+
+// Most people probably won't be passing in a project name.
+if (projectName == null)
+    projectName = Path.GetFileName(pluginDir);
+
+string publishDir = Path.Combine(pluginDir, "Publish");
+string pluginJson = Path.Combine(pluginDir, "Plugin.json");
+string outDir = Path.Combine(pluginDir, $"{projectName}_Out");
+
+if (!File.Exists(pluginJson))
+{
+    PrintError("Plugin.json not found. A plugin MUST contain a Plugin.json file.");
+    return 1;
+}
+
+// Delete existing dirs if necessary to prevent errors when overwriting (and to ensure clean slate)
+if (Directory.Exists(publishDir))
+    Directory.Delete(publishDir, true);
+
+if (Directory.Exists(outDir))
+    Directory.Delete(outDir, true);
+
+// Publish the plugin...
+Process process = new()
+{
+    StartInfo = new ProcessStartInfo("dotnet")
+    {
+        Arguments = $"publish {Path.Combine(pluginDir, projectName)}.csproj -c Release -o {publishDir}"
+    }
+};
+process.Start();
+process.WaitForExit();
+
+if (process.ExitCode != 0)
+    return 1;
+
+// A list of dependencies that should not be copied.
+// These are dependencies that are already provided by Glimpse and copying them may cause conflicts.
+// This is not a full list, as every dep that contains these strings will be ignored.
+// May cause problems in the future.
+ReadOnlySpan<string> dependencyBlacklist =
+[
+    "cimgui",
+    "hexa",
+    "glimpse.api"
+];
+
+List<string> filesToPackage = [];
+
+// Parse the deps file that 
+string depsFile = Path.Combine(publishDir, $"{projectName}.deps.json");
+JsonNode? node = JsonNode.Parse(File.ReadAllText(depsFile));
+JsonNode? targets = node?["targets"];
+
+if (targets == null)
+    goto SKIP_PACKAGING;
+
+foreach ((_, JsonNode? target) in targets.AsObject())
+{
+    if (target == null)
+        continue;
+    
+    foreach ((_, JsonNode? package) in target.AsObject())
+    {
+        if (package == null)
+            continue;
+        
+        GetRuntimesFromList(package["runtime"], ref filesToPackage, in dependencyBlacklist, true);
+        GetRuntimesFromList(package["runtimeTargets"], ref filesToPackage, in dependencyBlacklist, false);
+    }
+}
+
+SKIP_PACKAGING: ;
+
+Console.WriteLine(string.Join(',', filesToPackage));
+
+Directory.CreateDirectory(outDir);
+
+// Copy plugin.json file
+File.Copy(pluginJson, Path.Combine(outDir, "Plugin.json"));
+
+// Move everything else
+foreach (string file in filesToPackage)
+{
+    string fileDir = Path.GetDirectoryName(file);
+    string moveDir = Path.Combine(outDir, fileDir);
+    Directory.CreateDirectory(moveDir);
+    File.Move(Path.Combine(publishDir, file), Path.Combine(outDir, file));
+}
+
+if (pack)
+{
+    string packFileName = $"{projectName}.gplg";
+    
+    if (File.Exists(packFileName))
+        File.Delete(packFileName);
+    
+    // mmmm i sure love renamed zip archives
+    ZipFile.CreateFromDirectory(outDir, packFileName);
+    Directory.Delete(outDir, true);
+}
+
+Directory.Delete(publishDir, true);
+
+return 0;
+
+void GetRuntimesFromList(JsonNode? node, ref List<string> targets, in ReadOnlySpan<string> dependencyBlacklist, bool stripRuntimeDir)
+{
+    if (node != null)
+    {
+        foreach ((string runtime, _) in node.AsObject())
+        {
+            foreach (string dep in dependencyBlacklist)
+            {
+                if (runtime.Contains(dep, StringComparison.CurrentCultureIgnoreCase))
+                    goto SKIP;
+            }
+
+            string runtimeName = stripRuntimeDir ? Path.GetFileName(runtime) : runtime;
+            
+            targets.Add(runtimeName);
+            
+            SKIP: ;
+        }
+    }
+}
+
+bool ReadArg(string[] args, ref int argPos, [NotNullWhen(true)] out string? arg)
+{
+    if (argPos >= args.Length)
+    {
+        arg = null;
+        return false;
+    }
+
+    arg = args[argPos++];
+    return true;
+}
+
+void PrintHelp()
+{
+    Console.WriteLine("""
+                       USAGE: build-plugin [OPTIONS] <Plugin Dir>
+
+                       Options:
+                           --project <name>, -p <name>
+                               Define the name of the project file to build.
+                               If not provided, the directory name will be used.
+
+                           --no-pack
+                               Do not pack the output into a .gplg file..
+                               This flag is primarily for the automated Glimpse build script,
+                               but can be useful for debugging.
+                       """);
+}
+
+void PrintError(string error)
+{
+    PrintHelp();
+    Console.WriteLine();
+    Console.WriteLine($"\e[31mERROR: {error}\e[0m");
+}
