@@ -49,7 +49,7 @@ while (ReadArg(args, ref argPos, out string? arg))
         }
     }
     else if (pluginDir == null)
-        pluginDir = arg;
+        pluginDir = arg.TrimEnd('/'); // Remove trailing '/' so that Path.GetFileName returns a proper value. Hack? yes
     else
     {
         PrintError("Can only specify 1 plugin directory!");
@@ -120,7 +120,28 @@ ReadOnlySpan<string> dependencyBlacklist =
 
 List<string> filesToPackage = [];
 
-// Parse the deps file that 
+JsonNode? pluginFileNode = JsonNode.Parse(File.ReadAllText(pluginJson));
+JsonNode? nativeDeps = pluginFileNode?["NativeDeps"];
+
+// Read the native dependencies if the Plugin.json file contains any.
+// Usually this is not needed if using nuget packages etc, as the packager will automatically
+// copy everything in the `runtimes` directory.
+// However some plugins may rely on submodules etc that do not package native dependencies as the compiler expects,
+// thus they do not show in the .deps.json file. Therefore a plugin can manually specify native dependencies for this.
+if (nativeDeps != null)
+{
+    foreach ((_, JsonNode? deps) in nativeDeps.AsObject())
+    {
+        if (deps == null)
+            continue;
+        
+        JsonArray depsList = deps.AsArray(); 
+        foreach (JsonNode? dep in depsList)
+            filesToPackage.Add(dep.ToString());
+    }
+}
+
+// Parse the deps file that dotnet publish outputs in order to read and parse the various dependencies.
 string depsFile = Path.Combine(publishDir, $"{projectName}.deps.json");
 JsonNode? node = JsonNode.Parse(File.ReadAllText(depsFile));
 JsonNode? targets = node?["targets"];

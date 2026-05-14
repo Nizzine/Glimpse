@@ -1,5 +1,20 @@
 {
   "ID": "Glimpse.OpenMPT",
   "Name": "OpenMPT Integration",
-  "Version": "GLIMPSE_VERSION"
+  "Version": "GLIMPSE_VERSION",
+  "NativeDeps": {
+    "win-x64": [
+      "libopenmpt.dll",
+      "openmpt-mpg123.dll",
+      "openmpt-ogg.dll",
+      "openmpt-vorbis.dll",
+      "openmpt-zlib.dll"
+    ],
+    "linux-x64": [
+      "libopenmpt.so"
+    ],
+    "osx-arm64": [
+      "libopenmpt.dylib"
+    ]
+  }
 }
