@@ -1,0 +1,7 @@
+- name: Plugins
+  href: plugins/about.md
+  items:
+    - name: Creating a Basic Plugin
+      href: plugins/basic-plugin.md
+    - name: Building and Packaging
+      href: plugins/packaging-plugins.md
