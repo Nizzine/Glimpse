@@ -1,7 +1,7 @@
 using System.Numerics;
 using Glimpse.API;
 using Glimpse.API.Library;
-using Glimpse.Database;
+using Glimpse.Library;
 using Hexa.NET.ImGui;
 using SDL3;
 using Image = Glimpse.Graphics.Image;
@@ -42,7 +42,7 @@ public class WelcomePopup : Popup
         if (_needsRefresh)
         {
             _needsRefresh = false;
-            _libraryPaths = Glimpse.Database.GetLibraryPaths();
+            _libraryPaths = Glimpse.Library.GetLibraryPaths();
         }
 
         Vector2 windowSize = ImGui.GetIO().DisplaySize;
@@ -92,7 +92,7 @@ public class WelcomePopup : Popup
             {
                 // TODO: This is very manual. Perhaps add a "next button" action or something?
                 if (_tabIndex == 1)
-                    Glimpse.Database.Index();
+                    Glimpse.Library.Index();
                 _tabIndex++;
                 
                 if (_tabIndex >= 3)
@@ -163,7 +163,7 @@ public class WelcomePopup : Popup
                 foreach ((string path, Track track) in oldDb.Tracks)
                 {
                     track.Path = path;
-                    Glimpse.Database.InsertOrUpdateTrack(track);
+                    Glimpse.Library.InsertOrUpdateTrack(track);
 
                     if (string.IsNullOrEmpty(basePath))
                         basePath = Path.GetDirectoryName(path);
@@ -175,16 +175,16 @@ public class WelcomePopup : Popup
                 }
 
                 foreach ((_, Album album) in oldDb.Albums)
-                    Glimpse.Database.InsertOrUpdateAlbum(album);
+                    Glimpse.Library.InsertOrUpdateAlbum(album);
 
                 foreach ((_, Artist artist) in oldDb.Artists)
-                    Glimpse.Database.InsertOrUpdateArtist(artist);
+                    Glimpse.Library.InsertOrUpdateArtist(artist);
 
                 foreach ((_, Genre genre) in oldDb.Genres)
-                    Glimpse.Database.InsertOrUpdateGenre(genre);
+                    Glimpse.Library.InsertOrUpdateGenre(genre);
                 
                 //basePaths.Add(basePath);
-                Glimpse.Database.AddLibraryPath(basePath);
+                Glimpse.Library.AddLibraryPath(basePath);
                 _needsRefresh = true;
                 _hasOldLibrary = false;
                 ImGui.CloseCurrentPopup();
@@ -248,7 +248,7 @@ public class WelcomePopup : Popup
         while (fileList[index] != null)
         {
             string directory = new string(fileList[index]);
-            Glimpse.Database.AddLibraryPath(directory);
+            Glimpse.Library.AddLibraryPath(directory);
             _needsRefresh = true;
             index++;
         }

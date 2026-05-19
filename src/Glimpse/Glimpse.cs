@@ -8,7 +8,7 @@ using System.Runtime.Loader;
 using Glimpse.API;
 using Glimpse.Audio;
 using Glimpse.Configs;
-using Glimpse.Database;
+using Glimpse.Library;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
@@ -50,7 +50,7 @@ public class Glimpse : IGlimpse, IDisposable
 
     public Locale Locale;
 
-    public MusicDatabase? Database;
+    public MusicLibrary Library;
     
     public Dictionary<string, IPlugin>? Plugins;
 
@@ -170,7 +170,7 @@ public class Glimpse : IGlimpse, IDisposable
 
         //Database!.Logger = Logger;
         //Database!.Refresh();
-        Database = new MusicDatabase(Logger, Player);
+        Library = new MusicLibrary(Logger, Player);
         //Database.Index(); // TODO: Don't automatically index on startup! (Unless the user enables the setting)
         
 #if !PUBLISH_AOT

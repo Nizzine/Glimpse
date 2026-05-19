@@ -1,5 +1,5 @@
 using Glimpse.Audio;
-using Glimpse.Database;
+using Glimpse.Library;
 using Hexa.NET.ImGui;
 using Track = Glimpse.API.Library.Track;
 
@@ -31,7 +31,7 @@ public sealed class RemovePopup : Popup
 
         if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize))
         {
-            MusicDatabase db = Glimpse.Database;
+            MusicLibrary db = Glimpse.Library;
             AudioPlayer player = Glimpse.Player;
             
             /*string name = _isAlbum ? _nameOrPath : (db.Tracks[_nameOrPath].Title ?? locale.GetString("UnknownTrack"));

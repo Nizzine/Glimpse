@@ -1,6 +1,6 @@
 ﻿using Glimpse.API.Library;
 
-namespace Glimpse.Database;
+namespace Glimpse.Library;
 
 public struct IndexResult(
     string directory,

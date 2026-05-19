@@ -1,9 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Glimpse.API;
 using Glimpse.API.Library;
 
-namespace Glimpse.Database;
+namespace Glimpse.Library;
 
 public class OldMusicDatabase : IConfig
 {

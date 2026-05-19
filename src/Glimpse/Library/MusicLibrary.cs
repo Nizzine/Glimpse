@@ -5,9 +5,9 @@ using Glimpse.API.Library;
 using Glimpse.Audio;
 using Track = Glimpse.API.Library.Track;
 
-namespace Glimpse.Database;
+namespace Glimpse.Library;
 
-public class MusicDatabase : IMusicLibrary
+public class MusicLibrary : IMusicLibrary
 {
     public const string DatabaseName = "Library";
     public const uint DatabaseVersion = 1;
@@ -44,7 +44,7 @@ public class MusicDatabase : IMusicLibrary
 
     public IReadOnlyCollection<string> ExcludedDirectories => _excludedDirectories;
 
-    public MusicDatabase(Logger logger, AudioPlayer player)
+    public MusicLibrary(Logger logger, AudioPlayer player)
     {
         _logger = logger;
         _player = player;

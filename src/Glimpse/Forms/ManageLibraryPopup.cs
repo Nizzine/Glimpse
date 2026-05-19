@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
-using Glimpse.Database;
+using Glimpse.Library;
 using Hexa.NET.ImGui;
 using SDL3;
 using Image = Glimpse.Graphics.Image;
@@ -46,12 +46,12 @@ public class ManageLibraryPopup : Popup
         string popupName = "Manage Library";
         if (ImGui.OpenPopupModal(popupName, ScaleVec(600, 500)))
         {
-            ImGui.BeginDisabled(Glimpse.Database.IsIndexing);
+            ImGui.BeginDisabled(Glimpse.Library.IsIndexing);
 
             if (ImGui.BeginListBox("##Libraries", ScaleVec(400, 415)))
             {
                 foreach (LibraryDirectory dir in _libraryPaths)
-                    dir.Update(Glimpse.Database, ref _selectedLibrary);
+                    dir.Update(Glimpse.Library, ref _selectedLibrary);
                 
                 ImGui.EndListBox();
             }
@@ -74,7 +74,7 @@ public class ManageLibraryPopup : Popup
                 ImGui.BeginDisabled(_selectedLibrary == null);
                 if (ImGui.ImageButton("Remove", _minus, ScaleVec(16)))
                 {
-                    Glimpse.Database.RemoveLibaryPath(_selectedLibrary);
+                    Glimpse.Library.RemoveLibaryPath(_selectedLibrary);
                     _selectedLibrary = null;
                     _needsRefresh = true;
                 }
@@ -91,7 +91,7 @@ public class ManageLibraryPopup : Popup
                 
                 if (ImGui.Button("Remove All"))
                 {
-                    Glimpse.Database.RemoveAllLibraryPaths();
+                    Glimpse.Library.RemoveAllLibraryPaths();
                 }
 
                 bool bFalse = false;
@@ -104,7 +104,7 @@ public class ManageLibraryPopup : Popup
                 ImGui.EndChild();
             }
 
-            if (Glimpse.Database.IsIndexing)
+            if (Glimpse.Library.IsIndexing)
             {
                 _refreshProgressTimer += dt;
                 if (_refreshProgressTimer >= 1)
@@ -114,7 +114,7 @@ public class ManageLibraryPopup : Popup
                 _refreshProgressTimer = 0;
             
             if (ImGui.Button("Update"))
-                Glimpse.Database.Index();
+                Glimpse.Library.Index();
             ImGui.SetItemTooltipUnformatted("Update the music library");
             
             ImGui.EndDisabled();
@@ -123,11 +123,11 @@ public class ManageLibraryPopup : Popup
             if (ImGui.Button("Close"))
                 Close();
 
-            if (Glimpse.Database.CurrentlyIndexedFile != null)
+            if (Glimpse.Library.CurrentlyIndexedFile != null)
             {
                 ImGui.SameLine();
-                ImGui.Text($"Indexing {Path.GetFileName(Glimpse.Database.CurrentlyIndexedFile)}");
-                ImGui.SetItemTooltipUnformatted(Glimpse.Database.CurrentlyIndexedFile);
+                ImGui.Text($"Indexing {Path.GetFileName(Glimpse.Library.CurrentlyIndexedFile)}");
+                ImGui.SetItemTooltipUnformatted(Glimpse.Library.CurrentlyIndexedFile);
             }
             
             ImGui.ProgressBar(-_refreshProgressTimer, ScaleVec(580, 10), "");
@@ -142,7 +142,7 @@ public class ManageLibraryPopup : Popup
         while (fileList[index] != null)
         {
             string directory = new string(fileList[index]);
-            Glimpse.Database.AddLibraryPath(directory);
+            Glimpse.Library.AddLibraryPath(directory);
             _needsRefresh = true;
             index++;
         }
@@ -158,7 +158,7 @@ public class ManageLibraryPopup : Popup
     {
         _libraryPaths = [];
 
-        foreach (string path in Glimpse.Database.LibraryPaths)
+        foreach (string path in Glimpse.Library.LibraryPaths)
             _libraryPaths.Add(new LibraryDirectory(path, true, true));
     }
 
@@ -194,7 +194,7 @@ public class ManageLibraryPopup : Popup
             _exists = true;
         }
 
-        public unsafe void Update(MusicDatabase database, ref string selectedDirectory)
+        public unsafe void Update(MusicLibrary library, ref string selectedDirectory)
         {
             if (SubDirectories == null && _exists)
             {
@@ -209,7 +209,7 @@ public class ManageLibraryPopup : Popup
                     {
                         bool enabled = true;
                         // TODO: Expose the hash set.
-                        if (database.ExcludedDirectories.Contains(directory))
+                        if (library.ExcludedDirectories.Contains(directory))
                             enabled = false;
 
                         SubDirectories.Add(directory, new LibraryDirectory(directory, false, enabled));
@@ -248,7 +248,7 @@ public class ManageLibraryPopup : Popup
             if (treeNodeOpened)
             {
                 foreach ((_, LibraryDirectory directory) in SubDirectories)
-                    directory.Update(database, ref selectedDirectory);
+                    directory.Update(library, ref selectedDirectory);
                 
                 ImGui.TreePop();
             }

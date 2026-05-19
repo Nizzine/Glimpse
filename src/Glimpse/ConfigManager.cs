@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Glimpse.API;
 using Glimpse.Configs;
-using Glimpse.Database;
+using Glimpse.Library;
 
 namespace Glimpse;
 
@@ -67,6 +67,6 @@ public class ConfigManager : IConfigManager
 [JsonSerializable(typeof(Locale))]
 [JsonSerializable(typeof(Locale.AvailableLocale))]
 [JsonSerializable(typeof(Locale.LocaleSet))]
-[JsonSerializable(typeof(MusicDatabase))]
+[JsonSerializable(typeof(MusicLibrary))]
 [JsonSerializable(typeof(Theme))]
 internal partial class ConfigSerializerContext : JsonSerializerContext;
