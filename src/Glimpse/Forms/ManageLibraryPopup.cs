@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Numerics;
 using Glimpse.Database;
 using Hexa.NET.ImGui;
@@ -14,8 +15,7 @@ public class ManageLibraryPopup : Popup
     private Image _minus = null!;
     private Image _refresh = null!;
 
-    private float _refreshFlipTimer;
-    private bool _flipRefresh;
+    private float _refreshProgressTimer;
 
     private bool _needsRefresh;
 
@@ -44,21 +44,16 @@ public class ManageLibraryPopup : Popup
             RefreshLibrary();
         
         string popupName = "Manage Library";
-        
-        if (!ImGui.IsPopupOpen(popupName))
-            ImGui.OpenPopup(popupName);
-
-        ImGui.SetNextWindowSize(ScaleVec(600, 500));
-        if (ImGui.BeginPopupModal(popupName))
+        if (ImGui.OpenPopupModal(popupName, ScaleVec(600, 500)))
         {
             ImGui.BeginDisabled(Glimpse.Database.IsIndexing);
-            
-            ImGui.BeginChild("PathsList", ScaleVec(400, 400), ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
+
+            if (ImGui.BeginListBox("##Libraries", ScaleVec(400, 415)))
             {
                 foreach (LibraryDirectory dir in _libraryPaths)
                     dir.Update(Glimpse.Database, ref _selectedLibrary);
                 
-                ImGui.EndChild();
+                ImGui.EndListBox();
             }
             
             ImGui.SameLine();
@@ -88,29 +83,9 @@ public class ManageLibraryPopup : Popup
                 ImGui.SetItemTooltipUnformatted("Remove selected folder from library");
                 ImGui.SameLine();
 
-                Vector2 uv0 = new Vector2(0, 0);
-                Vector2 uv1 = new Vector2(1, 1);
-
-                if (Glimpse.Database.IsIndexing)
-                {
-                    const float flipTime = 0.35f;
-                    _refreshFlipTimer += dt;
-                    if (_refreshFlipTimer >= flipTime)
-                    {
-                        _refreshFlipTimer -= flipTime;
-                        _flipRefresh = !_flipRefresh;
-                    }
-                    
-                    if (_flipRefresh)
-                    {
-                        uv0.Y = 1;
-                        uv1.Y = 0;
-                    }
-                }
-
-                if (ImGui.ImageButton("RefreshLibrary", _refresh, ScaleVec(16), uv0, uv1))
-                    Glimpse.Database.Index();
-                ImGui.SetItemTooltipUnformatted("Refresh Library");
+                if (ImGui.ImageButton("Refresh", _refresh, ScaleVec(16)))
+                    _needsRefresh = true;
+                ImGui.SetItemTooltipUnformatted("Refresh");
 
                 ImGui.Separator();
                 
@@ -128,12 +103,34 @@ public class ManageLibraryPopup : Popup
                 
                 ImGui.EndChild();
             }
+
+            if (Glimpse.Database.IsIndexing)
+            {
+                _refreshProgressTimer += dt;
+                if (_refreshProgressTimer >= 1)
+                    _refreshProgressTimer -= 1;
+            }
+            else
+                _refreshProgressTimer = 0;
+            
+            if (ImGui.Button("Update"))
+                Glimpse.Database.Index();
+            ImGui.SetItemTooltipUnformatted("Update the music library");
             
             ImGui.EndDisabled();
             
+            ImGui.SameLine();
             if (ImGui.Button("Close"))
                 Close();
 
+            if (Glimpse.Database.CurrentlyIndexedFile != null)
+            {
+                ImGui.SameLine();
+                ImGui.Text($"Indexing {Path.GetFileName(Glimpse.Database.CurrentlyIndexedFile)}");
+                ImGui.SetItemTooltipUnformatted(Glimpse.Database.CurrentlyIndexedFile);
+            }
+            
+            ImGui.ProgressBar(-_refreshProgressTimer, ScaleVec(580, 10), "");
             ImGui.EndPopup();
         }
     }
@@ -227,8 +224,12 @@ public class ManageLibraryPopup : Popup
             if (!_exists)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.0f, 0.0f, 1.0f));
-                if (ImGui.Selectable(pathName, Path == selectedDirectory))
+                ImGui.TreeNodeEx(pathName,
+                    ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen |
+                    (Path == selectedDirectory ? ImGuiTreeNodeFlags.Selected : 0));
+                if (ImGui.IsItemClicked())
                     selectedDirectory = Path;
+
                 ImGui.PopStyleColor();
                 ImGui.SetItemTooltipUnformatted("Path could not be found. Was it moved/deleted?");
                 return;
@@ -237,7 +238,7 @@ public class ManageLibraryPopup : Popup
             if (!Enabled)
                 ImGui.PushStyleColor(ImGuiCol.Text, *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled));
             
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick | ImGuiTreeNodeFlags.DrawLinesFull;
             if (Path == selectedDirectory)
                 flags |= ImGuiTreeNodeFlags.Selected;
             

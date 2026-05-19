@@ -17,6 +17,7 @@ public class MusicDatabase : IMusicLibrary
     private readonly string _databasePath;
     
     private Task? _indexTask;
+    private string? _currentlyIndexedPath;
 
     /// <summary>
     /// A list of directories that have been explicitly added to the library.
@@ -36,6 +37,8 @@ public class MusicDatabase : IMusicLibrary
     private ConcurrentDictionary<string, Genre> _genres;
 
     public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
+
+    public string? CurrentlyIndexedFile => _currentlyIndexedPath;
 
     public IReadOnlyCollection<string> LibraryPaths => _libraryPaths;
 
@@ -119,6 +122,12 @@ public class MusicDatabase : IMusicLibrary
         List<string> paths = [];
         foreach (string libraryPath in _libraryPaths)
         {
+            if (!Directory.Exists(libraryPath))
+            {
+                _logger.Log($"ERROR: Library path \"{libraryPath}\" does not exist! Skipping...");
+                continue;
+            }
+
             paths.Add(libraryPath);
             
             foreach (string directory in Directory.GetDirectories(libraryPath, "*", SearchOption.AllDirectories))
@@ -308,6 +317,7 @@ public class MusicDatabase : IMusicLibrary
                 foreach (string path in Directory.GetFiles(directory))
                 {
                     _logger.Log($"  Indexing {path}");
+                    _currentlyIndexedPath = path;
                     if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
                     {
                         _logger.Log("    ... failed.");
@@ -362,7 +372,8 @@ public class MusicDatabase : IMusicLibrary
         _albums = albums;
         _artists = artists;
         _genres = genres;*/
-        
+
+        _currentlyIndexedPath = null;
         SaveLibrary();
         _logger.Log("Indexing complete!");
     }

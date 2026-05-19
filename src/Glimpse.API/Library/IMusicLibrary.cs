@@ -4,6 +4,8 @@ public interface IMusicLibrary
 {
     public bool IsIndexing { get; }
     
+    public string? CurrentlyIndexedFile { get; }
+    
     public IReadOnlyCollection<string> LibraryPaths { get; }
     
     public IReadOnlyCollection<string> ExcludedDirectories { get; }
