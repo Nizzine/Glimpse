@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Loader;
 using Glimpse.API;
+using Glimpse.API.Library;
 using Glimpse.Audio;
 using Glimpse.Configs;
 using Glimpse.Library;
@@ -704,5 +705,6 @@ public class Glimpse : IGlimpse, IDisposable
     ILogger IGlimpse.Logger => Logger;
     IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;
+    IMusicLibrary IGlimpse.Library => Library;
     ILocale? IGlimpse.Locale => Locale;
 }
