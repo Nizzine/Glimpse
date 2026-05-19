@@ -24,12 +24,8 @@ public sealed class RemovePopup : Popup
     public override void Update(float dt)
     {
         Locale locale = Glimpse.Locale;
-        string popupName = locale.GetString("Popup.Remove.Name");
-        
-        if (!ImGui.IsPopupOpen(popupName))
-            ImGui.OpenPopup(popupName);
 
-        if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize))
+        if (ImGui.OpenPopupModal(locale.GetString("Popup.Remove.Name")))
         {
             MusicLibrary db = Glimpse.Library;
             AudioPlayer player = Glimpse.Player;

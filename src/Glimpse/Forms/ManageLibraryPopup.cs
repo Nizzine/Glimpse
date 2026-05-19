@@ -43,8 +43,7 @@ public class ManageLibraryPopup : Popup
         if (_needsRefresh)
             RefreshLibrary();
         
-        string popupName = "Manage Library";
-        if (ImGui.OpenPopupModal(popupName, ScaleVec(600, 500)))
+        if (ImGui.OpenPopupModal("Manage Library", ScaleVec(600, 500)))
         {
             ImGui.BeginDisabled(Glimpse.Library.IsIndexing);
 

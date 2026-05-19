@@ -39,18 +39,14 @@ public class SettingsPopup : Popup
     public override void Update(float dt)
     {
         Locale currentLocale = Glimpse.Locale;
-        string popupName = currentLocale.GetString("Popup.Settings.Name");
-        
-        if (!ImGui.IsPopupOpen(popupName))
-            ImGui.OpenPopup(popupName);
 
-        ImGuiWindowFlags flags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.AlwaysAutoResize;
+        ImGuiWindowFlags flags = ImGuiWindowFlags.None;
         if (Glimpse.Config != _currentConfig)
             flags |= ImGuiWindowFlags.UnsavedDocument;
         
-        if (ImGui.BeginPopupModal(popupName, flags))
+        if (ImGui.OpenPopupModal(currentLocale.GetString("Popup.Settings.Name"), ScaleVec(620, 570), flags))
         {
-            if (ImGui.BeginChild("SettingsItems", ScaleVec(600, 500)))
+            ImGui.BeginChild("SettingsItems", ScaleVec(600, 500));
             {
                 if (ImGui.BeginTabBar("SettingsTab"))
                 {
@@ -245,15 +241,15 @@ public class SettingsPopup : Popup
                     {
                         _glimpseLogo ??= Renderer.CreateImage("Icons.Glimpse.png");
 
-                        if (ImGui.BeginChild("GlimpseLogo", ImGuiChildFlags.AlwaysAutoResize | ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
+                        ImGui.BeginChild("GlimpseLogo", ImGuiChildFlags.AlwaysAutoResize | ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
                         {
                             ImGui.Image(_glimpseLogo, ScaleVec(128, 128));
                             ImGui.EndChild();
                         }
 
                         ImGui.SameLine();
-                        
-                        if (ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY))
+
+                        ImGui.BeginChild("GlimpseText", ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
                         {
                             ImGui.PushFont(null, 32);
                             ImGui.TextUnformatted(currentLocale.GetString("Popup.Settings.Tab.About.AppName", Glimpse.Version));
