@@ -167,6 +167,8 @@ public class ManageLibraryPopup : Popup
 
     private class LibraryDirectory
     {
+        private bool _exists;
+        
         /// <summary>
         /// The path of the directory.
         /// </summary>
@@ -192,34 +194,54 @@ public class ManageLibraryPopup : Popup
             Path = path;
             IsBaseDir = isBaseDir;
             Enabled = enabled;
+            _exists = true;
         }
 
         public unsafe void Update(MusicDatabase database, ref string selectedDirectory)
         {
-            if (SubDirectories == null)
+            if (SubDirectories == null && _exists)
             {
-                SubDirectories = [];
-                EnumerationOptions options = new()
+                if (Directory.Exists(Path))
                 {
-                    IgnoreInaccessible = true
-                };
-                foreach (string directory in Directory.GetDirectories(Path, "*", options))
-                {
-                    bool enabled = true;
-                    // TODO: Expose the hash set.
-                    if (database.ExcludedDirectories.Contains(directory))
-                        enabled = false;
-                    
-                    SubDirectories.Add(directory, new LibraryDirectory(directory, false, enabled));
+                    SubDirectories = [];
+                    EnumerationOptions options = new()
+                    {
+                        IgnoreInaccessible = true
+                    };
+                    foreach (string directory in Directory.GetDirectories(Path, "*", options))
+                    {
+                        bool enabled = true;
+                        // TODO: Expose the hash set.
+                        if (database.ExcludedDirectories.Contains(directory))
+                            enabled = false;
+
+                        SubDirectories.Add(directory, new LibraryDirectory(directory, false, enabled));
+                    }
                 }
+                else
+                    _exists = false;
             }
             
             string pathName = IsBaseDir ? Path : System.IO.Path.GetFileName(Path);
-            
+
+            if (!_exists)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1.0f, 0.0f, 0.0f, 1.0f));
+                if (ImGui.Selectable(pathName, Path == selectedDirectory))
+                    selectedDirectory = Path;
+                ImGui.PopStyleColor();
+                ImGui.SetItemTooltipUnformatted("Path could not be found. Was it moved/deleted?");
+                return;
+            }
+
             if (!Enabled)
                 ImGui.PushStyleColor(ImGuiCol.Text, *ImGui.GetStyleColorVec4(ImGuiCol.TextDisabled));
             
-            bool treeNodeOpened = ImGui.TreeNodeEx(pathName, ImGuiTreeNodeFlags.OpenOnArrow | (Path == selectedDirectory ? ImGuiTreeNodeFlags.Selected : 0));
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+            if (Path == selectedDirectory)
+                flags |= ImGuiTreeNodeFlags.Selected;
+            
+            bool treeNodeOpened = ImGui.TreeNodeEx(pathName, flags);
             if (ImGui.IsItemClicked())
                 selectedDirectory = Path;
             if (treeNodeOpened)
@@ -229,7 +251,7 @@ public class ManageLibraryPopup : Popup
                 
                 ImGui.TreePop();
             }
-            
+
             if (!Enabled)
                 ImGui.PopStyleColor();
         }
