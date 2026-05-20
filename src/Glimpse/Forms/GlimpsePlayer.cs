@@ -330,7 +330,8 @@ public class GlimpsePlayer : Window
                         {
                             switchToTrackList = true;
                             switchView = AlbumView.Artists;
-                            _currentAlbum = player.CurrentTrack.Artist;
+                            ChangeView(AlbumView.Artists);
+                            ChangeAlbum(player.CurrentTrack.Artist);
                         }
 
 
@@ -339,7 +340,8 @@ public class GlimpsePlayer : Window
                         {
                             switchToTrackList = true;
                             switchView = AlbumView.Albums;
-                            _currentAlbum = player.CurrentTrack.Album;
+                            ChangeView(AlbumView.Albums);
+                            ChangeAlbum(player.CurrentTrack.Album);
                         }
                     }
 
