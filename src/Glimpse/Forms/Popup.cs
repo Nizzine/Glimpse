@@ -22,13 +22,13 @@ public abstract class Popup : IDisposable
         IsRemoved = true;
     }
     
-    protected Vector2 ScaleVec(float x, float y)
+    public Vector2 ScaleVec(float x, float y)
     {
         float scale = Scale;
         return new Vector2((int) (x * scale), (int) (y * scale));
     }
 
-    protected Vector2 ScaleVec(float scalar)
+    public Vector2 ScaleVec(float scalar)
         => ScaleVec(scalar, scalar);
 
     public virtual void Dispose() { }

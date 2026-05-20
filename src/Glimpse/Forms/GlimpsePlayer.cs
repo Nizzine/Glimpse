@@ -121,8 +121,8 @@ public class GlimpsePlayer : Window
         // TODO: Call this function on track change (and perhaps in the main loop), not with a timer.
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
-        //if (_currentTracks.Count == 0)
-        //    AddPopup(new WelcomePopup());
+        if (_currentTracks.Count == 0)
+            AddPopup(new WelcomePopup());
 
 #if !DISABLE_AUTOUPDATE
         // Only perform the update check if the user wants it!
@@ -1303,6 +1303,8 @@ public class GlimpsePlayer : Window
         theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
 
         _themeConfig = theme.Config;
+        // Reload current album art in case the settings changed.
+        _newAlbumArt = Glimpse.Player.CurrentTrack?.AlbumArt?.Data;
 
         if (_themeConfig.Logo != null)
         {

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Glimpse.API;
 using Glimpse.API.Library;
+using Glimpse.Forms.Widgets;
 using Glimpse.Library;
 using Hexa.NET.ImGui;
 using SDL3;
@@ -10,6 +11,8 @@ namespace Glimpse.Forms;
 
 public class WelcomePopup : Popup
 {
+    private ManageLibraryWidget _manageLibraryWidget;
+    
     private bool _hasOldLibrary;
     
     private string? _disableNext;
@@ -18,45 +21,33 @@ public class WelcomePopup : Popup
     private Image _glimpse;
     private uint _tabIndex;
 
-    private bool _needsRefresh;
-    private IReadOnlyCollection<string> _libraryPaths;
-
-    public WelcomePopup()
-    {
-        _folderDialog = FolderDialog;
-    }
-
     public override void Open()
     {
+        _manageLibraryWidget = new ManageLibraryWidget(this);
+        
         _hasOldLibrary = File.Exists(Path.Combine(IConfigManager.BaseDir, OldMusicDatabase.DatabaseName + ".json"));
         
         _glimpse = Renderer.CreateImage("asset://Icons.Glimpse.png");
         _tabIndex = 0;
-
-        _needsRefresh = true;
     }
 
-    public override void Update(float dt)
+    public override unsafe void Update(float dt)
     {
         _disableNext = null;
-        if (_needsRefresh)
-        {
-            _needsRefresh = false;
-            _libraryPaths = Glimpse.Library.GetLibraryPaths();
-        }
 
         Vector2 windowSize = ImGui.GetIO().DisplaySize;
         Vector2 welcomeSize = ScaleVec(800, 500);
         Vector2 welcomePos = new Vector2(windowSize.X / 2 - welcomeSize.X / 2, windowSize.Y / 2 - welcomeSize.Y / 2);
+
+        Vector4 windowBg = *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg);
         
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(windowSize);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, windowBg with { W = 0.5f });
         if (ImGui.Begin("Welcome", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove))
         {
-            // TODO: Make this work with themes instead of being hardcoded.
-            // TODO: Because night theme has no transparency, the background is entirely opaque. It should perhaps have some transparency or something.
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, new Vector4(new Vector3(0.12f), 1.0f));
             ImGui.SetNextWindowPos(welcomePos);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, windowBg);
             ImGui.BeginChild("TabChild", welcomeSize, ImGuiChildFlags.Borders);
             {
                 if (ImGui.BeginTabBar("Tabs"))
@@ -91,7 +82,7 @@ public class WelcomePopup : Popup
             if (ImGui.Button("Next", buttonSize))
             {
                 // TODO: This is very manual. Perhaps add a "next button" action or something?
-                if (_tabIndex == 1)
+                if (_tabIndex == 1 && !Glimpse.Library.IsIndexing) // Prevent indexing while indexing already.
                     Glimpse.Library.Index();
                 _tabIndex++;
                 
@@ -105,6 +96,7 @@ public class WelcomePopup : Popup
             
             ImGui.End();
         }
+        ImGui.PopStyleColor();
     }
 
     private void Tab(string name, int index, Action tabFunc)
@@ -185,7 +177,7 @@ public class WelcomePopup : Popup
                 
                 //basePaths.Add(basePath);
                 Glimpse.Library.AddLibraryPath(basePath);
-                _needsRefresh = true;
+                _manageLibraryWidget.Refresh();
                 _hasOldLibrary = false;
                 ImGui.CloseCurrentPopup();
             }
@@ -201,61 +193,22 @@ public class WelcomePopup : Popup
             ImGui.EndPopup();
         }
         
-        if (_libraryPaths.Count == 0)
+        if (_manageLibraryWidget.LibraryPaths.Count == 0)
             _disableNext = "Add a folder to your library first!";
         
         ImGui.TextUnformatted("Let's start by importing your music.");
-
-        ImGui.BeginChild("ItemsDisplay", ScaleVec(400, 430), ImGuiChildFlags.Borders, ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.HorizontalScrollbar);
-        {
-            if (_libraryPaths.Count == 0)
-                ImGui.Text("No folders added.");
-            
-            foreach (string path in _libraryPaths)
-            {
-                ImGui.Selectable(path);
-            }
-            
-            ImGui.EndChild();
-        }
-
-        ImGui.SameLine();
-        
-        ImGui.BeginChild("Settings");
-        {
-            if (ImGui.Button("Add Folder"))
-            {
-                string? defaultLocation = Environment.GetFolderPath(Environment.SpecialFolder.MyComputer);
-                if (string.IsNullOrWhiteSpace(defaultLocation))
-                    defaultLocation = null;
-
-                SDL.ShowOpenFolderDialog(_folderDialog, 0, Glimpse.MainWindow.Handle, defaultLocation, true);
-            }
-            
-            ImGui.SetCursorPosY(ImGui.GetContentRegionAvail().Y);
-            ImGui.TextUnformatted("Click Next to start importing your music!");
-            
-            ImGui.EndChild();
-        }
-    }
-
-    private unsafe void FolderDialog(IntPtr userdata, IntPtr filelist, int filter)
-    {
-        // TODO: This is copied straight from ManageLibraryPopup. All this stuff should be moved into as many reusable
-        //       widget functions as possible.
-        sbyte** fileList = (sbyte**) filelist;
-        int index = 0;
-        while (fileList[index] != null)
-        {
-            string directory = new string(fileList[index]);
-            Glimpse.Library.AddLibraryPath(directory);
-            _needsRefresh = true;
-            index++;
-        }
+        _manageLibraryWidget.Update();
     }
 
     private void PreferencesTab()
     {
         
+    }
+
+    public override void Dispose()
+    {
+        _glimpse.Dispose();
+        
+        _manageLibraryWidget.Dispose();
     }
 }
