@@ -1,6 +1,7 @@
 using System.Numerics;
 using Glimpse.API;
 using Glimpse.API.Library;
+using Glimpse.Configs;
 using Glimpse.Forms.Widgets;
 using Glimpse.Library;
 using Hexa.NET.ImGui;
@@ -12,6 +13,7 @@ namespace Glimpse.Forms;
 public class WelcomePopup : Popup
 {
     private ManageLibraryWidget _manageLibraryWidget;
+    private ThemeWidget _themeWidget;
     
     private bool _hasOldLibrary;
     
@@ -24,6 +26,7 @@ public class WelcomePopup : Popup
     public override void Open()
     {
         _manageLibraryWidget = new ManageLibraryWidget(this);
+        _themeWidget = new ThemeWidget(this);
         
         _hasOldLibrary = File.Exists(Path.Combine(IConfigManager.BaseDir, OldMusicDatabase.DatabaseName + ".json"));
         
@@ -38,16 +41,15 @@ public class WelcomePopup : Popup
         Vector2 windowSize = ImGui.GetIO().DisplaySize;
         Vector2 welcomeSize = ScaleVec(800, 500);
         Vector2 welcomePos = new Vector2(windowSize.X / 2 - welcomeSize.X / 2, windowSize.Y / 2 - welcomeSize.Y / 2);
-
-        Vector4 windowBg = *ImGui.GetStyleColorVec4(ImGuiCol.WindowBg);
         
         ImGui.SetNextWindowPos(Vector2.Zero);
         ImGui.SetNextWindowSize(windowSize);
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, windowBg with { W = 0.5f });
-        if (ImGui.Begin("Welcome", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove))
+        if (ImGui.Begin("Welcome", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBackground))
         {
+            ImGui.GetWindowDrawList().AddRectFilled(new Vector2(0, 0), windowSize,
+                ImGui.ColorConvertFloat4ToU32(*ImGui.GetStyleColorVec4(ImGuiCol.WindowBg) with { W = 0.75f }));
             ImGui.SetNextWindowPos(welcomePos);
-            ImGui.PushStyleColor(ImGuiCol.ChildBg, windowBg);
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, *ImGui.GetStyleColorVec4(ImGuiCol.PopupBg));
             ImGui.BeginChild("TabChild", welcomeSize, ImGuiChildFlags.Borders);
             {
                 if (ImGui.BeginTabBar("Tabs"))
@@ -85,9 +87,13 @@ public class WelcomePopup : Popup
                 if (_tabIndex == 1 && !Glimpse.Library.IsIndexing) // Prevent indexing while indexing already.
                     Glimpse.Library.Index();
                 _tabIndex++;
-                
+
                 if (_tabIndex >= 3)
+                {
+                    ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
+                    Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
                     Close();
+                }
             }
 
             if (disableNext)
@@ -96,7 +102,6 @@ public class WelcomePopup : Popup
             
             ImGui.End();
         }
-        ImGui.PopStyleColor();
     }
 
     private void Tab(string name, int index, Action tabFunc)
@@ -202,13 +207,15 @@ public class WelcomePopup : Popup
 
     private void PreferencesTab()
     {
-        
+        ref GlimpseConfig config = ref Glimpse.Config;
+        _themeWidget.Update(ref config);
     }
 
     public override void Dispose()
     {
         _glimpse.Dispose();
         
+        _themeWidget.Dispose();
         _manageLibraryWidget.Dispose();
     }
 }

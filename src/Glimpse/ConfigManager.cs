@@ -40,9 +40,7 @@ public class ConfigManager : IConfigManager
     public void WriteConfig<T>(string name, T config) where T : IConfig
     {
         string fullPath = Path.Combine(IConfigManager.BaseDir, $"{name}.json");
-
         Directory.CreateDirectory(Path.GetDirectoryName(fullPath));
-        
         File.WriteAllText(fullPath, JsonSerializer.Serialize(config, GetDefaultSerializerOptions()));
     }
 
