@@ -21,6 +21,7 @@ namespace Glimpse.Forms;
 public class GlimpsePlayer : Window
 {
     private bool _init;
+    private bool _needsRefresh;
     private ImGuiStyle _defaultStyle;
 
     private Size _restoreSize;
@@ -94,6 +95,7 @@ public class GlimpsePlayer : Window
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
+        Glimpse.Library.Updated += () => _needsRefresh = true; // TODO: Make this a method
 
         const uint fontSize = 18;
         Renderer.ImGui.AddFont("Fonts.Roboto-Regular.ttf", fontSize);
@@ -114,6 +116,7 @@ public class GlimpsePlayer : Window
         ChangeView(AlbumView.Albums);
         ChangeAlbum(null); // Change to the default album view where all tracks are displayed.
 
+        // TODO: Call this function on track change (and perhaps in the main loop), not with a timer.
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
         if (_currentTracks.Count == 0)
@@ -130,9 +133,12 @@ public class GlimpsePlayer : Window
     {
         AudioPlayer player = Glimpse.Player;
 
-        if (player.TrackState != TrackState.Playing ||
-            _hasIncrementedPlayCount ||
-            player.ConsumedTime.TotalSeconds < double.Max(30, player.TrackLength.TotalSeconds * 0.6))
+        // Count after 60%
+        // TODO: Make this adjustable.
+        const double songConsumedPercentageBeforeIncrement = 0.6;
+
+        if (player.CurrentTrack == null || player.TrackState != TrackState.Playing || _hasIncrementedPlayCount ||
+            player.ConsumedTime.TotalSeconds < player.TrackLength.TotalSeconds * songConsumedPercentageBeforeIncrement)
         {
             return;
         }
@@ -187,10 +193,11 @@ public class GlimpsePlayer : Window
             _wasSeekClicked = false;
         }
         
-        if (Glimpse.Library.IsIndexing)
+        if (Glimpse.Library.IsIndexing || _needsRefresh)
         {
+            _needsRefresh = false;
             ChangeAlbum(_currentAlbum);
-            ChangeView(AlbumView.Albums);
+            ChangeView(_currentView);
         }
 
         Renderer.Clear(Color.Black);
@@ -689,10 +696,11 @@ public class GlimpsePlayer : Window
 
                                 ImGui.Separator();
                             
-                                if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                    AddPopup(new RemovePopup(albumName, true, false));
+                                // TODO: Reimplement album removal & deletion
+                                /*if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
+                                    AddPopup(new RemoveTrackPopup(albumName, true, false));
                                 if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
-                                    AddPopup(new RemovePopup(albumName, true, true));
+                                    AddPopup(new RemoveTrackPopup(albumName, true, true));*/
                             
                                 ImGui.EndPopup();
                             }
@@ -854,9 +862,9 @@ public class GlimpsePlayer : Window
                                     if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer", Glimpse.Platform.FileManagerName)))
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                        AddPopup(new RemovePopup(path, false, false));
+                                        AddPopup(new RemoveTrackPopup(path, false));
                                     if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
-                                        AddPopup(new RemovePopup(path, false, true));
+                                        AddPopup(new RemoveTrackPopup(path,true));
 
                                     ImGui.EndPopup();
                                 }

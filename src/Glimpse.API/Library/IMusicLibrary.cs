@@ -1,7 +1,14 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Glimpse.API.Library;
 
 public interface IMusicLibrary
 {
+    /// <summary>
+    /// This event is invoked whenever the library is updated, for example, when a <see cref="Track"/> is updated or deleted.
+    /// </summary>
+    public event OnChanged Updated;
+    
     public bool IsIndexing { get; }
     
     public string? CurrentlyIndexedFile { get; }
@@ -73,7 +80,7 @@ public interface IMusicLibrary
     /// </summary>
     /// <param name="path">The path to the track.</param>
     /// <returns>The <see cref="Track"/>.</returns>
-    public bool TryGetTrack(string path, out Track? track);
+    public bool TryGetTrack(string path, [NotNullWhen(true)] out Track? track);
 
     public bool TryGetTracksForAlbum(string albumName, out SizedCollection<Track> tracks);
 
@@ -96,4 +103,8 @@ public interface IMusicLibrary
     public bool InsertOrUpdateArtist(Artist artist);
 
     public bool InsertOrUpdateGenre(Genre genre);
+
+    public bool TryDeleteTrack(string path);
+
+    public delegate void OnChanged();
 }

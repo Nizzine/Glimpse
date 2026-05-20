@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Glimpse.API;
 using Glimpse.API.Library;
@@ -36,6 +37,8 @@ public class MusicLibrary : IMusicLibrary
     private ConcurrentDictionary<string, Artist> _artists;
     private ConcurrentDictionary<string, Genre> _genres;
 
+    public event IMusicLibrary.OnChanged Updated;
+    
     public bool IsIndexing => !_indexTask?.IsCompleted ?? false;
 
     public string? CurrentlyIndexedFile => _currentlyIndexedPath;
@@ -57,11 +60,13 @@ public class MusicLibrary : IMusicLibrary
         _albums = [];
         _artists = [];
         _genres = [];
+        
+        Updated = delegate { };
 
         // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
         if (!File.Exists(_databasePath))
         {
-            SaveLibrary();
+            SaveLibrary(false);
             return;
         }
 
@@ -158,7 +163,7 @@ public class MusicLibrary : IMusicLibrary
         if (!_excludedDirectories.Remove(path))
             _libraryPaths.Add(path);
         
-        SaveLibrary();
+        SaveLibrary(false);
     }
     
     public void RemoveLibaryPath(string path, bool includeSubdirectories = true)
@@ -169,7 +174,7 @@ public class MusicLibrary : IMusicLibrary
         if (!_libraryPaths.Remove(path))
             _excludedDirectories.Add(path); 
         
-        SaveLibrary();
+        SaveLibrary(false);
     }
 
     public void RemoveAllLibraryPaths()
@@ -184,7 +189,7 @@ public class MusicLibrary : IMusicLibrary
         //IndexLibrary(); // TODO: Make this threaded again
     }
     
-    public bool TryGetTrack(string path, out Track? track)
+    public bool TryGetTrack(string path, [NotNullWhen(true)] out Track? track)
     {
         if (!_tracks.TryGetValue(path, out Track trk))
         {
@@ -235,7 +240,7 @@ public class MusicLibrary : IMusicLibrary
     public bool UpdateTrack(Track track)
     {
         _tracks[track.Path] = track;
-        SaveLibrary();
+        SaveLibrary(true);
 
         // TODO: Check if track exists in the library.
         return true;
@@ -246,6 +251,7 @@ public class MusicLibrary : IMusicLibrary
         return _albums.TryGetValue(albumName, out album);
     }
 
+    // TODO: These methods MUST call SaveLibrary, but implement Transactions first.
     public bool InsertOrUpdateTrack(Track track)
     {
         bool trackExists = _tracks.ContainsKey(track.Path);
@@ -274,6 +280,22 @@ public class MusicLibrary : IMusicLibrary
         return !genreExists;
     }
 
+    public bool TryDeleteTrack(string path)
+    {
+        if (!_tracks.TryRemove(path, out Track track))
+            return false;
+
+        if (_albums.TryGetValue(track.Album, out Album album))
+            album.Tracks.Remove(track.Path);
+        if (_artists.TryGetValue(track.Artist, out Artist artist))
+            artist.Tracks.Remove(track.Path);
+        if (_genres.TryGetValue(track.Path, out Genre genre))
+            genre.Tracks.Remove(track.Path);
+        
+        SaveLibrary(true);
+        return true;
+    }
+
     private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths)
     {
         List<Track> trackList = [];
@@ -289,7 +311,7 @@ public class MusicLibrary : IMusicLibrary
         return new SizedCollection<Track>(trackEnumerable, (uint) trackList.Count);
     }
 
-    private void SaveLibrary()
+    private void SaveLibrary(bool emitChanged)
     {
         _logger.Log($"Saving library to {_databasePath}.");
         Library library = new Library(DatabaseVersion, _libraryPaths, _excludedDirectories,
@@ -297,6 +319,9 @@ public class MusicLibrary : IMusicLibrary
             (IReadOnlyCollection<Artist>) _artists.Values, (IReadOnlyCollection<Genre>) _genres.Values);
         string json = JsonSerializer.Serialize(library, ConfigManager.GetDefaultSerializerOptions());
         File.WriteAllText(_databasePath, json);
+
+        if (emitChanged)
+            Updated();
     }
 
     private void IndexLibrary()
@@ -374,7 +399,7 @@ public class MusicLibrary : IMusicLibrary
         _genres = genres;*/
 
         _currentlyIndexedPath = null;
-        SaveLibrary();
+        SaveLibrary(false);
         _logger.Log("Indexing complete!");
     }
 
