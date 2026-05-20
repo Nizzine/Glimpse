@@ -2,6 +2,7 @@
 
 source "$(dirname $0)/.Common.sh"
 APPDIR="$(dirname $0)/bin"
+SCRIPT_DIR="$(dirname $0)"
 
 prompt "Install/Upgrade Glimpse to $GLIMPSEDIR?"
 progress "Installing Glimpse" 5
@@ -17,11 +18,11 @@ cp -r "$APPDIR/." $GLIMPSEDIR || exit 1
 
 updateprogress "Copying icon..." 3
 mkdir -p $ICONSDIR || exit 1
-cp "$GLIMPSEDIR/Assets/Icons/Glimpse.png" $ICONSDIR || exit 1
+cp "$SCRIPT_DIR/Glimpse.png" $ICONSDIR || exit 1
 
 updateprogress "Creating desktop entry..." 4
 mkdir -p $APPSDIR || exit 1
-mv "$GLIMPSEDIR/Glimpse.desktop" "$APPSDIR/" || exit 1
+mv "$SCRIPT_DIR/Glimpse.desktop" "$APPSDIR/" || exit 1
 
 updateprogress "Done!" 5
 closeprogress

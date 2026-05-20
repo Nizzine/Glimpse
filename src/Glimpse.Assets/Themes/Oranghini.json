@@ -2,6 +2,9 @@
   "Name": "Oranghini",
   "Author": "Nizzine",
   "Version": "1.0.0",
+  "Config": {
+    "Logo": "asset://Icons.GlimpseOrange.png"
+  },
   "DarkColors": {
     "Text": "#FFFFFFDC",
     "MainBackground": "#222222FF",

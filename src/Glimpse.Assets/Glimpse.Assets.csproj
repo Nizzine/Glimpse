@@ -12,18 +12,6 @@
         <EmbeddedResource Include="Images/**/*" />
         <EmbeddedResource Include="Locales/**/*" />
         <EmbeddedResource Include="Themes/**/*" />
-        <EmbeddedResource Remove="Icons/Glimpse-Dbg.png" />
-    </ItemGroup>
-
-    <ItemGroup Condition="$(Configuration) == 'Debug'">
-        <EmbeddedResource Remove="Icons/Glimpse.png" />
-        <EmbeddedResource Include="Icons/Glimpse-Dbg.png">
-            <Link>Icons/Glimpse.png</Link>
-        </EmbeddedResource>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Images\Themes\" />
     </ItemGroup>
 
 </Project>

@@ -90,8 +90,6 @@ public class GlimpsePlayer : Window
         _updateButton = Renderer.CreateImage("asset://Icons.Update.png");
         _shuffleButton = Renderer.CreateImage("asset://Icons.Shuffle.png");
         _repeatButton = Renderer.CreateImage("asset://Icons.Repeat.png");
-
-        _defaultAlbumArt = Renderer.CreateImage("asset://Icons.Glimpse.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -1306,11 +1304,8 @@ public class GlimpsePlayer : Window
         // Reload current album art in case the settings changed.
         _newAlbumArt = Glimpse.Player.CurrentTrack?.AlbumArt?.Data;
 
-        if (_themeConfig.Logo != null)
-        {
-            _defaultAlbumArt.Dispose();
-            _defaultAlbumArt = Renderer.CreateImage(_themeConfig.Logo);
-        }
+        // Reload default album art too.
+        _defaultAlbumArt = Renderer.CreateImage(_themeConfig.Logo ?? "asset://Icons.Glimpse.png");
 
         stream.Dispose();
     }
