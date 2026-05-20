@@ -17,6 +17,8 @@ public record struct Theme
     [JsonConverter(typeof(SemVerConverter))]
     public SemVer Version;
 
+    public string? Logo;
+
     public ColorScheme? DarkColors;
 
     public ColorScheme? LightColors;

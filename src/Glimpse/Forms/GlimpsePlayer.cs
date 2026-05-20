@@ -89,8 +89,6 @@ public class GlimpsePlayer : Window
         _shuffleButton = Renderer.CreateImage("Icons.Shuffle.png");
         _repeatButton = Renderer.CreateImage("Icons.Repeat.png");
         
-        _defaultAlbumArt = Renderer.CreateImage("Icons.Glimpse.png");
-        
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
@@ -1273,6 +1271,9 @@ public class GlimpsePlayer : Window
         Theme theme =
             JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
         theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
+        
+        _defaultAlbumArt?.Dispose();
+        _defaultAlbumArt = Renderer.CreateImage(theme.Logo ?? "Icons.Glimpse.png");
         
         stream.Dispose();
     }
