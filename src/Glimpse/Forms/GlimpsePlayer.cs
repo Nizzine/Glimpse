@@ -119,8 +119,8 @@ public class GlimpsePlayer : Window
         // TODO: Call this function on track change (and perhaps in the main loop), not with a timer.
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
-        if (_currentTracks.Count == 0)
-            AddPopup(new WelcomePopup());
+        //if (_currentTracks.Count == 0)
+        //    AddPopup(new WelcomePopup());
 
 //#if !DEBUG
         // Only perform the update check if the user wants it!
