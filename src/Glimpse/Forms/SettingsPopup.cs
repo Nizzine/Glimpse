@@ -110,8 +110,8 @@ public class SettingsPopup : Popup
                         
                         ImGui.EndDisabled();
 
-                        //_lightMode ??= Renderer.CreateImage("Images.LightMode.png");
-                        //_darkMode ??= Renderer.CreateImage("Images.DarkMode.png");
+                        //_lightMode ??= Renderer.CreateImage("asset://Images.LightMode.png");
+                        //_darkMode ??= Renderer.CreateImage("asset://Images.DarkMode.png");
 
                         ImGuiStylePtr currentStyle = ImGui.GetStyle();
                         bool lightMode = shouldSyncToOS
@@ -144,8 +144,8 @@ public class SettingsPopup : Popup
 
                         ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
-                        _transportDown ??= Renderer.CreateImage("Images.TransportDown.png");
-                        _transportUp ??= Renderer.CreateImage("Images.TransportUp.png");
+                        _transportDown ??= Renderer.CreateImage("asset://Images.TransportDown.png");
+                        _transportUp ??= Renderer.CreateImage("asset://Images.TransportUp.png");
                         
                         string up = currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Up");
                         string down = currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation.Down");
@@ -255,7 +255,7 @@ public class SettingsPopup : Popup
 
                     if (ImGui.BeginTabItem(currentLocale.GetString("Popup.Settings.Tab.About")))
                     {
-                        _glimpseLogo ??= Renderer.CreateImage("Icons.Glimpse.png");
+                        _glimpseLogo ??= Renderer.CreateImage("asset://Icons.Glimpse.png");
 
                         ImGui.BeginChild("GlimpseLogo", ImGuiChildFlags.AlwaysAutoResize | ImGuiChildFlags.AutoResizeX | ImGuiChildFlags.AutoResizeY);
                         {

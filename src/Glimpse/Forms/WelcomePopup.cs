@@ -30,7 +30,7 @@ public class WelcomePopup : Popup
     {
         _hasOldLibrary = File.Exists(Path.Combine(IConfigManager.BaseDir, OldMusicDatabase.DatabaseName + ".json"));
         
-        _glimpse = Renderer.CreateImage("Icons.Glimpse.png");
+        _glimpse = Renderer.CreateImage("asset://Icons.Glimpse.png");
         _tabIndex = 0;
 
         _needsRefresh = true;

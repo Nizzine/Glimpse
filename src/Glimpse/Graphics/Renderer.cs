@@ -5,6 +5,7 @@ using Glimpse.Graphics.GLUtils;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using Color = System.Drawing.Color;
 using Size = System.Drawing.Size;
 
@@ -71,17 +72,27 @@ public unsafe class Renderer : IDisposable
 
     public Image CreateImage(string path)
     {
-        using Stream stream = Asset.GetAssetStream(path); 
+        Stream stream;
+        if (path.StartsWith("asset://"))
+            stream = Asset.GetAssetStream(path["asset://".Length..]);
+        else
+            stream = File.OpenRead(path);
+        
         using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(stream);
         byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
         image.CopyPixelDataTo(pixels);
-
+        
+        stream.Dispose();
         return new Image(GL, pixels, (uint) image.Width, (uint) image.Height);
     }
 
-    public Image CreateImage(byte[] data)
+    public Image CreateImage(byte[] data, ImageLoadFlags flags = ImageLoadFlags.None)
     {
         using Image<Rgba32> image = SixLabors.ImageSharp.Image.Load<Rgba32>(data);
+        
+        if ((flags & ImageLoadFlags.LoadGrayscale) != 0)
+            image.Mutate(x => x.Grayscale());
+        
         byte[] pixels = new byte[image.Width * image.Height * sizeof(Rgba32)];
         image.CopyPixelDataTo(pixels);
         

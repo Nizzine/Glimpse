@@ -30,9 +30,9 @@ public class ManageLibraryPopup : Popup
 
     public override void Open()
     {
-        _plus = Renderer.CreateImage("Icons.Plus.png");
-        _minus = Renderer.CreateImage("Icons.Minus.png");
-        _refresh = Renderer.CreateImage("Icons.Update.png");
+        _plus = Renderer.CreateImage("asset://Icons.Plus.png");
+        _minus = Renderer.CreateImage("asset://Icons.Minus.png");
+        _refresh = Renderer.CreateImage("asset://Icons.Update.png");
 
         _libraryPaths = [];
         _needsRefresh = true;

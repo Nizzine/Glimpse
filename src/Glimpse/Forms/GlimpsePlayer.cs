@@ -76,18 +76,18 @@ public class GlimpsePlayer : Window
 
     protected override unsafe void Initialize()
     {
-        _playButton = Renderer.CreateImage("Icons.PlayButton.png");
-        _pauseButton = Renderer.CreateImage("Icons.PauseButton.png");
-        _skipButton = Renderer.CreateImage("Icons.SkipButton.png");
-        _stopButton = Renderer.CreateImage("Icons.StopButton.png");
-        _plusButton = Renderer.CreateImage("Icons.Plus.png");
-        _star = Renderer.CreateImage("Icons.Star.png");
-        _starFilled = Renderer.CreateImage("Icons.Star-Filled.png");
-        _cogButton = Renderer.CreateImage("Icons.Cog.png");
-        _bugButton = Renderer.CreateImage("Icons.Bug.png");
-        _updateButton = Renderer.CreateImage("Icons.Update.png");
-        _shuffleButton = Renderer.CreateImage("Icons.Shuffle.png");
-        _repeatButton = Renderer.CreateImage("Icons.Repeat.png");
+        _playButton = Renderer.CreateImage("asset://Icons.PlayButton.png");
+        _pauseButton = Renderer.CreateImage("asset://Icons.PauseButton.png");
+        _skipButton = Renderer.CreateImage("asset://Icons.SkipButton.png");
+        _stopButton = Renderer.CreateImage("asset://Icons.StopButton.png");
+        _plusButton = Renderer.CreateImage("asset://Icons.Plus.png");
+        _star = Renderer.CreateImage("asset://Icons.Star.png");
+        _starFilled = Renderer.CreateImage("asset://Icons.Star-Filled.png");
+        _cogButton = Renderer.CreateImage("asset://Icons.Cog.png");
+        _bugButton = Renderer.CreateImage("asset://Icons.Bug.png");
+        _updateButton = Renderer.CreateImage("asset://Icons.Update.png");
+        _shuffleButton = Renderer.CreateImage("asset://Icons.Shuffle.png");
+        _repeatButton = Renderer.CreateImage("asset://Icons.Repeat.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
