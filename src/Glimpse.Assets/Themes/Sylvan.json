@@ -1,8 +1,7 @@
 {
-  "Name": "Nz.Sylvan",
+  "Name": "Sylvan",
   "Author": "Nizzine",
-  "Version": "1",
-  "Image": "Images.Themes.Default.png",
+  "Version": "1.0.0",
   "DarkColors": {
     "Text": "#E8E4DCFF",
     "MainBackground": "#181C18F2",
