@@ -288,12 +288,16 @@ public class GlimpsePlayer : Window
             
             if (Glimpse.Config.Appearance.ConfineAlbumArtToSquare)
             {
+                // If aspect ratio >1 then it is too wide and we must scale it by the width.
+                // Otherwise scale by the height.
                 double aspectRatio = albumArt.Width / (double) albumArt.Height;
                 float scale = aspectRatio > 1 ? winSize.Y / albumArt.Width : winSize.Y / albumArt.Height;
                 size = new Vector2(albumArt.Width, albumArt.Height) * scale;
             }
             else
             {
+                // Always scale by the height, unless the image is larger than the maximum aspect ratio
+                // in which case calculate the maximum allowed width in screen coordinates and scale the image using that.
                 const double maxAspectRatio = 16.0 / 9.0;
                 float scale = winSize.Y / albumArt.Height;
                 size = new Vector2(albumArt.Width, albumArt.Height) * scale;
@@ -564,6 +568,7 @@ public class GlimpsePlayer : Window
                         {
                             // Calculate the mouse position relative to the bar then turn it into a 0-1 range.
                             float xFraction = (ImGui.GetMousePos().X - globalCursorPos.X) / width;
+                            xFraction = float.Clamp(xFraction, 0.0f, 1.0f);
                             _seekPosition = length * xFraction;
                         }
                         else if (_seekPosition != null) // Only seek once the mouse button is let go.
