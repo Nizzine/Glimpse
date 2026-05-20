@@ -17,7 +17,7 @@ public record struct Theme
     [JsonConverter(typeof(SemVerConverter))]
     public SemVer Version;
 
-    public string? Logo;
+    public ThemeConfig Config;
 
     public ColorScheme? DarkColors;
 
@@ -118,7 +118,27 @@ public record struct Theme
 
         return theme;
     }
-    
+
+    public record struct ThemeConfig
+    {
+        /// <summary>
+        /// The Glimpse logo to use for this theme. If null is specified, the default logo will be used.
+        /// </summary>
+        public string? Logo;
+        
+        /// <summary>
+        /// Album art will be loaded as grayscale.
+        /// </summary>
+        public bool AlbumArtGrayscale;
+
+        [JsonConstructor]
+        public ThemeConfig()
+        {
+            Logo = null;
+            AlbumArtGrayscale = false;
+        }
+    }
+
     public record struct ColorScheme
     {
         /// <summary>

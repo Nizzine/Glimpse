@@ -9,6 +9,7 @@ using Glimpse.Assets;
 using Glimpse.API.Library;
 using Glimpse.Audio;
 using Glimpse.Configs;
+using Glimpse.Graphics;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
@@ -23,6 +24,7 @@ public class GlimpsePlayer : Window
     private bool _init;
     private bool _needsRefresh;
     private ImGuiStyle _defaultStyle;
+    private Theme.ThemeConfig _themeConfig;
 
     private Size _restoreSize;
     private bool _miniplayer;
@@ -88,6 +90,8 @@ public class GlimpsePlayer : Window
         _updateButton = Renderer.CreateImage("asset://Icons.Update.png");
         _shuffleButton = Renderer.CreateImage("asset://Icons.Shuffle.png");
         _repeatButton = Renderer.CreateImage("asset://Icons.Repeat.png");
+
+        _defaultAlbumArt = Renderer.CreateImage("asset://Icons.Glimpse.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -162,7 +166,11 @@ public class GlimpsePlayer : Window
             _albumArt?.Dispose();
             try
             {
-                _albumArt = Renderer.CreateImage(_newAlbumArt);
+                ImageLoadFlags flags = ImageLoadFlags.None;
+                if (_themeConfig.AlbumArtGrayscale)
+                    flags |= ImageLoadFlags.LoadGrayscale;
+                
+                _albumArt = Renderer.CreateImage(_newAlbumArt, flags);
             }
             catch (Exception e)
             {
@@ -1271,10 +1279,15 @@ public class GlimpsePlayer : Window
         Theme theme =
             JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
         theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
-        
-        _defaultAlbumArt?.Dispose();
-        _defaultAlbumArt = Renderer.CreateImage(theme.Logo ?? "Icons.Glimpse.png");
-        
+
+        _themeConfig = theme.Config;
+
+        if (_themeConfig.Logo != null)
+        {
+            _defaultAlbumArt.Dispose();
+            _defaultAlbumArt = Renderer.CreateImage(_themeConfig.Logo);
+        }
+
         stream.Dispose();
     }
 

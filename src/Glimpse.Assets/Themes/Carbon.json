@@ -2,7 +2,10 @@
   "Name": "Carbon",
   "Author": "aquagoose",
   "Version": "1.0.0",
-  "Logo": "asset://Icons.GlimpseMono.png",
+  "Config": {
+    "Logo": "asset://Icons.GlimpseMono.png",
+    "AlbumArtGrayscale": true
+  },
   "DarkColors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#141414FF",
