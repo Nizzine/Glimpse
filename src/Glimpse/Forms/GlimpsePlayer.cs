@@ -283,31 +283,48 @@ public class GlimpsePlayer : Window
         {
             Vector2 winSize = ImGui.GetContentRegionAvail();
 
-            ImGui.BeginChild("AlbumArt", new Vector2(winSize.Y));
+            Image albumArt = _albumArt ?? _defaultAlbumArt;
+            Vector2 size;
+            
+            if (Glimpse.Config.Appearance.ConfineAlbumArtToSquare)
             {
-                Image albumArt = _albumArt ?? _defaultAlbumArt;
+                double aspectRatio = albumArt.Width / (double) albumArt.Height;
+                float scale = aspectRatio > 1 ? winSize.Y / albumArt.Width : winSize.Y / albumArt.Height;
+                size = new Vector2(albumArt.Width, albumArt.Height) * scale;
+            }
+            else
+            {
+                const double maxAspectRatio = 16.0 / 9.0;
+                float scale = winSize.Y / albumArt.Height;
+                size = new Vector2(albumArt.Width, albumArt.Height) * scale;
+                float maxAlbumWidth = winSize.Y * (float) maxAspectRatio;
+                if (size.X > maxAlbumWidth)
+                {
+                    float sizeScale = maxAlbumWidth / size.X;
+                    size *= sizeScale;
+                }
+            }
 
-                float aspectRatio = albumArt.Width / (float) albumArt.Height;
-                float scale = winSize.Y / (aspectRatio > 1 ? albumArt.Width : albumArt.Height);
-                
-                Vector2 size = new Vector2(albumArt.Width, albumArt.Height) * scale;
-                
+            ImGui.BeginChild("AlbumArt", new Vector2(size.X, winSize.Y));
+            {
                 ImGui.SetCursorPosY(winSize.Y / 2 - size.Y / 2);
                 ImGui.Image(albumArt, size);
-                if (ImGui.IsItemClicked())
-                {
-                    Size windowSize = Size;
-
-                    if (_restoreSize.IsEmpty)
-                        _restoreSize = new Size(470, 122);
-                    
-                    _miniplayer = !_miniplayer;
-                    Size = _restoreSize;
-                    _restoreSize = windowSize;
-                    RefreshLayout();
-                }
-                
                 ImGui.EndChild();
+            }
+            
+            if (ImGui.IsItemHovered())
+                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            if (ImGui.IsItemClicked())
+            {
+                Size windowSize = Size;
+
+                if (_restoreSize.IsEmpty)
+                    _restoreSize = new Size(470, 122);
+                    
+                _miniplayer = !_miniplayer;
+                Size = _restoreSize;
+                _restoreSize = windowSize;
+                RefreshLayout();
             }
             
             ImGui.SameLine();

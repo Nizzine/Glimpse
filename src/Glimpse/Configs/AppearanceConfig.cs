@@ -11,10 +11,13 @@ public struct AppearanceConfig() : IEquatable<AppearanceConfig>
     
     public bool SwapTransportControls = false;
 
+    public bool ConfineAlbumArtToSquare = true;
+
     public bool Equals(AppearanceConfig other)
     {
         return PreferredColorScheme == other.PreferredColorScheme && Theme == other.Theme &&
-               SwapTransportControls == other.SwapTransportControls;
+               SwapTransportControls == other.SwapTransportControls &&
+               ConfineAlbumArtToSquare == other.ConfineAlbumArtToSquare;
     }
 
     public override bool Equals(object? obj)

@@ -168,6 +168,12 @@ public class SettingsPopup : Popup
                         }
                         ImGui.SetItemTooltipUnformatted(up);
                         
+                        ImGui.SeparatorText("Misc");
+
+                        ImGui.Checkbox("Confine album art to a square",
+                            ref _currentConfig.Appearance.ConfineAlbumArtToSquare);
+                        ImGui.SetItemTooltipUnformatted("Album art will always be displayed within a square.\nIf unchecked, the transport bar will adjust to the\nalbum art (within reasonable limits).");
+                        
                         ImGui.EndTabItem();
                     }
 
