@@ -318,7 +318,7 @@ public class Glimpse : IGlimpse, IDisposable
                 Logger.Log("Window Resized");
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
-                wnd.Renderer.Resize(wnd.Size);
+                wnd.Renderer.Resize(wnd.FramebufferSize);
                 Logger.Log("done.");
                 break;
             }
@@ -333,7 +333,7 @@ public class Glimpse : IGlimpse, IDisposable
                 //Size winSize = wnd.Size;
                 //float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
                 //wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
-                wnd.Renderer.Resize(wnd.Size);
+                wnd.Renderer.Resize(wnd.FramebufferSize);
                 wnd.NotifyScaleChanged();
                 Logger.Log("done.");
                 break;
