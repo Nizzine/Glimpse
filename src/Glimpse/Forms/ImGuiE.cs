@@ -81,8 +81,9 @@ public static class ImGuiE
             {
                 // Ensure the popup remains interactable if the main window is smaller than the popup
                 ImGui.SetNextWindowSize(Vector2.Min(windowSize, viewportSize));
-                windowFlags |= ImGuiWindowFlags.AlwaysAutoResize; // A null size will want an auto sized window.
             }
+            else
+                windowFlags |= ImGuiWindowFlags.AlwaysAutoResize; // A null size will want an auto sized window.
 
             ImGui.SetNextWindowPos(ImGui.GetMainViewport().Size / 2, ImGuiCond.Always, new Vector2(0.5f));
             return ImGui.BeginPopupModal(name, windowFlags);
