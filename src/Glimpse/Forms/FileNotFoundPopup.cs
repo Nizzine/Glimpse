@@ -5,14 +5,9 @@ namespace Glimpse.Forms;
 
 public class FileNotFoundPopup(string songName) : Popup
 {
-    public override void Update()
+    public override void Update(float dt)
     {
-        string popupName = Glimpse.Locale.GetString("Popup.FileNotFound.Name");
-        
-        if (!ImGui.IsPopupOpen(popupName))
-            ImGui.OpenPopup(popupName);
-        
-        if (ImGui.BeginPopupModal(popupName, ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoMove))
+        if (ImGui.OpenPopupModal(Glimpse.Locale.GetString("Popup.FileNotFound.Name")))
         {
             ImGui.Text(Glimpse.Locale.GetString("Popup.FileNotFound.Text", songName));
             

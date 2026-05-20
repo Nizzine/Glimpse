@@ -6,9 +6,10 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Loader;
 using Glimpse.API;
+using Glimpse.API.Library;
 using Glimpse.Audio;
 using Glimpse.Configs;
-using Glimpse.Database;
+using Glimpse.Library;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
@@ -50,7 +51,7 @@ public class Glimpse : IGlimpse, IDisposable
 
     public Locale Locale;
 
-    public MusicDatabase? Database;
+    public MusicLibrary Library;
     
     public Dictionary<string, IPlugin>? Plugins;
 
@@ -162,14 +163,16 @@ public class Glimpse : IGlimpse, IDisposable
             Config.General.Language = defaultLocale;
         }
 
-        if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
+        /*if (!ConfigManager.TryGetConfig(MusicDatabase.DatabaseName, out Database))
         {
             Database = new MusicDatabase();
             ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
-        }
+        }*/
 
-        Database!.Logger = Logger;
-        Database!.Refresh();
+        //Database!.Logger = Logger;
+        //Database!.Refresh();
+        Library = new MusicLibrary(Logger, Player);
+        //Database.Index(); // TODO: Don't automatically index on startup! (Unless the user enables the setting)
         
 #if !PUBLISH_AOT
         Logger.Log("Searching for 'Plugins' directory.");
@@ -558,7 +561,7 @@ public class Glimpse : IGlimpse, IDisposable
         }
         
         Player.Dispose();
-        ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
+        //ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         Platform.Dispose();
         _pipeServer.Close();
         
@@ -702,5 +705,6 @@ public class Glimpse : IGlimpse, IDisposable
     ILogger IGlimpse.Logger => Logger;
     IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;
+    IMusicLibrary IGlimpse.Library => Library;
     ILocale? IGlimpse.Locale => Locale;
 }

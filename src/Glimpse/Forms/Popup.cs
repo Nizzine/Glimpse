@@ -15,7 +15,7 @@ public abstract class Popup : IDisposable
 
     public virtual void Open() { }
 
-    public abstract void Update();
+    public abstract void Update(float dt);
 
     public void Close()
     {

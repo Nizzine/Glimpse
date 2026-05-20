@@ -1,9 +1,9 @@
-﻿using Glimpse.API;
+﻿namespace Glimpse.API.Library;
 
-namespace Glimpse.Database;
-
-public struct Track
+public record Track
 {
+    public string Path;
+    
     public uint? TrackNumber;
     
     public string? Title;
@@ -18,19 +18,23 @@ public struct Track
 
     public byte Rating;
 
-    public byte PlayCount;
+    public uint PlayCount;
 
     public DateTime? LastPlayed;
 
-    public Track(TrackInfo info)
+    public Track() { }
+
+    public Track(string path, TrackInfo info, Track? oldTrack = null)
     {
+        Path = path;
         TrackNumber = info.TrackNumber;
         Title = info.Title;
         Artist = info.Artist;
         Album = info.Album;
         Length = info.Length;
         Genre = info.Genre;
-        Rating = 0;
-        PlayCount = 0;
+        Rating = oldTrack?.Rating ?? 0;
+        PlayCount = oldTrack?.PlayCount ?? 0;
+        LastPlayed = oldTrack?.LastPlayed ?? null;
     }
 }

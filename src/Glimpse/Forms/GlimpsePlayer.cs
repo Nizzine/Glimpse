@@ -6,23 +6,22 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Glimpse.API;
 using Glimpse.Assets;
+using Glimpse.API.Library;
 using Glimpse.Audio;
 using Glimpse.Configs;
-using Glimpse.Database;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
 using SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
-using Track = Glimpse.Database.Track;
+using Track = Glimpse.API.Library.Track;
 
 namespace Glimpse.Forms;
 
 public class GlimpsePlayer : Window
 {
-    private const string ShowAllString = "*";
-    
     private bool _init;
+    private bool _needsRefresh;
     private ImGuiStyle _defaultStyle;
 
     private Size _restoreSize;
@@ -31,9 +30,12 @@ public class GlimpsePlayer : Window
     private SemVer _newVersion;
     private string? _newVersionURL;
     private float _newVersionBlinker;
-
+    
+    private string? _currentAlbum;
     private AlbumView _currentView;
-    private string _currentAlbum;
+    private SizedCollection<Track> _currentTracks;
+    private SizedCollection<string> _albums;
+    
     private bool _wasSeekClicked;
     private double? _seekPosition;
     private int _currentRowHover;
@@ -93,6 +95,7 @@ public class GlimpsePlayer : Window
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
         Glimpse.Platform.ButtonPressed += PlatformOnButtonPressed;
         Glimpse.Platform.GetPosition += PlatformOnGetPosition;
+        Glimpse.Library.Updated += () => _needsRefresh = true; // TODO: Make this a method
 
         const uint fontSize = 18;
         Renderer.ImGui.AddFont("Fonts.Roboto-Regular.ttf", fontSize);
@@ -110,14 +113,14 @@ public class GlimpsePlayer : Window
         _defaultStyle = *style.Handle;
         
         RefreshLayout();
+        ChangeView(AlbumView.Albums);
+        ChangeAlbum(null); // Change to the default album view where all tracks are displayed.
 
-        _currentView = AlbumView.Albums;
-        _currentAlbum = ShowAllString;
-
+        // TODO: Call this function on track change (and perhaps in the main loop), not with a timer.
         _playCountTimer = new Timer(CheckIncrementPlayCount, null, 0, 1000);
         
-        if (Glimpse.Database.Tracks.Count == 0)
-            AddPopup(new AddFolderPopup());
+        //if (_currentTracks.Count == 0)
+        //    AddPopup(new WelcomePopup());
 
 #if !DISABLE_AUTOUPDATE
         // Only perform the update check if the user wants it!
@@ -130,19 +133,23 @@ public class GlimpsePlayer : Window
     {
         AudioPlayer player = Glimpse.Player;
 
-        if (player.TrackState != TrackState.Playing ||
-            _hasIncrementedPlayCount ||
-            player.ConsumedTime.TotalSeconds < double.Max(30, player.TrackLength.TotalSeconds * 0.6))
+        // Count after 60%
+        // TODO: Make this adjustable.
+        const double songConsumedPercentageBeforeIncrement = 0.6;
+
+        if (player.CurrentTrack == null || player.TrackState != TrackState.Playing || _hasIncrementedPlayCount ||
+            player.ConsumedTime.TotalSeconds < player.TrackLength.TotalSeconds * songConsumedPercentageBeforeIncrement)
         {
             return;
         }
 
         _hasIncrementedPlayCount = true;
-        if (Glimpse.Database.Tracks.TryGetValue(player.CurrentTrackPath, out Track track))
+        // TODO: I don't like this.
+        if (Glimpse.Library.TryGetTrack(player.CurrentTrackPath, out Track? track))
         {
             track.PlayCount++;
             track.LastPlayed = DateTime.Now;
-            Glimpse.Database.Tracks[player.CurrentTrackPath] = track;
+            Glimpse.Library.UpdateTrack(track);
         }
     }
 
@@ -184,6 +191,13 @@ public class GlimpsePlayer : Window
             player.Seek(_seekPosition.Value);
             _seekPosition = null;
             _wasSeekClicked = false;
+        }
+        
+        if (Glimpse.Library.IsIndexing || _needsRefresh)
+        {
+            _needsRefresh = false;
+            ChangeAlbum(_currentAlbum);
+            ChangeView(_currentView);
         }
 
         Renderer.Clear(Color.Black);
@@ -316,7 +330,8 @@ public class GlimpsePlayer : Window
                         {
                             switchToTrackList = true;
                             switchView = AlbumView.Artists;
-                            _currentAlbum = player.CurrentTrack.Artist;
+                            ChangeView(AlbumView.Artists);
+                            ChangeAlbum(player.CurrentTrack.Artist);
                         }
 
 
@@ -325,7 +340,8 @@ public class GlimpsePlayer : Window
                         {
                             switchToTrackList = true;
                             switchView = AlbumView.Albums;
-                            _currentAlbum = player.CurrentTrack.Album;
+                            ChangeView(AlbumView.Albums);
+                            ChangeAlbum(player.CurrentTrack.Album);
                         }
                     }
 
@@ -608,94 +624,32 @@ public class GlimpsePlayer : Window
                 
                 ImGui.EndCombo();
             }*/
-
-            void DrawItemList()
-            {
-                ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
-                {
-                    if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == ShowAllString))
-                    {
-                        _currentAlbum = ShowAllString;
-                        switchToTrackList = true;
-                    }
-
-                    IReadOnlyCollection<TrackLinkData> datas = _currentView switch
-                    {
-                        AlbumView.Albums => Glimpse.Database.Albums.Values,
-                        AlbumView.Artists => Glimpse.Database.Artists.Values,
-                        AlbumView.Genres => Glimpse.Database.Genres.Values,
-                        _ => throw new ArgumentOutOfRangeException()
-                    };
-
-                    ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                    clipper.Begin(datas.Count);
-                    
-                    while (clipper.Step())
-                    {
-                        IEnumerable<TrackLinkData> albumsRange =
-                            datas.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
-                        
-                        foreach (TrackLinkData data in albumsRange)
-                        {
-                            string albumName = data.Name;
-                            if (albumName == string.Empty)
-                                albumName = locale.GetString("Player.Albums.NoAlbum");
-                            
-                            if (ImGui.Selectable(albumName, _currentAlbum == data.Name))
-                            {
-                                _currentAlbum = data.Name;
-                                switchToTrackList = true;
-                            }
-
-                            if (ImGui.BeginPopupContextItem())
-                            {
-                                if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
-                                    player.QueueTracks(data.Tracks, QueueSlot.AtEnd);
-                            
-                                ImGui.Separator();
-                            
-                                if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                    AddPopup(new RemovePopup(data.Name, true, false));
-                                if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
-                                    AddPopup(new RemovePopup(data.Name, true, true));
-                            
-                                ImGui.EndPopup();
-                            }
-                        }
-                    }
-                    
-                    ImGui.EndChild();
-                }
-            }
             
             if (ImGui.BeginTabBar("AlbumTabs"))
             {
                 //ImGui.PushFont(_iconsFont, 32);
 
-                if (switchView is AlbumView view)
-                    _currentView = view;
+                //if (switchView is AlbumView view)
+                //    _currentView = view;
 
                 if (ImGui.BeginTabItemTooltip("\ue019##Albums", locale.GetString("Player.ViewSelect.Albums"), switchView is AlbumView.Albums))
                 {
-                    if (switchView == null)
-                        _currentView = AlbumView.Albums;
-                    DrawItemList();
+                    if (_currentView != AlbumView.Albums)
+                        ChangeView(AlbumView.Albums);
                     ImGui.EndTabItem();
                 }
 
                 if (ImGui.BeginTabItemTooltip("\ue01a##Artists", locale.GetString("Player.ViewSelect.Artists"), switchView is AlbumView.Artists))
                 {
-                    if (switchView == null)
-                        _currentView = AlbumView.Artists;
-                    DrawItemList();
+                    if (_currentView != AlbumView.Artists)
+                        ChangeView(AlbumView.Artists);
                     ImGui.EndTabItem();
                 }
                 
                 if (ImGui.BeginTabItemTooltip("\ue521##Genres", locale.GetString("Player.ViewSelect.Genres"), switchView is AlbumView.Genres))
                 {
-                    if (switchView == null)
-                        _currentView = AlbumView.Genres;
-                    DrawItemList();
+                    if (_currentView != AlbumView.Genres)
+                        ChangeView(AlbumView.Genres);
                     ImGui.EndTabItem();
                 }
 
@@ -706,6 +660,58 @@ public class GlimpsePlayer : Window
                 }
                 ImGui.EndDisabled();
                 
+                ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
+                {
+                    if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == null))
+                    {
+                        ChangeAlbum(null);
+                        switchToTrackList = true;
+                    }
+
+                    ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
+                    clipper.Begin((int) _albums.Count);
+                    
+                    while (clipper.Step())
+                    {
+                        IEnumerable<string> albumsRange =
+                            _albums.Collection.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                        
+                        foreach (string name in albumsRange)
+                        {
+                            string albumName = name;
+                            if (albumName == string.Empty)
+                                albumName = locale.GetString("Player.Albums.NoAlbum");
+                            
+                            if (ImGui.Selectable(albumName, _currentAlbum == albumName))
+                            {
+                                ChangeAlbum(albumName);
+                                switchToTrackList = true;
+                            }
+
+                            if (ImGui.BeginPopupContextItem())
+                            {
+                                if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
+                                {
+                                    if (Glimpse.Library.TryGetAlbum(albumName, out Album album))
+                                        player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
+                                }
+
+                                ImGui.Separator();
+                            
+                                // TODO: Reimplement album removal & deletion
+                                /*if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
+                                    AddPopup(new RemoveTrackPopup(albumName, true, false));
+                                if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteAlbum")))
+                                    AddPopup(new RemoveTrackPopup(albumName, true, true));*/
+                            
+                                ImGui.EndPopup();
+                            }
+                        }
+                    }
+                    
+                    ImGui.EndChild();
+                }
+                
                 ImGui.EndTabBar();
             }
         }
@@ -715,7 +721,7 @@ public class GlimpsePlayer : Window
         
         #region Songs Dock
         
-        if (_currentAlbum != null && ImGui.Begin("Songs"))
+        if (ImGui.Begin("Songs"))
         {
             /*foreach (string file in _files)
             {
@@ -749,8 +755,7 @@ public class GlimpsePlayer : Window
                         
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
-
-                        // TODO: DeltaTime
+                        
                         _newVersionBlinker += dt * 2;
                         if (_newVersionBlinker >= float.Pi * 2)
                             _newVersionBlinker -= float.Pi * 2;
@@ -769,7 +774,8 @@ public class GlimpsePlayer : Window
                     ImGui.SameLine();
             
                     if (ImGui.ImageButton("AddDirs", _plusButton, ScaleVec(16), Vector4.Zero, iconsColor))
-                        AddPopup(new AddFolderPopup());
+                        //AddPopup(new AddFolderPopup());
+                        AddPopup(new ManageLibraryPopup());
                     ImGui.SetItemTooltipUnformatted(locale.GetString("Player.AddDirs"));
                     
                     ImGui.EndChild();
@@ -782,33 +788,6 @@ public class GlimpsePlayer : Window
                 
                 if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Tracks"), trackFlags))
                 {
-                    ICollection<string> trackList;
-
-                    TrackLinkData? currentView = null;
-                    switch (_currentView)
-                    {
-                        case AlbumView.Albums:
-                            if (Glimpse.Database.Albums.TryGetValue(_currentAlbum, out Album currentAlbum))
-                                currentView = currentAlbum;
-                            break;
-                        case AlbumView.Artists:
-                            if (Glimpse.Database.Artists.TryGetValue(_currentAlbum, out Artist currentArtist))
-                                currentView = currentArtist;
-                            break;
-                        case AlbumView.Genres:
-                            if (Glimpse.Database.Genres.TryGetValue(_currentAlbum, out Genre currentGenre))
-                                currentView = currentGenre;
-                            break;
-                    }
-                    
-                    if (_currentAlbum == ShowAllString || (currentView == null && switchView == null))
-                    {
-                        trackList = Glimpse.Database.Tracks.Keys;
-                        _currentAlbum = ShowAllString;
-                    }
-                    else
-                        trackList = currentView.Tracks;
-
                     if (ImGui.BeginTable("SongTable", 9, ImGuiTableFlags.Resizable | ImGuiTableFlags.Reorderable | ImGuiTableFlags.ScrollY | ImGuiTableFlags.ScrollX | ImGuiTableFlags.RowBg))
                     {
                         const int ratingColumn = 6;
@@ -830,16 +809,14 @@ public class GlimpsePlayer : Window
                         //int songEntryHeight = (int) (25 * Scale);
 
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                        clipper.Begin(trackList.Count/*, songEntryHeight*/);
+                        clipper.Begin((int) _currentTracks.Count/*, songEntryHeight*/);
                         while (clipper.Step())
                         {
                             int song = clipper.DisplayStart;
-                            IEnumerable<string> visibleTracks =
-                                trackList.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
-                            foreach (string path in visibleTracks)
+                            IEnumerable<Track> visibleTracks =
+                                _currentTracks.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                            foreach (Track track in visibleTracks)
                             {
-                                Track track = Glimpse.Database.Tracks[path];
-
                                 ImGui.TableNextRow(/*songEntryHeight*/);
                                 int currentRow = ImGui.TableGetRowIndex();
 
@@ -851,6 +828,7 @@ public class GlimpsePlayer : Window
 
                                 ImGui.TableNextColumn();
 
+                                string path = track.Path;
                                 string title = track.Title ?? locale.GetString("UnknownTrack");
                                 string artist = track.Artist ?? locale.GetString("UnknownArtist");
                                 string album = track.Album ?? locale.GetString("UnknownAlbum");
@@ -868,7 +846,7 @@ public class GlimpsePlayer : Window
                                 bool isRatingHovered = ImGui.TableGetHoveredColumn() == ratingColumn;
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, isRatingHovered ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.SpanAllColumns))
                                 {
-                                    player.QueueTracks(trackList, QueueSlot.Clear);
+                                    player.QueueTracks(_currentTracks.Select(trk => trk.Path), QueueSlot.Clear);
                                     if (!player.TryChangeTrack(song))
                                         AddPopup(new FileNotFoundPopup(title));
                                 }
@@ -886,9 +864,9 @@ public class GlimpsePlayer : Window
                                     if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer", Glimpse.Platform.FileManagerName)))
                                         Glimpse.Platform.OpenFileInExplorer(path);
                                     if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))
-                                        AddPopup(new RemovePopup(path, false, false));
+                                        AddPopup(new RemoveTrackPopup(path, false));
                                     if (Glimpse.Config.General.EnableFileDeletion && ImGui.Selectable(locale.GetString("Menu.DeleteFile")))
-                                        AddPopup(new RemovePopup(path, false, true));
+                                        AddPopup(new RemoveTrackPopup(path,true));
 
                                     ImGui.EndPopup();
                                 }
@@ -916,13 +894,13 @@ public class GlimpsePlayer : Window
                                     if (ImGui.ImageButton($"{path}rating{i}", i < rating ? _starFilled : _star, ScaleVec(16), Vector4.Zero, iconsColor))
                                     {
                                         track.Rating = (byte) (i + 1);
-                                        Glimpse.Database.Tracks[path] = track;
+                                        Glimpse.Library.UpdateTrack(track);
                                     }
 
                                     if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
                                     {
                                         track.Rating = 0;
-                                        Glimpse.Database.Tracks[path] = track;
+                                        Glimpse.Library.UpdateTrack(track);
                                     }
 
                                     if (ImGui.IsItemHovered())
@@ -985,17 +963,17 @@ public class GlimpsePlayer : Window
 
                                 Vector2 cursorPos = ImGui.GetCursorPos();
                                 int height = (int) ((32 + 6) * Scale);
-                                
-                                Track track = Glimpse.Database.Tracks[path];
-                                string title = track.Title ?? locale.GetString("UnknownTrack");
-                                string artist = track.Artist ?? locale.GetString("UnknownArtist");
-                                string album = track.Album ?? locale.GetString("UnknownAlbum");
+
+                                // TODO: perform better checking here!
+                                Glimpse.Library.TryGetTrack(path, out Track? track);
+                                string title = track?.Title ?? locale.GetString("UnknownTrack");
+                                string artist = track?.Artist ?? locale.GetString("UnknownArtist");
+                                string album = track?.Album ?? locale.GetString("UnknownAlbum");
                                 
                                 if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
                                 {
                                     if (!player.TryChangeTrack(i))
                                     {
-                                        
                                         AddPopup(new FileNotFoundPopup(title));
                                     }
                                 }
@@ -1017,7 +995,7 @@ public class GlimpsePlayer : Window
                                         ImGui.PushFont(ImFontPtr.Null, 14);
                                         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.75f, 0.75f, 0.75f, 1.0f));
                                         ImGui.TextUnformatted(
-                                            $"{artist} • {album} • {track.Length.GetValueOrDefault():mm\\:ss}");
+                                            $"{artist} • {album} • {track?.Length.GetValueOrDefault():mm\\:ss}");
                                         ImGui.PopStyleColor();
                                         ImGui.PopFont();
 
@@ -1184,6 +1162,77 @@ public class GlimpsePlayer : Window
         ImGuiStylePtr style = ImGui.GetStyle();
         SetupStyle(style);
         RefreshLayout();
+    }
+
+    /// <summary>
+    /// Change the current album.
+    /// </summary>
+    /// <param name="albumName">The album name. Use <see langword="null"/> to view all.</param>
+    private void ChangeAlbum(string? albumName)
+    {
+        _currentAlbum = albumName;
+        if (albumName == null)
+            _currentTracks = Glimpse.Library.GetTracks();
+        else
+        {
+            switch (_currentView)
+            {
+                case AlbumView.Albums:
+                {
+                    if (!Glimpse.Library.TryGetTracksForAlbum(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+
+                case AlbumView.Artists:
+                {
+                    if (!Glimpse.Library.TryGetTracksForArtist(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+
+                case AlbumView.Genres:
+                {
+                    if (!Glimpse.Library.TryGetTracksForGenre(albumName, out _currentTracks))
+                        goto default;
+                    break;
+                }
+                
+                default:
+                    _currentTracks = Glimpse.Library.GetTracks();
+                    break;
+            }
+            
+        }
+    }
+
+    private void ChangeView(AlbumView view)
+    {
+        _currentView = view;
+        switch (view)
+        {
+            case AlbumView.Albums:
+            {
+                SizedCollection<Album> albums = Glimpse.Library.GetAlbums();
+                IEnumerable<string> albumNames = albums.Collection.Select(album => album.Name);
+                _albums = new SizedCollection<string>(albumNames, albums.Count);
+                break;
+            }
+            case AlbumView.Artists:
+            {
+                SizedCollection<Artist> artists = Glimpse.Library.GetArtists();
+                IEnumerable<string> artistNames = artists.Collection.Select(artist => artist.Name);
+                _albums = new SizedCollection<string>(artistNames, artists.Count);
+                break;
+            }
+            case AlbumView.Genres:
+            {
+                SizedCollection<Genre> genres = Glimpse.Library.GetGenres();
+                IEnumerable<string> genreNames = genres.Collection.Select(genre => genre.Name);
+                _albums = new SizedCollection<string>(genreNames, genres.Count);
+                break;
+            }
+        }
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)

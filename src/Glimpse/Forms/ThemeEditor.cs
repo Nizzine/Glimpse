@@ -21,7 +21,7 @@ public class ThemeEditor : Popup
         _workingTheme = _theme;
     }
 
-    public override void Update()
+    public override void Update(float dt)
     {
         const string popupName = "Theme Editor";
         bool hasChanges = _workingTheme != _theme;

@@ -1,4 +1,5 @@
-﻿using Glimpse.API.Codecs;
+﻿using System.Diagnostics.CodeAnalysis;
+using Glimpse.API.Codecs;
 
 namespace Glimpse.API;
 
@@ -144,8 +145,9 @@ public interface IAudioPlayer
     /// Get <see cref="TrackInfo"/> for the given file path.
     /// </summary>
     /// <param name="path">The path to the file.</param>
+    /// <param name="info"></param>
     /// <returns>The <see cref="TrackInfo"/> for the file.</returns>
-    public TrackInfo GetTrackInfoForFile(string path);
+    public bool TryGetTrackInfoForFile(string path, [NotNullWhen(true)] out TrackInfo? info);
     
     public delegate void OnTrackChanged(TrackInfo info, string path);
     public delegate void OnStateChanged(TrackState state);

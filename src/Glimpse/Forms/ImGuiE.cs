@@ -67,5 +67,26 @@ public static class ImGuiE
             ImGui.SetItemTooltipUnformatted(tooltip);
             return isEdited;
         }
+
+        public static bool OpenPopupModal(string name, Vector2? size = null, ImGuiWindowFlags flags = ImGuiWindowFlags.None)
+        {
+            if (!ImGui.IsPopupOpen(name))
+                ImGui.OpenPopup(name);
+
+            ImGuiWindowFlags windowFlags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize |
+                                           ImGuiWindowFlags.HorizontalScrollbar | flags; 
+
+            Vector2 viewportSize = ImGui.GetMainViewport().Size;
+            if (size is Vector2 windowSize)
+            {
+                // Ensure the popup remains interactable if the main window is smaller than the popup
+                ImGui.SetNextWindowSize(Vector2.Min(windowSize, viewportSize));
+            }
+            else
+                windowFlags |= ImGuiWindowFlags.AlwaysAutoResize; // A null size will want an auto sized window.
+
+            ImGui.SetNextWindowPos(ImGui.GetMainViewport().Size / 2, ImGuiCond.Always, new Vector2(0.5f));
+            return ImGui.BeginPopupModal(name, windowFlags);
+        }
     }
 }
