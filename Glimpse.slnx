@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Plugins/">
+    <Project Path="Plugins/Glimpse.DiscordPresence/Glimpse.DiscordPresence.csproj" />
+    <Project Path="Plugins/Glimpse.OpenMPT/Glimpse.OpenMPT.csproj" />
+    <Project Path="Plugins/OpenMPT.NET/OpenMPT.NET/OpenMPT.NET.csproj" />
+  </Folder>
+  <Project Path="Slant.NET/MixrSharp/MixrSharp.csproj" />
+  <Project Path="src/Glimpse.API/Glimpse.API.csproj" />
+  <Project Path="src/Glimpse.Assets/Glimpse.Assets.csproj" />
+  <Project Path="src/Glimpse.Audio/Glimpse.Audio.csproj" />
+  <Project Path="src/Glimpse/Glimpse.csproj" />
+  <Project Path="src/glimpsecli/glimpsecli.csproj" />
+</Solution>
