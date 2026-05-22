@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MixrSharp", "MixrSharp\MixrSharp\MixrSharp.csproj", "{BD560E05-95EB-40A3-874C-82D7DA0C3015}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Slant.NET", "Slant.NET\MixrSharp\MixrSharp.csproj", "{BD560E05-95EB-40A3-874C-82D7DA0C3015}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "glimpsecli", "src\glimpsecli\glimpsecli.csproj", "{F1E0BA99-FDF8-4297-A44B-B011AD865696}"
 EndProject
