@@ -37,7 +37,6 @@
     
     <ItemGroup>
       <ProjectReference Include="..\Glimpse.API\Glimpse.API.csproj" />
-      <ProjectReference Include="..\..\MixrSharp\MixrSharp\MixrSharp.csproj" />
       <ProjectReference Include="..\Glimpse.Assets\Glimpse.Assets.csproj" />
       <ProjectReference Include="..\Glimpse.Audio\Glimpse.Audio.csproj" />
     </ItemGroup>
