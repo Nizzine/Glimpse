@@ -164,20 +164,27 @@ public abstract unsafe class Window : IDisposable
 
         //SDL.SetWindowSize(_window, _size.Width, _size.Height);
 
-        using (Stream iconStream = Asset.GetAssetStream("Icons.Glimpse.png"))
-        using (Image<Rgba32> icon = Image.Load<Rgba32>(iconStream))
+        // Do not set the icon on Windows or macOS, as they inherit the icon from the .ico or .icns file.
+        // We check if the OS is *not* windows or macos specifically so that the icon is always set as a fallback.
+        // On Linux systems, BSD etc the icon must be set manually.
+        // TODO: Check the behaviour with a .desktop file. It might set the icon automatically?
+        if (!OperatingSystem.IsWindows() && !OperatingSystem.IsMacOS())
         {
-            byte[] pixels = new byte[icon.Width * icon.Height * sizeof(Rgba32)];
-            icon.CopyPixelDataTo(pixels);
-            
-            IntPtr surface;
-            fixed (byte* pData = pixels)
+            using (Stream iconStream = Asset.GetAssetStream("Icons.Glimpse.png"))
+            using (Image<Rgba32> icon = Image.Load<Rgba32>(iconStream))
             {
-                surface = SDL.CreateSurfaceFrom(icon.Width, icon.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
-                    icon.Width * 4);
-            }
+                byte[] pixels = new byte[icon.Width * icon.Height * sizeof(Rgba32)];
+                icon.CopyPixelDataTo(pixels);
 
-            SDL.SetWindowIcon(_window, surface);
+                IntPtr surface;
+                fixed (byte* pData = pixels)
+                {
+                    surface = SDL.CreateSurfaceFrom(icon.Width, icon.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
+                        icon.Width * 4);
+                }
+
+                SDL.SetWindowIcon(_window, surface);
+            }
         }
 
         _cursors = [];
