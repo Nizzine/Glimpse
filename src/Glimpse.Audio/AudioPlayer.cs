@@ -212,7 +212,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         ChangeState(TrackState.Stopped);
     }
 
-    public void Next()
+    private void NextTrack(bool ignoreRepeatOne)
     {
         do
         {
@@ -227,6 +227,9 @@ public class AudioPlayer : IAudioPlayer, IDisposable
                         _currentTrackIndex = 0;
                     break;
                 case RepeatMode.RepeatOne:
+                    if (ignoreRepeatOne)
+                        _currentTrackIndex++;
+                    
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -238,6 +241,11 @@ public class AudioPlayer : IAudioPlayer, IDisposable
                 return;
             }
         } while (!TryChangeTrack(_currentTrackIndex));
+    }
+
+    public void Next()
+    {
+        NextTrack(true);
     }
 
     public void Previous()
@@ -328,7 +336,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private void OnTrackFinish()
     {
-        Next();
+        NextTrack(false);
     }
 
     public void Dispose()

@@ -55,6 +55,7 @@ public class GlimpsePlayer : Window
     private Image _updateButton;
     private Image _shuffleButton;
     private Image _repeatButton;
+    private Image _repeatOneButton;
 
     private Image _defaultAlbumArt;
     private Image? _albumArt;
@@ -90,6 +91,7 @@ public class GlimpsePlayer : Window
         _updateButton = Renderer.CreateImage("asset://Icons.Update.png");
         _shuffleButton = Renderer.CreateImage("asset://Icons.Shuffle.png");
         _repeatButton = Renderer.CreateImage("asset://Icons.Repeat.png");
+        _repeatOneButton = Renderer.CreateImage("asset://Icons.RepeatOne.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -460,22 +462,29 @@ public class GlimpsePlayer : Window
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
                     {
                         bool shuffle = false;
-                        bool repeat = player.Repeat != RepeatMode.Off;
+                        RepeatMode repeat = player.Repeat;
 
                         Vector4 shuffleButtonTint = iconsColor;
                         if (!shuffle)
                             shuffleButtonTint.W = 0.5f;
 
                         Vector4 repeatButtonTint = iconsColor;
-                        if (!repeat)
+                        if (repeat == RepeatMode.Off)
                             repeatButtonTint.W = 0.5f;
-                        
+                            
                         ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
                         ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint);
                         ImGui.SameLine(0, 0);
-                        if (ImGui.ImageButton("RepeatButton", _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
+                        if (ImGui.ImageButton("RepeatButton", repeat == RepeatMode.RepeatOne ? _repeatOneButton : _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
                         {
-                            player.Repeat = repeat ? RepeatMode.Off : RepeatMode.RepeatQueue;
+                            // loop the repeat mode around
+                            player.Repeat = repeat switch
+                            {
+                                RepeatMode.Off => RepeatMode.RepeatQueue,
+                                RepeatMode.RepeatQueue => RepeatMode.RepeatOne,
+                                RepeatMode.RepeatOne => RepeatMode.Off,
+                                _ => throw new ArgumentOutOfRangeException()
+                            };
                         }
                         ImGui.PopStyleColor();
 
@@ -1179,6 +1188,7 @@ public class GlimpsePlayer : Window
         _updateButton.Dispose();
         _shuffleButton.Dispose();
         _repeatButton.Dispose();
+        _repeatOneButton.Dispose();
         
         base.Dispose();
     }
