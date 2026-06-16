@@ -290,9 +290,9 @@ public class Glimpse : IGlimpse, IDisposable
             
             foreach (Window wnd in _windows)
             {
-                if (ImGui.GetIO().WantTextInput)
+                if (ImGui.GetIO().WantTextInput && !SDL.TextInputActive(wnd.Handle))
                     SDL.StartTextInput(wnd.Handle);
-                else
+                else if (SDL.TextInputActive(wnd.Handle))
                     SDL.StopTextInput(wnd.Handle);
                 
                 wnd.SetActive();
@@ -328,11 +328,16 @@ public class Glimpse : IGlimpse, IDisposable
                 Logger.Log("Window Display Scale Changed");
                 Window wnd = _windowIds[@event.Window.WindowID];
                 wnd.SetActive();
-                // TODO: Check this behaviour on windows. I have a feeling below will work as expected (as I'm fairly
-                //       sure it always did, hence why this has been implemented).
-                //Size winSize = wnd.Size;
-                //float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
-                //wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
+                
+                // windows being windows does not auto resize the window correctly
+                // so we must resize the window by the inverse of the current window scale
+                if (OperatingSystem.IsWindows())
+                {
+                    Size winSize = wnd.Size;
+                    float scaleDiff = SDL.GetWindowDisplayScale(wnd.Handle) / wnd.Scale;
+                    wnd.Size = new Size((int) (winSize.Width * scaleDiff), (int) (winSize.Height * scaleDiff));
+                }
+
                 wnd.Renderer.Resize(wnd.FramebufferSize);
                 wnd.NotifyScaleChanged();
                 Logger.Log("done.");

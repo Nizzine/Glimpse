@@ -146,10 +146,12 @@ public abstract unsafe class Window : IDisposable
         SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
         uint display = SDL_GetDisplayForPoint(in mousePoint);
         uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
-        //float displayScale = SDL.GetDisplayContentScale(display);
         
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, _size.Width);
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, _size.Height);
+        // windows doesn't auto-scale windows when created so we must do that here
+        // todo create the window first then resize using the window display scale?
+        float displayScale = OperatingSystem.IsWindows() ? SDL.GetDisplayContentScale(display) : 1;
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (uint) (_size.Width * displayScale));
+        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (uint) (_size.Height * displayScale));
         
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
         SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
