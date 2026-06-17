@@ -136,9 +136,10 @@ public abstract unsafe class Window : IDisposable
         // Apparently hiding the window and then showing it later once everything is ready breaks wayland. The scale
         // values it reports are entirely incorrect. I think this is an SDL bug, or perhaps wayland just being stupid.
         // Either way, can't hide the window now. Thanks wayland!
-        // TODO: Probably can hide the window on everything except wayland. Or perhaps just re-load the scale values
-        //       once the window is shown.
-        //SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
+        bool isWayland = SDL.GetCurrentVideoDriver() == "wayland";
+        // todo reload the scale value once the window is shown instead ?
+        if (!isWayland)
+            SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
 
         // Attempt to set the window centered on the display the mouse cursor is on.
         // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
@@ -229,6 +230,9 @@ public abstract unsafe class Window : IDisposable
             nint hwnd = SDL.GetPointerProperty(props, SDL.Props.WindowWin32HWNDPointer, 0);
             platform.InitializeMainWindow(hwnd);
         }
+
+        if (!isWayland)
+            SDL.ShowWindow(_window);
 
         return SDL.GetWindowID(_window);
     }
