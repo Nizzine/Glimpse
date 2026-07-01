@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics;
 using Glimpse.API;
 using Glimpse.API.Codecs;
 using Glimpse.Audio.Codecs.Flac;
@@ -24,11 +25,13 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     private TrackState _currentTrackState;
 
     private int _currentTrackIndex;
+    private bool _shouldShuffle;
 
     private PlayerSettings _settings;
     private readonly List<ICodec> _codecs;
 
     public readonly List<string> QueuedTracks;
+    public readonly List<int> PlayOrder;
     
     public IReadOnlyList<ICodec> Codecs => _codecs;
 
@@ -50,8 +53,44 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     }
 
     public RepeatMode Repeat { get; set; }
-    
-    public ShuffleMode Shuffle { get; set; }
+
+    public ShuffleMode Shuffle
+    {
+        get;
+        set
+        {
+            field = value;
+
+            _shouldShuffle = false;
+            
+            if (PlayOrder.Count == 0)
+                return;
+
+            switch (value)
+            {
+                case ShuffleMode.Off:
+                    for (int i = 0; i < PlayOrder.Count; i++)
+                        PlayOrder[i] = i;
+                    break;
+                case ShuffleMode.Default:
+                {
+                    Random random = Random.Shared;
+                    (PlayOrder[0], PlayOrder[_currentTrackIndex]) = (PlayOrder[_currentTrackIndex], PlayOrder[0]);
+                    _currentTrackIndex = 0;
+                    
+                    for (int i = 1; i < PlayOrder.Count; i++)
+                    {
+                        int newIndex = random.Next(1, PlayOrder.Count);
+                        (PlayOrder[newIndex], PlayOrder[i]) = (PlayOrder[i], PlayOrder[newIndex]);
+                    }
+                    
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(value), value, null);
+            }
+        }
+    }
 
     public TimeSpan ElapsedTime => TimeSpan.FromSeconds(_activeTrack?.ElapsedSeconds ?? 0);
 
@@ -83,7 +122,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _logger?.Log("Initializing codecs.");
         _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
 
-        QueuedTracks = new List<string>();
+        QueuedTracks = [];
+        PlayOrder = [];
     }
 
     /// <summary>
@@ -100,7 +140,9 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         switch (slot)
         {
             case QueueSlot.AtEnd:
+                int index = QueuedTracks.Count;
                 QueuedTracks.Add(path);
+                PlayOrder.Add(index);
                 break;
             case QueueSlot.NextTrack:
                 InsertTrackAtIndex(_currentTrackIndex + 1, path);
@@ -108,11 +150,15 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             case QueueSlot.Clear:
                 QueuedTracks.Clear();
                 QueuedTracks.Add(path);
+                PlayOrder.Clear();
+                PlayOrder.Add(0); // no tracks so we can just add the 0th track
                 isFirstQueue = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
         }
+
+        Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
         
         if (isFirstQueue)
             TryChangeTrack(0);
@@ -123,15 +169,20 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         if (slot == QueueSlot.Clear)
         {
             QueuedTracks.Clear();
+            PlayOrder.Clear();
             slot = QueueSlot.AtEnd;
         }
         
         foreach (string path in paths)
             QueueTrack(path, slot, false);
+
+        _shouldShuffle = true;
     }
 
     public bool TryChangeTrack(int queueIndex)
     {
+        Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
+        
         _logger?.Log($"Changing to track {queueIndex}.");
 
         if (queueIndex >= QueuedTracks.Count || queueIndex < 0)
@@ -139,8 +190,12 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             Stop();
             return false;
         }
+        
+        _currentTrackIndex = queueIndex;
+        if (_shouldShuffle)
+            Shuffle = Shuffle;
 
-        string path = QueuedTracks[queueIndex];
+        string path = QueuedTracks[PlayOrder[_currentTrackIndex]];
 
         if (!File.Exists(path))
             return false;
@@ -148,8 +203,6 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         //_logger?.Log("  Locking device.");
         //_device.Lock();
         Track? oldTrack = _activeTrack;
-
-        _currentTrackIndex = queueIndex;
         
         _logger?.Log($"  Creating codec stream from file {path}");
         ICodecStream stream = CreateStreamFromFile(path);
@@ -321,9 +374,24 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     {
         _logger?.Log($"Inserting track '{path}' at index {index}.");
         if (index >= QueuedTracks.Count)
+        {
+            int insertIndex = QueuedTracks.Count;
             QueuedTracks.Add(path);
+            PlayOrder.Add(insertIndex);
+        }
         else
+        {
             QueuedTracks.Insert(index, path);
+            for (int i = 0; i < PlayOrder.Count; i++)
+            {
+                if (PlayOrder[i] >= index)
+                    PlayOrder[i]++;
+            }
+            
+            PlayOrder.Insert(index, index);
+        }
+        
+        Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
     }
 
     private void ChangeState(TrackState state)

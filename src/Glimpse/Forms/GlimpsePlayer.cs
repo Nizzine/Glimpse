@@ -461,11 +461,11 @@ public class GlimpsePlayer : Window
                 {
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
                     {
-                        bool shuffle = false;
+                        ShuffleMode shuffle = player.Shuffle;
                         RepeatMode repeat = player.Repeat;
 
                         Vector4 shuffleButtonTint = iconsColor;
-                        if (!shuffle)
+                        if (shuffle == ShuffleMode.Off)
                             shuffleButtonTint.W = 0.5f;
 
                         Vector4 repeatButtonTint = iconsColor;
@@ -473,7 +473,15 @@ public class GlimpsePlayer : Window
                             repeatButtonTint.W = 0.5f;
                             
                         ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
-                        ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint);
+                        if (ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint))
+                        {
+                            player.Shuffle = shuffle switch
+                            {
+                                ShuffleMode.Off => ShuffleMode.Default,
+                                ShuffleMode.Default => ShuffleMode.Off,
+                                _ => throw new ArgumentOutOfRangeException()
+                            };
+                        }
                         ImGui.SameLine(0, 0);
                         if (ImGui.ImageButton("RepeatButton", repeat == RepeatMode.RepeatOne ? _repeatOneButton : _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
                         {
@@ -975,6 +983,7 @@ public class GlimpsePlayer : Window
                     ImGui.BeginChild("QueuedTracks");
                     {
                         List<string> queuedTracks = player.QueuedTracks;
+                        List<int> playOrder = player.PlayOrder;
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
                         clipper.Begin(queuedTracks.Count, (32 + 2) * Scale);
 
@@ -983,7 +992,7 @@ public class GlimpsePlayer : Window
                             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
                         //for (int i = 0; i < queuedTracks.Count; i++)
                             {
-                                string path = queuedTracks[i];
+                                string path = queuedTracks[playOrder[i]];
 
                                 bool selected = i == player.CurrentTrackIndex;
                                 bool dark = i < player.CurrentTrackIndex;
