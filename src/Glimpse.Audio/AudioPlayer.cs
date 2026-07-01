@@ -63,21 +63,26 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
             _shouldShuffle = false;
             
+            // dont shuffle if there's nothing to shuffle
             if (PlayOrder.Count == 0)
                 return;
 
             switch (value)
             {
                 case ShuffleMode.Off:
+                    // reset the current track index to the currently playing index, and then order the list
+                    _currentTrackIndex = PlayOrder[_currentTrackIndex];
                     for (int i = 0; i < PlayOrder.Count; i++)
                         PlayOrder[i] = i;
                     break;
                 case ShuffleMode.Default:
                 {
                     Random random = Random.Shared;
+                    // move the current track to the beginning of the queue, as shuffled queues will always start at 0
                     (PlayOrder[0], PlayOrder[_currentTrackIndex]) = (PlayOrder[_currentTrackIndex], PlayOrder[0]);
                     _currentTrackIndex = 0;
                     
+                    // shuffle the entire queue except for the first track
                     for (int i = 1; i < PlayOrder.Count; i++)
                     {
                         int newIndex = random.Next(1, PlayOrder.Count);
@@ -104,7 +109,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public int CurrentTrackIndex => _currentTrackIndex;
 
-    public string CurrentTrackPath => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[_currentTrackIndex];
+    public string CurrentTrackPath => QueuedTracks.Count == 0 ? string.Empty : QueuedTracks[PlayOrder[_currentTrackIndex]];
 
     public AudioPlayer(ILogger? logger, PlayerSettings settings)
     {
@@ -147,12 +152,13 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             case QueueSlot.NextTrack:
                 InsertTrackAtIndex(_currentTrackIndex + 1, path);
                 break;
-            case QueueSlot.Clear:
+            case QueueSlot.Clear: // todo i'm not sure this is ever actually used, so it can probably be removed
                 QueuedTracks.Clear();
                 QueuedTracks.Add(path);
                 PlayOrder.Clear();
                 PlayOrder.Add(0); // no tracks so we can just add the 0th track
                 isFirstQueue = true;
+                _shouldShuffle = true;
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(slot), slot, null);
@@ -176,6 +182,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         foreach (string path in paths)
             QueueTrack(path, slot, false);
 
+        // queue is ready for shuffling
         _shouldShuffle = true;
     }
 
@@ -192,8 +199,10 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         }
         
         _currentTrackIndex = queueIndex;
+        
+        // only shuffle when changing the track for the first time. this ensures that the correct track is selected
         if (_shouldShuffle)
-            Shuffle = Shuffle;
+            Shuffle = Shuffle; // set the shuffle mode to itself, forcing a shuffle. is it stupid? yes. does it work? yes
 
         string path = QueuedTracks[PlayOrder[_currentTrackIndex]];
 
@@ -261,6 +270,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         
         _logger?.Log("  Clearing queued tracks.");
         QueuedTracks.Clear();
+        PlayOrder.Clear();
         _currentTrackIndex = 0;
         ChangeState(TrackState.Stopped);
     }
