@@ -176,9 +176,12 @@ File.Copy(pluginJson, Path.Combine(outDir, "Plugin.json"));
 // Move everything else
 foreach (string file in filesToPackage)
 {
+    // handle files that are in subdirectories
     string fileDir = Path.GetDirectoryName(file);
     string moveDir = Path.Combine(outDir, fileDir);
     Directory.CreateDirectory(moveDir);
+    
+    // we can just directly move the files instead of copying as the publish directory is deleted once we're done
     File.Move(Path.Combine(publishDir, file), Path.Combine(outDir, file));
 }
 
@@ -192,6 +195,11 @@ if (pack)
     // mmmm i sure love renamed zip archives
     ZipFile.CreateFromDirectory(outDir, packFileName);
     Directory.Delete(outDir, true);
+}
+else
+{
+    // move the output directory to the cwd and rename it to the project name
+    Directory.Move(outDir, projectName);
 }
 
 Directory.Delete(publishDir, true);
