@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
+using System.IO.Compression;
 using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Reflection;
@@ -172,7 +173,7 @@ public class Glimpse : IGlimpse, IDisposable
         //Database!.Logger = Logger;
         //Database!.Refresh();
         Library = new MusicLibrary(Logger, Player);
-        //Database.Index(); // TODO: Don't automatically index on startup! (Unless the user enables the setting)
+        //Database.Index(); // todo setting to index on startup
         
 #if !PUBLISH_AOT
         Logger.Log("Searching for 'Plugins' directory.");
@@ -666,7 +667,35 @@ public class Glimpse : IGlimpse, IDisposable
                 ImGui.GetIO().AddKeyEvent(SdlKeyToImGui(winEvent.Key.Key), false);
                 break;
             }
+
+            case SDL.EventType.DropFile:
+            {
+                string fileName;
+                unsafe { fileName = new string((sbyte*) winEvent.Drop.Data); } // lol
+                
+                if (Path.GetExtension(fileName) == ".gplg")
+                {
+                    string pluginsLocation = Utils.GetPath("Plugins");
+                    string pluginName = Path.GetFileNameWithoutExtension(fileName);
+                    Logger.Log($"Copying plugin '{pluginName}' to {pluginsLocation}.");
+                    ZipFile.ExtractToDirectory(fileName, Path.Combine(pluginsLocation, pluginName));
+                }
+                // if the dropped file is a supported audio file, play it
+                else if (Player.TryGetTrackInfoForFile(fileName, out _)) // todo expose FileIsSupported method !!!
+                {
+                    _playFiles = [fileName];
+                }
+                else
+                    Logger.Log($"Attempted to do something with dropped file '{fileName}', but it was not a supported file.");
+                
+                break;
+            }
         }
+    }
+
+    private void LoadPlugin()
+    {
+        
     }
 
     private void OnPipeServerConnection(IAsyncResult asyncResult)

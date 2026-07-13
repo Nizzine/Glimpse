@@ -115,7 +115,8 @@ ReadOnlySpan<string> dependencyBlacklist =
 [
     "cimgui",
     "hexa",
-    "glimpse.api"
+    "glimpse.api",
+    "microsoft.win32.systemevents"
 ];
 
 List<string> filesToPackage = [];
