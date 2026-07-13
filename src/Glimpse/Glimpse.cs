@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.Json.Nodes;
 using Glimpse.API;
 using Glimpse.API.Library;
 using Glimpse.Audio;
@@ -178,12 +179,11 @@ public class Glimpse : IGlimpse, IDisposable
 #if !PUBLISH_AOT
         Logger.Log("Searching for 'Plugins' directory.");
         string pluginsLocation = Utils.GetPath("Plugins");
+        _pluginsContext = new AssemblyLoadContext("Plugins");
+        Plugins = [];
+        
         if (Directory.Exists(pluginsLocation))
         {
-            _pluginsContext = new AssemblyLoadContext("Plugins");
-
-            Plugins = [];
-            
             Logger.Log($"Searching for plugins in {pluginsLocation}");
             foreach (string file in Directory.GetFiles(pluginsLocation, "*.dll", SearchOption.AllDirectories))
             {
@@ -677,8 +677,24 @@ public class Glimpse : IGlimpse, IDisposable
                 {
                     string pluginsLocation = Utils.GetPath("Plugins");
                     string pluginName = Path.GetFileNameWithoutExtension(fileName);
-                    Logger.Log($"Copying plugin '{pluginName}' to {pluginsLocation}.");
-                    ZipFile.ExtractToDirectory(fileName, Path.Combine(pluginsLocation, pluginName));
+                    string outDir = Path.Combine(pluginsLocation, pluginName);
+                    Logger.Log($"Copying plugin '{pluginName}' to {outDir}.");
+                    ZipFile.ExtractToDirectory(fileName, outDir);
+                    try
+                    {
+                        string id = LoadPlugin(Path.Combine(outDir, "Plugin.json"));
+                        SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Information, "Glimpse",
+                            $"Plugin \"{id}\" installed! Go to the settings to enable it.", MainWindow.Handle);
+                    }
+                    catch (Exception e)
+                    {
+#if DEBUG
+                        throw;
+#else
+                        SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", $"Failed to install plugin: {e}",
+                            MainWindow.Handle);
+#endif
+                    }
                 }
                 // if the dropped file is a supported audio file, play it
                 else if (Player.TryGetTrackInfoForFile(fileName, out _)) // todo expose FileIsSupported method !!!
@@ -686,16 +702,50 @@ public class Glimpse : IGlimpse, IDisposable
                     _playFiles = [fileName];
                 }
                 else
+                {
                     Logger.Log($"Attempted to do something with dropped file '{fileName}', but it was not a supported file.");
-                
+                    SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Warning, "Glimpse", "Can't play that file.",
+                        MainWindow.Handle);
+                }
+
                 break;
             }
         }
     }
 
-    private void LoadPlugin()
+    private string LoadPlugin(string pluginJsonFile)
     {
+        string json = File.ReadAllText(pluginJsonFile);
+        JsonNode pluginJson = JsonNode.Parse(json)!;
+
+        string id = pluginJson["ID"].ToString();
+        string name = pluginJson["Name"].ToString();
+        string entryPoint = pluginJson["EntryPoint"].ToString();
+        JsonArray? dependencies = pluginJson["Dependencies"]?.AsArray();
         
+        Logger.Log($"Loading plugin \"{name}\" ({id}) at {entryPoint}");
+
+        string currentFileDir = Path.GetDirectoryName(pluginJsonFile);
+        string entryPointPath = Path.Combine(currentFileDir, entryPoint);
+        Assembly assembly = _pluginsContext.LoadFromAssemblyPath(entryPointPath);
+
+        if (dependencies != null)
+        {
+            foreach (string dep in dependencies)
+            {
+                string depPath = Path.Combine(currentFileDir, dep);
+                _pluginsContext.LoadFromAssemblyPath(depPath);
+            }
+        }
+        
+        Type pluginType = assembly.GetTypes().First(type => type.IsAssignableTo(typeof(IPlugin)));
+        IPlugin plugin = (IPlugin) Activator.CreateInstance(pluginType)!; // can ignore the nullable as plugins should not be nullable
+        Plugins!.Add(id, plugin);
+        
+        if (Config.Plugins.EnabledPlugins.Contains(id))
+            plugin.Initialize(this);
+
+        return id;
     }
 
     private void OnPipeServerConnection(IAsyncResult asyncResult)

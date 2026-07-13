@@ -1,5 +1,8 @@
 #!/usr/bin/env -S dotnet --
 
+// aot is enabled by default apparently ?? so have to disable it to allow json serialization to work properly
+#:property PublishAot=false
+
 // ----------------------------- Glimpse SDK Plugin Packager -----------------------------
 // -- Build & package plugins so they're ready to be installed as a single package file --
 // ---------------------------------------------------------------------------------------
@@ -7,6 +10,7 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 bool pack = true;
@@ -77,10 +81,10 @@ if (projectName == null)
     projectName = Path.GetFileName(pluginDir);
 
 string publishDir = Path.Combine(pluginDir, "Publish");
-string pluginJson = Path.Combine(pluginDir, "Plugin.json");
+string pluginJsonFile = Path.Combine(pluginDir, "Plugin.json");
 string outDir = Path.Combine(pluginDir, $"{projectName}_Out");
 
-if (!File.Exists(pluginJson))
+if (!File.Exists(pluginJsonFile))
 {
     PrintError("Plugin.json not found. A plugin MUST contain a Plugin.json file.");
     return 1;
@@ -121,27 +125,6 @@ ReadOnlySpan<string> dependencyBlacklist =
 
 List<string> filesToPackage = [];
 
-JsonNode? pluginFileNode = JsonNode.Parse(File.ReadAllText(pluginJson));
-JsonNode? nativeDeps = pluginFileNode?["NativeDeps"];
-
-// Read the native dependencies if the Plugin.json file contains any.
-// Usually this is not needed if using nuget packages etc, as the packager will automatically
-// copy everything in the `runtimes` directory.
-// However some plugins may rely on submodules etc that do not package native dependencies as the compiler expects,
-// thus they do not show in the .deps.json file. Therefore a plugin can manually specify native dependencies for this.
-if (nativeDeps != null)
-{
-    foreach ((_, JsonNode? deps) in nativeDeps.AsObject())
-    {
-        if (deps == null)
-            continue;
-        
-        JsonArray depsList = deps.AsArray(); 
-        foreach (JsonNode? dep in depsList)
-            filesToPackage.Add(dep.ToString());
-    }
-}
-
 // Parse the deps file that dotnet publish outputs in order to read and parse the various dependencies.
 string depsFile = Path.Combine(publishDir, $"{projectName}.deps.json");
 JsonNode? node = JsonNode.Parse(File.ReadAllText(depsFile));
@@ -167,12 +150,56 @@ foreach ((_, JsonNode? target) in targets.AsObject())
 
 SKIP_PACKAGING: ;
 
+JsonNode pluginJson = JsonNode.Parse(File.ReadAllText(pluginJsonFile))!;
+
+// i can't see this ever being false but the script allows for it so gotta handle it...
+if (filesToPackage.Count > 0)
+{
+    // add the entry point to the json
+    pluginJson["EntryPoint"] = filesToPackage[0]; // the deps.json will always place the entry point dll first in the list. todo check this is actually true
+
+    // plugins may not necessarily reference any other assemblies, so only output assemblies if needed
+    if (filesToPackage.Count > 1)
+    {
+        // this is dumb and stupid and i hate it
+        JsonArray assemblies = [];
+        for (int i = 1; i < filesToPackage.Count; i++) // start at 1 as we don't need to package the entry point
+            assemblies.Add<string>(filesToPackage[i]);
+        pluginJson["Dependencies"] = assemblies;
+    }
+}
+
+// Read the native dependencies if the Plugin.json file contains any.
+// Usually this is not needed if using nuget packages etc, as the packager will automatically
+// copy everything in the `runtimes` directory.
+// However some plugins may rely on submodules etc that do not package native dependencies as the compiler expects,
+// thus they do not show in the .deps.json file. Therefore a plugin can manually specify native dependencies for this.
+JsonNode? nativeDependencies = pluginJson["NativeDependencies"];
+if (nativeDependencies != null)
+{
+    foreach ((_, JsonNode? deps) in nativeDependencies.AsObject())
+    {
+        if (deps == null)
+            continue;
+        
+        JsonArray depsList = deps.AsArray(); 
+        foreach (JsonNode? dep in depsList)
+            filesToPackage.Add(dep.ToString());
+    }
+}
+
 Console.WriteLine(string.Join(',', filesToPackage));
 
 Directory.CreateDirectory(outDir);
-
-// Copy plugin.json file
-File.Copy(pluginJson, Path.Combine(outDir, "Plugin.json"));
+// save the plugin.json to the new location
+using (Stream fileStream = File.OpenWrite(Path.Combine(outDir, "Plugin.json")))
+{
+    using Utf8JsonWriter writer = new Utf8JsonWriter(fileStream, new JsonWriterOptions
+    {
+        Indented = true
+    });
+    pluginJson.WriteTo(writer);
+}
 
 // Move everything else
 foreach (string file in filesToPackage)
