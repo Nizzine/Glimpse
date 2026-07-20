@@ -252,6 +252,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
             return;
         
         _activeTrack.Pause();
+        _device.Pause();
         ChangeState(TrackState.Paused);
     }
 

@@ -109,6 +109,13 @@ public class Glimpse : IGlimpse, IDisposable
         }
             
         Logger.Log($"Glimpse {Version}");
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataNameString, "Glimpse");
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataVersionString, Version.ToString());
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataIdentifierString, "com.aquagoose.glimpse");
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataCreatorString, "aquagoose");
+        //SDL.SetAppMetadataProperty(SDL.Props.AppMetadataCopyrightString, "Copyright (C) aquagoose 2026");
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataURLString, "https://www.glimpseaudio.co.uk");
+        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataTypeString, "mediaplayer");
         
         Logger.Log("Creating config manager.");
         ConfigManager = new ConfigManager(Logger);
