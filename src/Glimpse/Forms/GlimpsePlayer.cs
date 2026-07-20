@@ -719,13 +719,15 @@ public class GlimpsePlayer : Window
                         IEnumerable<string> albumsRange =
                             _albums.Collection.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
                         
-                        foreach (string name in albumsRange)
+                        foreach (string albumName in albumsRange)
                         {
-                            string albumName = name;
+                            // typically the displayed name is the same as the album name, unless it's the special
+                            // empty string, in which case display the "No Album" name instead
+                            string displayedAlbumName = albumName;
                             if (albumName == string.Empty)
-                                albumName = locale.GetString("Player.Albums.NoAlbum");
+                                displayedAlbumName = locale.GetString("Player.Albums.NoAlbum");
                             
-                            if (ImGui.Selectable(albumName, _currentAlbum == albumName))
+                            if (ImGui.Selectable(displayedAlbumName, _currentAlbum == albumName))
                             {
                                 ChangeAlbum(albumName);
                                 switchToTrackList = true;

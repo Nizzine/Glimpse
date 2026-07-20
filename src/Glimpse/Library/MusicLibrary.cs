@@ -353,16 +353,14 @@ public class MusicLibrary : IMusicLibrary
                     Track track = new Track(path, info, oldTrack);
                     _tracks[path] = track;
 
-                    if (track.Album != null)
+                    string albumName = track.Album ?? string.Empty;
+                    if (!_albums.TryGetValue(albumName, out Album album))
                     {
-                        if (!_albums.TryGetValue(track.Album, out Album album))
-                        {
-                            album = new Album(track.Album, []);
-                            _albums[album.Name] = album;
-                        }
-
-                        album.Tracks.Add(track.Path);
+                        album = new Album(albumName, []);
+                        _albums[album.Name] = album;
                     }
+
+                    album.Tracks.Add(track.Path);
 
                     if (track.Artist != null)
                     {
