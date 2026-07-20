@@ -4,6 +4,10 @@
     "en-gb": {
       "DisplayName": "English",
       "Path": "en-gb.json"
+    },
+    "null": {
+      "DisplayName": "null",
+      "Path": "null.json"
     }
   }
 }

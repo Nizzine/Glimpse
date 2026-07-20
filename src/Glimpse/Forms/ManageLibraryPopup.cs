@@ -20,9 +20,11 @@ public class ManageLibraryPopup : Popup
 
     public override void Update(float dt)
     {
-        if (ImGui.OpenPopupModal("Manage Library", ScaleVec(600, 500)))
+        Locale locale = Glimpse.Locale;
+
+        if (ImGui.OpenPopupModal(locale.GetString("Popup.ManageLibrary.Name"), ScaleVec(600, 500)))
         {
-            _widget.Update();
+            _widget.Update(locale);
             
             if (Glimpse.Library.IsIndexing)
             {
@@ -33,18 +35,18 @@ public class ManageLibraryPopup : Popup
             else
                 _refreshProgressTimer = 0;
             
-            if (ImGui.Button("Update"))
+            if (ImGui.Button(locale.GetString("Popup.ManageLibrary.UpdateButton")))
                 Glimpse.Library.Index();
-            ImGui.SetItemTooltipUnformatted("Update the music library");
+            ImGui.SetItemTooltipUnformatted(locale.GetString("Popup.ManageLibrary.UpdateButton.Tooltip"));
             
             ImGui.SameLine();
-            if (ImGui.Button("Close"))
+            if (ImGui.Button(locale.GetString("Button.Close")))
                 Close();
 
             if (Glimpse.Library.CurrentlyIndexedFile != null)
             {
                 ImGui.SameLine();
-                ImGui.Text($"Indexing {Path.GetFileName(Glimpse.Library.CurrentlyIndexedFile)}");
+                ImGui.Text(locale.GetString("Popup.ManageLibrary.IndexingStatus", Path.GetFileName(Glimpse.Library.CurrentlyIndexedFile)));
                 ImGui.SetItemTooltipUnformatted(Glimpse.Library.CurrentlyIndexedFile);
             }
             

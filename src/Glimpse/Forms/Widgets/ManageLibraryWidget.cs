@@ -40,7 +40,7 @@ public class ManageLibraryWidget : IDisposable
         _needsRefresh = true;
     }
 
-    public void Update()
+    public void Update(Locale locale)
     {
         if (_needsRefresh)
             Refresh();
@@ -50,7 +50,7 @@ public class ManageLibraryWidget : IDisposable
         if (ImGui.BeginListBox("##Libraries", _popup.ScaleVec(400, 415)))
         {
             foreach (LibraryDirectory dir in LibraryPaths)
-                dir.Update(_glimpse.Library, ref _selectedLibrary);
+                dir.Update(_glimpse.Library, ref _selectedLibrary, locale);
             
             ImGui.EndListBox();
         }
@@ -67,7 +67,7 @@ public class ManageLibraryWidget : IDisposable
 
                 SDL.ShowOpenFolderDialog(_folderCallback, 0, _glimpse.MainWindow.Handle, defaultLocation, true);
             }
-            ImGui.SetItemTooltipUnformatted("Add Folders to Library");
+            ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.AddFolders.Tooltip"));
             ImGui.SameLine();
             
             ImGui.BeginDisabled(_selectedLibrary == null);
@@ -79,21 +79,19 @@ public class ManageLibraryWidget : IDisposable
             }
             ImGui.EndDisabled();
             
-            ImGui.SetItemTooltipUnformatted("Remove selected folder from library");
+            ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.RemoveSelectedFolder.Tooltip"));
             ImGui.SameLine();
 
             if (ImGui.ImageButton("Refresh", _refresh, _popup.ScaleVec(16)))
                 _needsRefresh = true;
-            ImGui.SetItemTooltipUnformatted("Refresh");
+            ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.RefreshButton.Tooltip"));
 
             ImGui.Separator();
-            
-            if (ImGui.Button("Remove All"))
-            {
-                _glimpse.Library.RemoveAllLibraryPaths();
-            }
 
-            bool bFalse = false;
+            // todo this should have a confirmation ??????????
+            if (ImGui.Button(locale.GetString("Widget.ManageLibrary.RemoveAllButton")))
+                _glimpse.Library.RemoveAllLibraryPaths();
+            ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.RemoveAllButton.Tooltip"));
             
             /*ImGui.Checkbox("Refresh on launch", ref bFalse);
             ImGui.SetItemTooltipUnformatted("Refresh the music library when Glimpse is launched.");
@@ -165,7 +163,8 @@ public class ManageLibraryWidget : IDisposable
             _exists = true;
         }
 
-        public unsafe void Update(MusicLibrary library, ref string selectedDirectory)
+        // todo can we just make the locale static or something this is horrible and i hate needing to pass it everywhere
+        public unsafe void Update(MusicLibrary library, ref string selectedDirectory, Locale locale)
         {
             if (SubDirectories == null && _exists)
             {
@@ -202,7 +201,7 @@ public class ManageLibraryWidget : IDisposable
                     selectedDirectory = Path;
 
                 ImGui.PopStyleColor();
-                ImGui.SetItemTooltipUnformatted("Path could not be found. Was it moved/deleted?");
+                ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.PathNotFound"));
                 return;
             }
 
@@ -219,7 +218,7 @@ public class ManageLibraryWidget : IDisposable
             if (treeNodeOpened)
             {
                 foreach ((_, LibraryDirectory directory) in SubDirectories)
-                    directory.Update(library, ref selectedDirectory);
+                    directory.Update(library, ref selectedDirectory, locale);
                 
                 ImGui.TreePop();
             }

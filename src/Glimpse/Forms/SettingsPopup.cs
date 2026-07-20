@@ -80,7 +80,7 @@ public class SettingsPopup : Popup
 
                         _themeWidget.Update(ref _currentConfig);
 
-                        if (ImGui.Button("Open Theme Editor"))
+                        if (ImGui.Button(currentLocale.GetString("Popup.Settings.Tab.Appearance.OpenThemeEditor")))
                         {
                             Close();
                             Glimpse.MainWindow.AddPopup(new ThemeEditor());
@@ -112,11 +112,11 @@ public class SettingsPopup : Popup
                         }
                         ImGui.SetItemTooltipUnformatted(up);
                         
-                        ImGui.SeparatorText("Misc");
+                        ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.Misc"));
 
-                        ImGui.Checkbox("Confine album art to a square",
+                        ImGui.Checkbox(currentLocale.GetString("Popup.Settings.Tab.Appearance.ConfineAlbumArtToSquare"),
                             ref _currentConfig.Appearance.ConfineAlbumArtToSquare);
-                        ImGui.SetItemTooltipUnformatted("Album art will always be displayed within a square.\nIf unchecked, the transport bar will adjust to the\nalbum art (within reasonable limits).");
+                        ImGui.SetItemTooltipUnformatted(currentLocale.GetString("Popup.Settings.Tab.Appearance.ConfineAlbumArtToSquare.Tooltip"));
                         
                         ImGui.EndTabItem();
                     }

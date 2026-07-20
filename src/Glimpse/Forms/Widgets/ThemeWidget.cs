@@ -44,7 +44,7 @@ public class ThemeWidget : IDisposable
         
         ImGui.BeginDisabled(shouldSyncToOS);
 
-        if (ImGui.BeginCombo("Colour Scheme", scheme == PreferredColorScheme.Light ? light : dark))
+        if (ImGui.BeginCombo(currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.ColorScheme"), scheme == PreferredColorScheme.Light ? light : dark))
         {
             if (ImGui.Selectable(dark, scheme == PreferredColorScheme.Dark))
                 scheme = PreferredColorScheme.Dark;
@@ -73,7 +73,8 @@ public class ThemeWidget : IDisposable
             {
                 if (ImGui.Selectable(theme.Name, currentConfig.Appearance.Theme == name))
                     currentConfig.Appearance.Theme = name;
-                
+
+                // TODO: Change this to include a description and other stuff.
                 ImGui.SetItemTooltipUnformatted($"Version: {theme.Version}\nAuthor: {theme.Author}");
                 if (ImGui.IsItemHovered())
                     theme.ApplyImGuiStyle(lightMode, currentStyle.Colors);

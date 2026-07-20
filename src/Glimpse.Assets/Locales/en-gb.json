@@ -40,10 +40,10 @@
 
         "Button.Yes": "Yes",
         "Button.Save": "Save",
-        "Button.Add": "Add",
         "Button.Cancel": "Cancel",
         "Button.No": "No",
         "Button.Ok": "OK",
+        "Button.Close": "Close",
         "Checkbox.Enabled": "Enabled",
         
         "Popup.Settings.Name": "Settings",
@@ -58,9 +58,14 @@
         "Popup.Settings.Tab.Appearance.Theme.SyncToOS": "Sync to OS",
         "Popup.Settings.Tab.Appearance.Theme.Dark": "Dark",
         "Popup.Settings.Tab.Appearance.Theme.Light": "Light",
+        "Popup.Settings.Tab.Appearance.Theme.ColorScheme": "Colour Scheme",
+        "Popup.Settings.Tab.Appearance.OpenThemeEditor": "Open Theme Editor",
         "Popup.Settings.Tab.Appearance.TransportLocation": "Transport Location",
         "Popup.Settings.Tab.Appearance.TransportLocation.Up": "Up",
         "Popup.Settings.Tab.Appearance.TransportLocation.Down": "Down",
+        "Popup.Settings.Tab.Appearance.Misc": "Misc",
+        "Popup.Settings.Tab.Appearance.ConfineAlbumArtToSquare": "Confine album art to a square",
+        "Popup.Settings.Tab.Appearance.ConfineAlbumArtToSquare.Tooltip": "Album art will always be displayed within a square.\nIf unchecked, the transport bar will adjust to the\nalbum art (within reasonable limits).",
         "Popup.Settings.Tab.Player": "Player",
         "Popup.Settings.Tab.Player.PlaybackHeading": "Playback",
         "Popup.Settings.Tab.Player.Volume": "Volume",
@@ -86,6 +91,18 @@
         "Popup.Remove.DeleteTrackWarning": "PERMANENTLY DELETE {0} from your computer?",
         
         "Popup.FileNotFound.Name": "File Not Found",
-        "Popup.FileNotFound.Text": "The track \"{0}\" can't be played.\nThis could be because the track's file has been moved or deleted."
+        "Popup.FileNotFound.Text": "The track \"{0}\" can't be played.\nThis could be because the track's file has been moved or deleted.",
+
+        "Popup.ManageLibrary.Name": "Manage Library",
+        "Popup.ManageLibrary.UpdateButton": "Update",
+        "Popup.ManageLibrary.UpdateButton.Tooltip": "Update the music library",
+        "Popup.ManageLibrary.IndexingStatus": "Indexing {0}",
+
+        "Widget.ManageLibrary.AddFolders.Tooltip": "Add Folders to Library",
+        "Widget.ManageLibrary.RemoveSelectedFolder.Tooltip": "Remove selected folder from library",
+        "Widget.ManageLibrary.RefreshButton.Tooltip": "Refresh",
+        "Widget.ManageLibrary.RemoveAllButton": "Remove All",
+        "Widget.ManageLibrary.RemoveAllButton.Tooltip": "Remove ALL folders from your library",
+        "Widget.ManageLibrary.PathNotFound": "Path could not be found. Was it moved/deleted?"
     }
 }

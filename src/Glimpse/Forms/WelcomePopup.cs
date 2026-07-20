@@ -238,7 +238,7 @@ public class WelcomePopup : Popup
             _disableNext = "Add a folder to your library first!";
         
         ImGui.TextUnformatted("Let's start by importing your music.");
-        _manageLibraryWidget.Update();
+        _manageLibraryWidget.Update(Glimpse.Locale);
     }
 
     private void PreferencesTab()
