@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using Hexa.NET.ImGui;
 using piko.SDL3;
@@ -10,7 +11,7 @@ public class ThemeEditor : Popup
     private Theme _theme;
     private Theme _workingTheme;
 
-    public ThemeEditor()
+    public unsafe ThemeEditor()
     {
         _fileCallback = FileCallback;
     }
@@ -21,7 +22,7 @@ public class ThemeEditor : Popup
         _workingTheme = _theme;
     }
 
-    public override void Update(float dt)
+    public override unsafe void Update(float dt)
     {
         const string popupName = "Theme Editor";
         bool hasChanges = _workingTheme != _theme;
@@ -89,8 +90,12 @@ public class ThemeEditor : Popup
                 if (string.IsNullOrWhiteSpace(location))
                     location = null;
 
-                SDL.DialogFileFilter filter = new("Glimpse Theme JSON", "json");
-                SDL.ShowSaveFileDialog(_fileCallback, 0, Glimpse.MainWindow.Handle, [filter], 1, location);
+                nint filterName = Marshal.StringToHGlobalAnsi("Glimpse Theme JSON");
+                nint filterPattern = Marshal.StringToHGlobalAnsi("json");
+                SDL.DialogFileFilter filter = new SDL.DialogFileFilter((sbyte*) filterName, (sbyte*) filterPattern);
+                SDL.ShowSaveFileDialog(_fileCallback, null, Glimpse.MainWindow.Handle, &filter, 1, location);
+                Marshal.FreeHGlobal(filterPattern);
+                Marshal.FreeHGlobal(filterName);
             }
             
             ImGui.SameLine();
@@ -119,12 +124,12 @@ public class ThemeEditor : Popup
         }
     }
 
-    private unsafe void FileCallback(IntPtr userdata, IntPtr filelist, int filter)
+    private unsafe void FileCallback(void* userdata, sbyte** filelist, int filter)
     {
-        if (filelist == 0)
+        if (filelist == null)
             throw new Exception($"Save file dialog failed: {SDL.GetError()}");
 
-        sbyte** files = (sbyte**) filelist;
+        sbyte** files = filelist;
 
         while (*files != null)
         {

@@ -67,7 +67,7 @@ public class Glimpse : IGlimpse, IDisposable
         _windowIds.Add(id, window);
     }
 
-    public void Run(Window window, string[] args)
+    public unsafe void Run(Window window, string[] args)
     {
         _playFiles = [];
         
@@ -109,13 +109,13 @@ public class Glimpse : IGlimpse, IDisposable
         }
             
         Logger.Log($"Glimpse {Version}");
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataNameString, "Glimpse");
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataVersionString, Version.ToString());
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataIdentifierString, "com.aquagoose.glimpse");
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataCreatorString, "aquagoose");
-        //SDL.SetAppMetadataProperty(SDL.Props.AppMetadataCopyrightString, "Copyright (C) aquagoose 2026");
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataURLString, "https://www.glimpseaudio.co.uk");
-        SDL.SetAppMetadataProperty(SDL.Props.AppMetadataTypeString, "mediaplayer");
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataNameString, "Glimpse");
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataVersionString, Version.ToString());
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataIdentifierString, "com.aquagoose.glimpse");
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataCreatorString, "aquagoose");
+        //SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataCopyrightString, "Copyright (C) aquagoose 2026");
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataUrlString, "https://www.glimpseaudio.co.uk");
+        SDL.SetAppMetadataProperty(SDL.Prop.AppMetadataTypeString, "mediaplayer");
         
         Logger.Log("Creating config manager.");
         ConfigManager = new ConfigManager(Logger);
@@ -143,8 +143,8 @@ public class Glimpse : IGlimpse, IDisposable
             ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
         }
         
-        SDL.SetHint(SDL.Hints.MouseFocusClickthrough, "1");
-        SDL.SetHint(SDL.Hints.VideoAllowScreensaver, "1");
+        SDL.SetHint(SDL.Hint.MouseFocusClickthrough, "1");
+        SDL.SetHint(SDL.Hint.VideoAllowScreensaver, "1");
         //SDL.SetHint(SDL.Hints.VideoWaylandScaleToDisplay, "1");
         
         if (!SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Events))
@@ -253,7 +253,7 @@ public class Glimpse : IGlimpse, IDisposable
         _eventFilter = WindowExposedEventWatch;
         
         AddWindow(window);
-        SDL.AddEventWatch(_eventFilter, 0);
+        SDL.AddEventWatch(_eventFilter, null);
         
         if (args.Length > 0)
         {
@@ -269,19 +269,19 @@ public class Glimpse : IGlimpse, IDisposable
             SDL.Event winEvent;
 
             SDL.WindowFlags flags = SDL.GetWindowFlags(SDL.GetWindowFromID(_windowIds.First().Key));
-            if ((flags & SDL.WindowFlags.Minimized) != 0 && SDL.WaitEvent(out winEvent) ||
-                (flags & SDL.WindowFlags.InputFocus) == 0 && SDL.WaitEventTimeout(out winEvent, 250))
+            if ((flags & SDL.WindowFlags.Minimized) != 0 && SDL.WaitEvent(&winEvent) ||
+                (flags & SDL.WindowFlags.InputFocus) == 0 && SDL.WaitEventTimeout(&winEvent, 250))
             {
                 ProcessEvent(winEvent);
             }
 
-            while (SDL.PollEvent(out winEvent))
+            while (SDL.PollEvent(&winEvent))
                 ProcessEvent(winEvent);
 
             if (_shouldFocusWindow)
             {
                 _shouldFocusWindow = false;
-                IntPtr handle = MainWindow.Handle;
+                SDL.Window handle = MainWindow.Handle;
                 SDL.RaiseWindow(handle);
             }
 
@@ -309,22 +309,22 @@ public class Glimpse : IGlimpse, IDisposable
             }
         }
         
-        SDL.RemoveEventWatch(_eventFilter, 0);
+        SDL.RemoveEventWatch(_eventFilter, null);
     }
 
-    private bool WindowExposedEventWatch(IntPtr userdata, ref SDL.Event @event)
+    private unsafe bool WindowExposedEventWatch(void* userdata, SDL.Event* @event)
     {
         int threadId = Environment.CurrentManagedThreadId;
         if (threadId != _mainThreadID)
             //throw new Exception($"Event {(SDL.EventType) @event.Type} was sent on a separate thread.");
-            Logger.Log($"Event {(SDL.EventType) @event.Type} was sent on a separate thread!!! Thread ID: {threadId}, Main Thread ID: {_mainThreadID}");
+            Logger.Log($"Event {(SDL.EventType) @event->Type} was sent on a separate thread!!! Thread ID: {threadId}, Main Thread ID: {_mainThreadID}");
         
-        switch ((SDL.EventType) @event.Type)
+        switch ((SDL.EventType) @event->Type)
         {
             case SDL.EventType.WindowResized:
             {
                 Logger.Log("Window Resized");
-                Window wnd = _windowIds[@event.Window.WindowID];
+                Window wnd = _windowIds[@event->Window.WindowID];
                 wnd.SetActive();
                 wnd.Renderer.Resize(wnd.FramebufferSize);
                 Logger.Log("done.");
@@ -334,7 +334,7 @@ public class Glimpse : IGlimpse, IDisposable
             case SDL.EventType.WindowDisplayScaleChanged:
             {
                 Logger.Log("Window Display Scale Changed");
-                Window wnd = _windowIds[@event.Window.WindowID];
+                Window wnd = _windowIds[@event->Window.WindowID];
                 wnd.SetActive();
                 
                 // windows being windows does not auto resize the window correctly
@@ -354,7 +354,7 @@ public class Glimpse : IGlimpse, IDisposable
             
             case SDL.EventType.WindowExposed:
             {
-                bool isResized = @event.Window.Data1 == 1;
+                bool isResized = @event->Window.Data1 == 1;
                 if (isResized)
                 {
                     Logger.Log("Window Exposed");
@@ -378,13 +378,13 @@ public class Glimpse : IGlimpse, IDisposable
         return false;
     }
 
-    private ImGuiMouseButton? SdlButtonToImGui(uint button)
+    private ImGuiMouseButton? SdlButtonToImGui(SDL.MouseButtonFlags button)
     {
         return button switch
         {
-            SDL.ButtonLeft => ImGuiMouseButton.Left,
-            SDL.ButtonRight => ImGuiMouseButton.Right,
-            SDL.ButtonMiddle => ImGuiMouseButton.Middle,
+            SDL.MouseButtonFlags.Left => ImGuiMouseButton.Left,
+            SDL.MouseButtonFlags.Right => ImGuiMouseButton.Right,
+            SDL.MouseButtonFlags.Middle => ImGuiMouseButton.Middle,
             _ => null
         };
     }
@@ -408,25 +408,25 @@ public class Glimpse : IGlimpse, IDisposable
             SDL.Keycode.Space => ImGuiKey.Space,
             SDL.Keycode.Return => ImGuiKey.Enter,
             SDL.Keycode.Escape => ImGuiKey.Escape,
-            SDL.Keycode.LCtrl => ImGuiKey.LeftCtrl,
-            SDL.Keycode.LShift => ImGuiKey.LeftShift,
-            SDL.Keycode.LAlt => ImGuiKey.LeftAlt,
-            SDL.Keycode.LGUI => ImGuiKey.LeftSuper,
-            SDL.Keycode.RCtrl => ImGuiKey.RightCtrl,
-            SDL.Keycode.RShift => ImGuiKey.RightShift,
-            SDL.Keycode.RAlt => ImGuiKey.RightAlt,
-            SDL.Keycode.RGUI => ImGuiKey.RightSuper,
+            SDL.Keycode.Lctrl => ImGuiKey.LeftCtrl,
+            SDL.Keycode.Lshift => ImGuiKey.LeftShift,
+            SDL.Keycode.Lalt => ImGuiKey.LeftAlt,
+            SDL.Keycode.Lgui => ImGuiKey.LeftSuper,
+            SDL.Keycode.Rctrl => ImGuiKey.RightCtrl,
+            SDL.Keycode.Rshift => ImGuiKey.RightShift,
+            SDL.Keycode.Ralt => ImGuiKey.RightAlt,
+            SDL.Keycode.Rgui => ImGuiKey.RightSuper,
             SDL.Keycode.Menu => ImGuiKey.Menu,
-            SDL.Keycode.Alpha0 => ImGuiKey.Key0,
-            SDL.Keycode.Alpha1 => ImGuiKey.Key1,
-            SDL.Keycode.Alpha2 => ImGuiKey.Key2,
-            SDL.Keycode.Alpha3 => ImGuiKey.Key3,
-            SDL.Keycode.Alpha4 => ImGuiKey.Key4,
-            SDL.Keycode.Alpha5 => ImGuiKey.Key5,
-            SDL.Keycode.Alpha6 => ImGuiKey.Key6,
-            SDL.Keycode.Alpha7 => ImGuiKey.Key7,
-            SDL.Keycode.Alpha8 => ImGuiKey.Key8,
-            SDL.Keycode.Alpha9 => ImGuiKey.Key9,
+            SDL.Keycode._0 => ImGuiKey.Key0,
+            SDL.Keycode._1 => ImGuiKey.Key1,
+            SDL.Keycode._2 => ImGuiKey.Key2,
+            SDL.Keycode._3 => ImGuiKey.Key3,
+            SDL.Keycode._4 => ImGuiKey.Key4,
+            SDL.Keycode._5 => ImGuiKey.Key5,
+            SDL.Keycode._6 => ImGuiKey.Key6,
+            SDL.Keycode._7 => ImGuiKey.Key7,
+            SDL.Keycode._8 => ImGuiKey.Key8,
+            SDL.Keycode._9 => ImGuiKey.Key9,
             SDL.Keycode.A => ImGuiKey.A,
             SDL.Keycode.B => ImGuiKey.B,
             SDL.Keycode.C => ImGuiKey.C,
@@ -484,14 +484,14 @@ public class Glimpse : IGlimpse, IDisposable
             SDL.Keycode.Slash => ImGuiKey.Slash,
             SDL.Keycode.Semicolon => ImGuiKey.Semicolon,
             SDL.Keycode.Equals => ImGuiKey.Equal,
-            SDL.Keycode.LeftBracket => ImGuiKey.LeftBracket,
+            SDL.Keycode.Leftbracket => ImGuiKey.LeftBracket,
             SDL.Keycode.Backslash => ImGuiKey.Backslash,
-            SDL.Keycode.RightBracket => ImGuiKey.RightBracket,
+            SDL.Keycode.Rightbracket => ImGuiKey.RightBracket,
             SDL.Keycode.Grave => ImGuiKey.GraveAccent,
             SDL.Keycode.Capslock => ImGuiKey.CapsLock,
-            SDL.Keycode.ScrollLock => ImGuiKey.ScrollLock,
-            SDL.Keycode.NumLockClear => ImGuiKey.NumLock,
-            SDL.Keycode.PrintScreen => ImGuiKey.PrintScreen,
+            SDL.Keycode.Scrolllock => ImGuiKey.ScrollLock,
+            SDL.Keycode.Numlockclear => ImGuiKey.NumLock,
+            SDL.Keycode.Printscreen => ImGuiKey.PrintScreen,
             SDL.Keycode.Pause => ImGuiKey.Pause,
             SDL.Keycode.Kp0 => ImGuiKey.Keypad0,
             SDL.Keycode.Kp1 => ImGuiKey.Keypad1,
@@ -622,7 +622,7 @@ public class Glimpse : IGlimpse, IDisposable
                 Window wnd = _windowIds[winEvent.Button.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                 
-                if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                if (SdlButtonToImGui((SDL.MouseButtonFlags) winEvent.Button.Button) is { } button)
                     ImGui.GetIO().AddMouseButtonEvent((int) button, true);
                 break;
             }
@@ -632,7 +632,7 @@ public class Glimpse : IGlimpse, IDisposable
                 Window wnd = _windowIds[winEvent.Button.WindowID];
                 ImGui.SetCurrentContext(wnd.Renderer.ImGui.ImGuiContext);
                 
-                if (SdlButtonToImGui(winEvent.Button.Button) is { } button)
+                if (SdlButtonToImGui((SDL.MouseButtonFlags) winEvent.Button.Button) is { } button) // todo piko: this isn't mapped to MouseButtonFlags?
                     ImGui.GetIO().AddMouseButtonEvent((int) button, false);
                 break;
             }

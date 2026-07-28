@@ -21,9 +21,9 @@ public abstract unsafe class Window : IDisposable
     private float _scale;
     private float _pixelDensity;
     
-    private IntPtr _window;
-    private IntPtr _glContext;
-    private Dictionary<ImGuiMouseCursor, IntPtr> _cursors;
+    private SDL.Window _window;
+    private SDL.GLContextState _glContext;
+    private Dictionary<ImGuiMouseCursor, SDL.Cursor> _cursors;
     private ImGuiMouseCursor _lastCursor;
 
     private List<Popup> _popups;
@@ -32,7 +32,7 @@ public abstract unsafe class Window : IDisposable
     
     public Renderer Renderer;
 
-    public nint Handle => _window;
+    public SDL.Window Handle => _window;
 
     public string Title
     {
@@ -58,8 +58,9 @@ public abstract unsafe class Window : IDisposable
         {
             if (!_isCreated)
                 return _size;
-            
-            SDL.GetWindowSize(_window, out int w, out int h);
+
+            int w, h;
+            SDL.GetWindowSize(_window, &w, &h);
 
             return new Size(w, h);
         }
@@ -78,8 +79,9 @@ public abstract unsafe class Window : IDisposable
         {
             if (!_isCreated)
                 return _size;
-            
-            SDL.GetWindowSizeInPixels(_window, out int w, out int h);
+
+            int w, h;
+            SDL.GetWindowSizeInPixels(_window, &w, &h);
 
             return new Size(w, h);
         }
@@ -124,42 +126,45 @@ public abstract unsafe class Window : IDisposable
         SDL.GLSetAttribute(SDL.GLAttr.ContextMajorVersion, 3);
         SDL.GLSetAttribute(SDL.GLAttr.ContextMinorVersion, 3);
         SDL.GLSetAttribute(SDL.GLAttr.ContextProfileMask, (int) SDL.GLProfile.Core);
-        SDL.GLSetAttribute(SDL.GLAttr.ContextFlags, (int) SDL.GLContextFlag.ForwardCompatible);
+        SDL.GLSetAttribute(SDL.GLAttr.ContextFlags, (int) SDL.GLContextFlag.ForwardCompatibleFlag);
         SDL.GLSetAttribute(SDL.GLAttr.DepthSize, 0);
         SDL.GLSetAttribute(SDL.GLAttr.AlphaSize, 0);
 
         uint windowProps = SDL.CreateProperties();
-        SDL.SetStringProperty(windowProps, SDL.Props.WindowCreateTitleString, _title);
-        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateOpenGLBoolean, true);
-        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateResizableBoolean, true);
-        SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHighPixelDensityBoolean, true);
+        SDL.SetStringProperty(windowProps, SDL.Prop.WindowCreateTitleString, _title);
+        SDL.SetBooleanProperty(windowProps, SDL.Prop.WindowCreateOpenglBoolean, 1);
+        SDL.SetBooleanProperty(windowProps, SDL.Prop.WindowCreateResizableBoolean, 1);
+        SDL.SetBooleanProperty(windowProps, SDL.Prop.WindowCreateHighPixelDensityBoolean, 1);
         // Apparently hiding the window and then showing it later once everything is ready breaks wayland. The scale
         // values it reports are entirely incorrect. I think this is an SDL bug, or perhaps wayland just being stupid.
         // Either way, can't hide the window now. Thanks wayland!
         bool isWayland = SDL.GetCurrentVideoDriver() == "wayland";
         // todo reload the scale value once the window is shown instead ?
         if (!isWayland)
-            SDL.SetBooleanProperty(windowProps, SDL.Props.WindowCreateHiddenBoolean, true);
+            SDL.SetBooleanProperty(windowProps, SDL.Prop.WindowCreateHiddenBoolean, 1);
 
         // Attempt to set the window centered on the display the mouse cursor is on.
         // If that fails, just make the window centered. On platforms such as Wayland, this will do nothing.
-        SDL.GetGlobalMouseState(out float mouseX, out float mouseY);
+        float mouseX, mouseY;
+        SDL.GetGlobalMouseState(&mouseX, &mouseY);
         SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
         uint display = SDL_GetDisplayForPoint(in mousePoint);
-        uint displayPos = display == 0 ? SDL.WindowPosCentered() : SDL.WindowPosCenteredDisplay((int) display);
+        // todo: SDL.WindowPosCenteredDisplay is not implemented!
+        //uint displayPos = display == 0 ? SDL.WindowposCentered : SDL.WindowposCenteredDisplay((int) display);
+        uint displayPos = SDL.WindowposCentered;
         
         // windows doesn't auto-scale windows when created so we must do that here
         // todo create the window first then resize using the window display scale?
         float displayScale = OperatingSystem.IsWindows() ? SDL.GetDisplayContentScale(display) : 1;
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateWidthNumber, (uint) (_size.Width * displayScale));
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateHeightNumber, (uint) (_size.Height * displayScale));
+        SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateWidthNumber, (uint) (_size.Width * displayScale));
+        SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateHeightNumber, (uint) (_size.Height * displayScale));
         
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateXNumber, displayPos);
-        SDL.SetNumberProperty(windowProps, SDL.Props.WindowCreateYNumber, displayPos);
+        SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateXNumber, displayPos);
+        SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateYNumber, displayPos);
         
         _window = SDL.CreateWindowWithProperties(windowProps);
 
-        if (_window == IntPtr.Zero)
+        if (_window.IsNull)
             throw new Exception($"Failed to open window: {SDL.GetError()}");
         
         _scale = SDL.GetWindowDisplayScale(_window);
@@ -179,10 +184,10 @@ public abstract unsafe class Window : IDisposable
                 byte[] pixels = new byte[icon.Width * icon.Height * sizeof(Rgba32)];
                 icon.CopyPixelDataTo(pixels);
 
-                IntPtr surface;
+                SDL.Surface* surface;
                 fixed (byte* pData = pixels)
                 {
-                    surface = SDL.CreateSurfaceFrom(icon.Width, icon.Height, SDL.PixelFormat.ABGR8888, (IntPtr) pData,
+                    surface = SDL.CreateSurfaceFrom(icon.Width, icon.Height, SDL.PixelFormat.Abgr8888, pData,
                         icon.Width * 4);
                 }
 
@@ -200,11 +205,11 @@ public abstract unsafe class Window : IDisposable
                 ImGuiMouseCursor.None => SDL.SystemCursor.Default,
                 ImGuiMouseCursor.Arrow => SDL.SystemCursor.Default,
                 ImGuiMouseCursor.TextInput => SDL.SystemCursor.Text,
-                ImGuiMouseCursor.ResizeAll => SDL.SystemCursor.NESWResize,
-                ImGuiMouseCursor.ResizeNs => SDL.SystemCursor.NSResize,
-                ImGuiMouseCursor.ResizeEw => SDL.SystemCursor.EWResize,
-                ImGuiMouseCursor.ResizeNesw => SDL.SystemCursor.NESWResize,
-                ImGuiMouseCursor.ResizeNwse => SDL.SystemCursor.NWSEResize,
+                ImGuiMouseCursor.ResizeAll => SDL.SystemCursor.NeswResize,
+                ImGuiMouseCursor.ResizeNs => SDL.SystemCursor.NsResize,
+                ImGuiMouseCursor.ResizeEw => SDL.SystemCursor.EwResize,
+                ImGuiMouseCursor.ResizeNesw => SDL.SystemCursor.NeswResize,
+                ImGuiMouseCursor.ResizeNwse => SDL.SystemCursor.NwseResize,
                 ImGuiMouseCursor.Hand => SDL.SystemCursor.Pointer,
                 ImGuiMouseCursor.Wait => SDL.SystemCursor.Wait,
                 ImGuiMouseCursor.Progress => SDL.SystemCursor.Progress,
@@ -227,7 +232,7 @@ public abstract unsafe class Window : IDisposable
         if (OperatingSystem.IsWindows())
         {
             uint props = SDL.GetWindowProperties(_window);
-            nint hwnd = SDL.GetPointerProperty(props, SDL.Props.WindowWin32HWNDPointer, 0);
+            nint hwnd = (nint) SDL.GetPointerProperty(props, SDL.Prop.WindowWin32HwndPointer, null);
             platform.InitializeMainWindow(hwnd);
         }
 
@@ -284,7 +289,7 @@ public abstract unsafe class Window : IDisposable
     {
         SDL.DestroyWindow(_window);
         
-        foreach ((_, IntPtr cursor) in _cursors)
+        foreach ((_, SDL.Cursor cursor) in _cursors)
             SDL.DestroyCursor(cursor);
     }
     
