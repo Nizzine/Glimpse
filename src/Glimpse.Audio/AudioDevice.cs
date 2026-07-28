@@ -10,7 +10,7 @@ public sealed unsafe class AudioDevice : IDisposable
 {
     private readonly Context _context;
     private readonly uint _sampleRate;
-    private readonly AudioStreamCallback _callback;
+    private readonly SDL.AudioStreamCallback _callback;
 
     private SDL.AudioStream _device;
     private readonly Timer _stopTimer;
@@ -53,10 +53,7 @@ public sealed unsafe class AudioDevice : IDisposable
             Channels = 2
         };
 
-        nint functionPointer = Marshal.GetFunctionPointerForDelegate(_callback);
-
-        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, &spec,
-            (delegate* unmanaged[Cdecl]<void*, SDL.AudioStream, int, int, void>) functionPointer, null);
+        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, &spec, _callback, null);
         if (_device.IsNull)
             throw new Exception($"Failed to open audio device: {SDL.GetError()}");
 
@@ -106,6 +103,4 @@ public sealed unsafe class AudioDevice : IDisposable
             additionalAmount -= total;
         }
     }
-
-    private delegate void AudioStreamCallback(void* userData, SDL.AudioStream stream, int additionalAmount, int totalAmount);
 }
