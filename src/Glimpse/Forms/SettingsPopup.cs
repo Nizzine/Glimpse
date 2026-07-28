@@ -5,7 +5,7 @@ using Glimpse.Assets;
 using Glimpse.Configs;
 using Glimpse.Forms.Widgets;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;

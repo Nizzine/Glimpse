@@ -1,6 +1,6 @@
 using System.Timers;
 using MixrSharp;
-using SDL3;
+using piko.SDL3;
 using Timer = System.Timers.Timer;
 
 namespace Glimpse.Audio;

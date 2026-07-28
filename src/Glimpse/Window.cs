@@ -3,7 +3,7 @@ using Glimpse.Assets;
 using Glimpse.Forms;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

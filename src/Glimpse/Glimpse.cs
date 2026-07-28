@@ -14,7 +14,7 @@ using Glimpse.Configs;
 using Glimpse.Library;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Version = System.Version;
 
 namespace Glimpse;

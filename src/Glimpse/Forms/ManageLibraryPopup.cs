@@ -3,7 +3,7 @@ using System.Numerics;
 using Glimpse.Forms.Widgets;
 using Glimpse.Library;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;
