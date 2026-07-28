@@ -257,8 +257,8 @@ public class SettingsPopup : Popup
                                     Utils.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 if (ImGui.TextLink("Silk.NET"))
                                     Utils.OpenLink("https://dotnet.github.io/Silk.NET/");
-                                if (ImGui.TextLink("SDL3-CS"))
-                                    Utils.OpenLink("github.com/edwardgushchin/SDL3-CS");
+                                if (ImGui.TextLink("piko"))
+                                    Utils.OpenLink("https://github.com/aquagoose/piko");
                                 if (ImGui.TextLink("TagLibSharp"))
                                     Utils.OpenLink("https://github.com/mono/taglib-sharp");
                                 if (ImGui.TextLink("ImageSharp"))
