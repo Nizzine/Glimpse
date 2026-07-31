@@ -323,11 +323,9 @@ public class Glimpse : IGlimpse, IDisposable
         {
             case SDL.EventType.WindowResized:
             {
-                Logger.Log("Window Resized");
                 Window wnd = _windowIds[@event->Window.WindowID];
                 wnd.SetActive();
                 wnd.Renderer.Resize(wnd.FramebufferSize);
-                Logger.Log("done.");
                 break;
             }
             
