@@ -357,15 +357,12 @@ public class Glimpse : IGlimpse, IDisposable
                 bool isResized = @event->Window.Data1 == 1;
                 if (isResized)
                 {
-                    Logger.Log("Window Exposed");
                     foreach (Window wnd in _windows)
                     {
                         wnd.SetActive();
                         wnd.UpdateWindow(_currentDeltaTime);
                         wnd.Present();
                     }
-
-                    Logger.Log("done.");
                 }
 
                 break;
