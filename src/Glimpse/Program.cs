@@ -48,7 +48,7 @@ public static class Program
             string msg = eventArgs.ExceptionObject?.ToString() ??
                          "An error occurred, but there was no message attached.";
             logger.Log(msg);
-            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", msg, 0);
+            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", msg, new SDL.Window());
         };
 
         try
@@ -68,7 +68,7 @@ public static class Program
             string logLocation = Path.Combine(IConfigManager.BaseDir, "LastSession.log");
             string message = $"Oops! Glimpse crashed.\nLog file at: {logLocation}\n\nPlease send log file + the following error to the developers:\n{e}";
 
-            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, title, message, IntPtr.Zero);
+            SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, title, message, new SDL.Window());
         }
 #endif
     }
