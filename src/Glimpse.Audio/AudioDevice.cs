@@ -1,6 +1,7 @@
+using System.Runtime.InteropServices;
 using System.Timers;
 using MixrSharp;
-using SDL3;
+using piko.SDL3;
 using Timer = System.Timers.Timer;
 
 namespace Glimpse.Audio;
@@ -11,7 +12,7 @@ public sealed unsafe class AudioDevice : IDisposable
     private readonly uint _sampleRate;
     private readonly SDL.AudioStreamCallback _callback;
 
-    private IntPtr _device;
+    private SDL.AudioStream _device;
     private readonly Timer _stopTimer;
 
     public AudioDevice(Context context, uint sampleRate)
@@ -42,18 +43,18 @@ public sealed unsafe class AudioDevice : IDisposable
         _stopTimer.Stop();
 
         // don't create a new device if one already exists.
-        if (_device != 0)
+        if (!_device.IsNull)
             return;
 
         SDL.AudioSpec spec = new()
         {
             Freq = (int) _sampleRate,
-            Format = SDL.AudioFormat.AudioF32LE,
+            Format = SDL.AudioFormat.F32le,
             Channels = 2
         };
 
-        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, in spec, _callback, 0);
-        if (_device == 0)
+        _device = SDL.OpenAudioDeviceStream(SDL.AudioDeviceDefaultPlayback, &spec, _callback, null);
+        if (_device.IsNull)
             throw new Exception($"Failed to open audio device: {SDL.GetError()}");
 
         SDL.ResumeAudioStreamDevice(_device);
@@ -73,12 +74,12 @@ public sealed unsafe class AudioDevice : IDisposable
     {
         Console.WriteLine("Stop!");
         // don't try to destroy a nonexistent device. in theory this is unreachable
-        if (_device == 0)
+        if (_device.IsNull)
             return;
 
         SDL.PauseAudioStreamDevice(_device);
         SDL.DestroyAudioStream(_device);
-        _device = 0;
+        _device = new SDL.AudioStream(); // todo piko: IHandle.Null static?
     }
     
     public void Dispose()
@@ -89,7 +90,7 @@ public sealed unsafe class AudioDevice : IDisposable
         SDL.QuitSubSystem(SDL.InitFlags.Audio);
     }
     
-    private void AudioCallback(IntPtr userData, IntPtr stream, int additionalAmount, int totalAmount)
+    private void AudioCallback(void* userData, SDL.AudioStream stream, int additionalAmount, int totalAmount)
     {
         const int bufferSize = 512;
         float* buffer = stackalloc float[bufferSize];
@@ -98,7 +99,7 @@ public sealed unsafe class AudioDevice : IDisposable
             int total = int.Min(additionalAmount, bufferSize);
             Span<float> bufferSlice = new Span<float>(buffer, total / 4);
             _context.MixToStereoF32Buffer(bufferSlice);
-            SDL.PutAudioStreamData(stream, (IntPtr) buffer, total);
+            SDL.PutAudioStreamData(stream, buffer, total);
             additionalAmount -= total;
         }
     }

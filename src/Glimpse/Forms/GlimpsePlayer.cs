@@ -12,7 +12,7 @@ using Glimpse.Configs;
 using Glimpse.Graphics;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Color = System.Drawing.Color;
 using Image = Glimpse.Graphics.Image;
 using Track = Glimpse.API.Library.Track;

@@ -5,7 +5,7 @@ using Glimpse.Assets;
 using Glimpse.Configs;
 using Glimpse.Forms.Widgets;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms;
@@ -257,8 +257,8 @@ public class SettingsPopup : Popup
                                     Utils.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 if (ImGui.TextLink("Silk.NET"))
                                     Utils.OpenLink("https://dotnet.github.io/Silk.NET/");
-                                if (ImGui.TextLink("SDL3-CS"))
-                                    Utils.OpenLink("github.com/edwardgushchin/SDL3-CS");
+                                if (ImGui.TextLink("piko"))
+                                    Utils.OpenLink("https://github.com/aquagoose/piko");
                                 if (ImGui.TextLink("TagLibSharp"))
                                     Utils.OpenLink("https://github.com/mono/taglib-sharp");
                                 if (ImGui.TextLink("ImageSharp"))

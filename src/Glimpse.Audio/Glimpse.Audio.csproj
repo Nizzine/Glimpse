@@ -13,8 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="SDL3-CS" Version="3.4.2" />
-      <PackageReference Include="SDL3-CS.Native" Version="3.4.2" />
+      <PackageReference Include="piko.SDL3" Version="0.0.4.1" />
       <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
 

@@ -2,7 +2,7 @@ using System.Numerics;
 using Glimpse.Graphics;
 using Glimpse.Library;
 using Hexa.NET.ImGui;
-using SDL3;
+using piko.SDL3;
 using Image = Glimpse.Graphics.Image;
 
 namespace Glimpse.Forms.Widgets;
@@ -24,7 +24,7 @@ public class ManageLibraryWidget : IDisposable
     
     public List<LibraryDirectory> LibraryPaths = null!;
 
-    public ManageLibraryWidget(Popup popup)
+    public unsafe ManageLibraryWidget(Popup popup)
     {
         _popup = popup;
         _renderer = popup.Renderer;
@@ -40,7 +40,7 @@ public class ManageLibraryWidget : IDisposable
         _needsRefresh = true;
     }
 
-    public void Update(Locale locale)
+    public unsafe void Update(Locale locale)
     {
         if (_needsRefresh)
             Refresh();
@@ -65,7 +65,7 @@ public class ManageLibraryWidget : IDisposable
                 if (string.IsNullOrWhiteSpace(defaultLocation))
                     defaultLocation = null;
 
-                SDL.ShowOpenFolderDialog(_folderCallback, 0, _glimpse.MainWindow.Handle, defaultLocation, true);
+                SDL.ShowOpenFolderDialog(_folderCallback, null, _glimpse.MainWindow.Handle, defaultLocation, 1);
             }
             ImGui.SetItemTooltipUnformatted(locale.GetString("Widget.ManageLibrary.AddFolders.Tooltip"));
             ImGui.SameLine();
@@ -118,7 +118,7 @@ public class ManageLibraryWidget : IDisposable
         _plus.Dispose();
     }
     
-    private unsafe void FolderCallback(IntPtr userdata, IntPtr filelist, int filter)
+    private unsafe void FolderCallback(void* userdata, sbyte** filelist, int filter)
     {
         sbyte** fileList = (sbyte**) filelist;
         int index = 0;
