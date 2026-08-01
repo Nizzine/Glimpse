@@ -33,7 +33,7 @@ jobs:
       - name: "Install .NET"
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: 10.0.x
 
       - name: "Publish Windows x64"
         run: ./glimpsebuild.sh "Glimpse-$RELEASE_VERSION" win-x64 $RELEASE_VERSION
