@@ -227,22 +227,22 @@ public class SettingsPopup : Popup
                             
                             ImGui.Spacing();
                             if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Website")))
-                                Utils.OpenLink("https://glimpseaudio.co.uk");
+                                Utils.OpenLink("https://glimpseplayer.com");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Donate")))
-                                Utils.OpenLink("https://glimpseaudio.co.uk/donate");
+                                Utils.OpenLink("https://glimpseplayer.com/donate");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Repository")))
-                                Utils.OpenLink("https://glimpseaudio.co.uk/repo");
+                                Utils.OpenLink("https://glimpseplayer.com/repo");
                             
                             ImGui.SameLine();
                             
                             if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Discord")))
-                                Utils.OpenLink("https://glimpseaudio.co.uk/discord");
+                                Utils.OpenLink("https://glimpseplayer.com/discord");
                             
                             ImGui.EndChild();
                         }

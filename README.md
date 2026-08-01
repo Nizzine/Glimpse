@@ -1,8 +1,8 @@
-﻿# [Glimpse](https://glimpseaudio.co.uk/)
-The free, fast, and extensible music player.
+﻿# [Glimpse](https://glimpseplayer.com/)
+The free & extensible cross-platform music player.
 
-[![Download](https://img.shields.io/badge/Download-45F1C6)](https://glimpseaudio.co.uk/download/)
-[![Discord](https://img.shields.io/discord/1414765599166300253?label=Discord&color=7289DA)](https://glimpseaudio.co.uk/discord/)
+[![Download](https://img.shields.io/badge/Download-45F1C6)](https://glimpseplayer.com/download/)
+[![Discord](https://img.shields.io/discord/1414765599166300253?label=Discord&color=7289DA)](https://glimpseplayer.com/discord/)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/aquagoose)
 
 ![Glimpse Preview](Glimpse.png)

@@ -1147,7 +1147,7 @@ public class GlimpsePlayer : Window
         try
         {
             using HttpClient client = new();
-            client.BaseAddress = new Uri("https://glimpseaudio.co.uk");
+            client.BaseAddress = new Uri("https://glimpseplayer.com");
 
             using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, "download/version.json");
             using HttpResponseMessage response = await client.SendAsync(request);
