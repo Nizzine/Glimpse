@@ -42,7 +42,7 @@ Section "Install Glimpse"
     WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "UninstallString" '"$INSTDIR\uninstall.exe"'
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "NoModify" 1
     WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "NoRepair" 1
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "URLInfoAbout" "https://glimpseaudio.co.uk"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Glimpse" "URLInfoAbout" "https://glimpseplayer.com"
 
     WriteUninstaller "$INSTDIR\uninstall.exe"
 
