@@ -23,9 +23,6 @@ public struct OldConfig : IConfig
 
     public bool EnableUpdateChecking;
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public PreferredColorScheme Theme;
-
     [JsonConstructor]
     public OldConfig()
     {
@@ -37,7 +34,6 @@ public struct OldConfig : IConfig
         EnabledPlugins = ["Glimpse.OpenMPT"];
         EnableUpdateChecking = true;
         EnableFileDeletion = false;
-        Theme = PreferredColorScheme.SyncToOS;
     }
 
     public void PopulateNewConfig(ref GlimpseConfig config)
@@ -45,7 +41,6 @@ public struct OldConfig : IConfig
         config.General.Language = Language;
         config.General.EnableFileDeletion = EnableFileDeletion;
         config.General.EnableUpdateChecking = EnableUpdateChecking;
-        config.Appearance.PreferredColorScheme = Theme;
         config.Appearance.SwapTransportControls = SwapTransportControls;
         config.Audio.SampleRate = SampleRate;
         config.Audio.Volume = Volume;

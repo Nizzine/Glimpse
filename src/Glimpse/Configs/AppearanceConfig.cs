@@ -4,10 +4,7 @@ namespace Glimpse.Configs;
 
 public struct AppearanceConfig() : IEquatable<AppearanceConfig>
 {
-    [JsonConverter(typeof(JsonStringEnumConverter<PreferredColorScheme>))]
-    public PreferredColorScheme PreferredColorScheme = PreferredColorScheme.SyncToOS;
-    
-    public string Theme = global::Glimpse.Theme.DefaultTheme;
+    public string Theme = global::Glimpse.Theme.DefaultThemeLight;
     
     public bool SwapTransportControls = false;
 
@@ -15,8 +12,7 @@ public struct AppearanceConfig() : IEquatable<AppearanceConfig>
 
     public bool Equals(AppearanceConfig other)
     {
-        return PreferredColorScheme == other.PreferredColorScheme && Theme == other.Theme &&
-               SwapTransportControls == other.SwapTransportControls &&
+        return Theme == other.Theme && SwapTransportControls == other.SwapTransportControls &&
                ConfineAlbumArtToSquare == other.ConfineAlbumArtToSquare;
     }
 
@@ -27,7 +23,7 @@ public struct AppearanceConfig() : IEquatable<AppearanceConfig>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int) PreferredColorScheme, Theme, SwapTransportControls);
+        return HashCode.Combine(Theme, SwapTransportControls, ConfineAlbumArtToSquare);
     }
 
     public static bool operator ==(AppearanceConfig left, AppearanceConfig right)

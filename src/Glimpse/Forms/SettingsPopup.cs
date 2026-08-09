@@ -80,11 +80,11 @@ public class SettingsPopup : Popup
 
                         _themeWidget.Update(ref _currentConfig);
 
-                        if (ImGui.Button(currentLocale.GetString("Popup.Settings.Tab.Appearance.OpenThemeEditor")))
+                        /*if (ImGui.Button(currentLocale.GetString("Popup.Settings.Tab.Appearance.OpenThemeEditor")))
                         {
                             Close();
                             Glimpse.MainWindow.AddPopup(new ThemeEditor());
-                        }
+                        }*/
 
                         ImGui.SeparatorText(currentLocale.GetString("Popup.Settings.Tab.Appearance.TransportLocation"));
 
@@ -315,9 +315,12 @@ public class SettingsPopup : Popup
         
         Glimpse.Config = _currentConfig;
         Glimpse.ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Glimpse.Config);
-        
-        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls || _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme || _currentConfig.Appearance.PreferredColorScheme != oldConfig.Appearance.PreferredColorScheme)
+
+        if (_currentConfig.Appearance.SwapTransportControls != oldConfig.Appearance.SwapTransportControls ||
+            _currentConfig.Appearance.Theme != oldConfig.Appearance.Theme)
+        {
             ((GlimpsePlayer) Glimpse.MainWindow).RefreshLayout();
+        }
 
         if (Glimpse.Plugins == null)
             return;

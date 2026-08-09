@@ -1,8 +1,8 @@
 {
-  "Name": "Glimpse",
+  "Name": "Glimpse Dark",
   "Author": "Glimpse Team",
   "Version": "1.0.0",
-  "DarkColors": {
+  "Colors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#262626FF",
     "PopupBackground": "#262626FF",
@@ -33,6 +33,5 @@
     "TableHeader": "#4444447A",
     "Link": "#00C1FFFF",
     "PopupDimBackground": "#00000059"
-  },
-  "LightColors": null
+  }
 }

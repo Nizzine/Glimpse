@@ -2,7 +2,7 @@
   "Name": "Night",
   "Author": "aquagoose",
   "Version": "1.0.0",
-  "DarkColors": {
+  "Colors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#0A0C26FF",
     "PopupBackground": "#0A0C26FF",

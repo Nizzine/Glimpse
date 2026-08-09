@@ -6,7 +6,7 @@
     "Logo": "asset://Icons.GlimpseMono.png",
     "AlbumArtGrayscale": true
   },
-  "DarkColors": {
+  "Colors": {
     "Text": "#DDDDDDFF",
     "MainBackground": "#141414FF",
     "PopupBackground": "#262626FF",
@@ -37,6 +37,5 @@
     "TableHeader": "#4444447A",
     "Link": "#ADADADFF",
     "PopupDimBackground": "#00000059"
-  },
-  "LightColors": null
+  }
 }
