@@ -32,14 +32,40 @@ public class ThemeWidget : IDisposable
     public void Update(ref GlimpseConfig currentConfig)
     {
         Locale currentLocale = _glimpse.Locale;
+        
+        string syncToOS = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.SyncToOS");
+        string dark = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Dark");
+        string light = currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.Light");
+
+        ref PreferredColorScheme scheme = ref currentConfig.Appearance.PreferredColorScheme;
+        bool shouldSyncToOS = scheme == PreferredColorScheme.SyncToOS;
+        if (ImGui.Checkbox(syncToOS, ref shouldSyncToOS))
+            scheme = shouldSyncToOS ? PreferredColorScheme.SyncToOS : PreferredColorScheme.Dark;
+        
+        ImGui.BeginDisabled(shouldSyncToOS);
+
+        if (ImGui.BeginCombo(currentLocale.GetString("Popup.Settings.Tab.Appearance.Theme.ColorScheme"), scheme == PreferredColorScheme.Light ? light : dark))
+        {
+            if (ImGui.Selectable(dark, scheme == PreferredColorScheme.Dark))
+                scheme = PreferredColorScheme.Dark;
+            if (ImGui.Selectable(light, scheme == PreferredColorScheme.Light))
+                scheme = PreferredColorScheme.Light;
+            
+            ImGui.EndCombo();
+        }
+        
+        ImGui.EndDisabled();
 
         //_lightMode ??= Renderer.CreateImage("asset://Images.LightMode.png");
         //_darkMode ??= Renderer.CreateImage("asset://Images.DarkMode.png");
 
         ImGuiStylePtr currentStyle = ImGui.GetStyle();
+        bool lightMode = shouldSyncToOS
+            ? _isSystemThemeLightMode
+            : scheme == PreferredColorScheme.Light;
         
         Theme currentTheme = _themes[currentConfig.Appearance.Theme];
-        currentTheme.ApplyImGuiStyle(currentStyle.Colors);
+        currentTheme.ApplyImGuiStyle(lightMode, currentStyle.Colors);
 
         if (ImGui.BeginListBox("##ThemesList"))
         {
@@ -51,7 +77,7 @@ public class ThemeWidget : IDisposable
                 // TODO: Change this to include a description and other stuff.
                 ImGui.SetItemTooltipUnformatted($"Version: {theme.Version}\nAuthor: {theme.Author}");
                 if (ImGui.IsItemHovered())
-                    theme.ApplyImGuiStyle(currentStyle.Colors);
+                    theme.ApplyImGuiStyle(lightMode, currentStyle.Colors);
             }
 
             ImGui.EndListBox();

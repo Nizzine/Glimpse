@@ -8,11 +8,8 @@ namespace Glimpse;
 
 public record struct Theme
 {
-    // todo Glimpse-Light theme
-    public const string DefaultThemeLight = "Classic-Light";
-
-    public const string DefaultThemeDark = "Glimpse-Dark";
-
+    public const string DefaultTheme = "Glimpse";
+    
     public string Name;
 
     public string Author;
@@ -22,48 +19,63 @@ public record struct Theme
 
     public ThemeConfig Config;
 
-    public ColorScheme Colors;
+    public ColorScheme? DarkColors;
 
-    public void ApplyImGuiStyle(Span<Vector4> colors)
+    public ColorScheme? LightColors;
+
+    public void ApplyImGuiStyle(bool useLightThemeIfPossible, Span<Vector4> colors)
     {
-        colors[(int) ImGuiCol.Text] = Colors.Text;
-        colors[(int) ImGuiCol.TextDisabled] = Colors.DisabledText;
-        colors[(int) ImGuiCol.WindowBg] = Colors.MainBackground;
-        colors[(int) ImGuiCol.PopupBg] = Colors.PopupBackground;
-        colors[(int) ImGuiCol.FrameBg] = Colors.Container;
-        colors[(int) ImGuiCol.FrameBgHovered] = Colors.ContainerHovered;
-        colors[(int) ImGuiCol.FrameBgActive] = Colors.ContainerClicked;
-        colors[(int) ImGuiCol.TitleBgActive] = Colors.PopupTitle;
-        colors[(int) ImGuiCol.ScrollbarBg] = Colors.ScrollbarBackground;
-        colors[(int) ImGuiCol.ScrollbarGrab] = Colors.Scrollbar;
-        colors[(int) ImGuiCol.ScrollbarGrabHovered] = Colors.ScrollbarHovered;
-        colors[(int) ImGuiCol.ScrollbarGrabActive] = Colors.ScrollbarClicked;
-        colors[(int) ImGuiCol.CheckMark] = Colors.Checkmark;
-        colors[(int) ImGuiCol.SliderGrab] = Colors.SliderGrip;
-        colors[(int) ImGuiCol.SliderGrabActive] = Colors.SliderGripClicked;
-        colors[(int) ImGuiCol.Button] = Colors.Button;
-        colors[(int) ImGuiCol.ButtonHovered] = Colors.ButtonHovered;
-        colors[(int) ImGuiCol.ButtonActive] = Colors.ButtonClicked;
-        colors[(int) ImGuiCol.Header] = Colors.ListEntrySelected;
-        colors[(int) ImGuiCol.HeaderHovered] = Colors.ListEntryHovered;
-        colors[(int) ImGuiCol.HeaderActive] = Colors.ListEntryClicked;
-        colors[(int) ImGuiCol.Separator] = Colors.Separator;
-        colors[(int) ImGuiCol.SeparatorHovered] = Colors.SeparatorHovered;
-        colors[(int) ImGuiCol.SeparatorActive] = Colors.SeparatorClicked;
-        colors[(int) ImGuiCol.TabHovered] = Colors.TabHovered;
-        colors[(int) ImGuiCol.Tab] = Colors.Tab;
-        colors[(int) ImGuiCol.TabSelected] = Colors.TabActive;
-        colors[(int) ImGuiCol.PlotHistogram] = Colors.SeekBar;
-        colors[(int) ImGuiCol.TableHeaderBg] = Colors.TableHeader;
-        colors[(int) ImGuiCol.TextLink] = Colors.Link;
-        colors[(int) ImGuiCol.ModalWindowDimBg] = Colors.PopupDimBackground;
+        if (DarkColors == null && LightColors == null)
+            throw new InvalidOperationException("The theme does not have any valid colors!");
+
+        ColorScheme scheme;
+        
+        // Apply the light theme if it is selected and available.
+        // We also apply the light theme if there is no dark color scheme available.
+        // Otherwise, since both cannot be null, apply the dark scheme.
+        if (useLightThemeIfPossible && LightColors is ColorScheme lightColorScheme)
+            scheme = lightColorScheme;
+        else if (DarkColors == null)
+            scheme = LightColors!.Value;
+        else
+            scheme = DarkColors.Value;
+        
+        colors[(int) ImGuiCol.Text] = scheme.Text;
+        colors[(int) ImGuiCol.WindowBg] = scheme.MainBackground;
+        colors[(int) ImGuiCol.PopupBg] = scheme.PopupBackground;
+        colors[(int) ImGuiCol.FrameBg] = scheme.Container;
+        colors[(int) ImGuiCol.FrameBgHovered] = scheme.ContainerHovered;
+        colors[(int) ImGuiCol.FrameBgActive] = scheme.ContainerClicked;
+        colors[(int) ImGuiCol.TitleBgActive] = scheme.PopupTitle;
+        colors[(int) ImGuiCol.ScrollbarBg] = scheme.ScrollbarBackground;
+        colors[(int) ImGuiCol.ScrollbarGrab] = scheme.Scrollbar;
+        colors[(int) ImGuiCol.ScrollbarGrabHovered] = scheme.ScrollbarHovered;
+        colors[(int) ImGuiCol.ScrollbarGrabActive] = scheme.ScrollbarClicked;
+        colors[(int) ImGuiCol.CheckMark] = scheme.Checkmark;
+        colors[(int) ImGuiCol.SliderGrab] = scheme.SliderGrip;
+        colors[(int) ImGuiCol.SliderGrabActive] = scheme.SliderGripClicked;
+        colors[(int) ImGuiCol.Button] = scheme.Button;
+        colors[(int) ImGuiCol.ButtonHovered] = scheme.ButtonHovered;
+        colors[(int) ImGuiCol.ButtonActive] = scheme.ButtonClicked;
+        colors[(int) ImGuiCol.Header] = scheme.ListEntrySelected;
+        colors[(int) ImGuiCol.HeaderHovered] = scheme.ListEntryHovered;
+        colors[(int) ImGuiCol.HeaderActive] = scheme.ListEntryClicked;
+        colors[(int) ImGuiCol.Separator] = scheme.Separator;
+        colors[(int) ImGuiCol.SeparatorHovered] = scheme.SeparatorHovered;
+        colors[(int) ImGuiCol.SeparatorActive] = scheme.SeparatorClicked;
+        colors[(int) ImGuiCol.TabHovered] = scheme.TabHovered;
+        colors[(int) ImGuiCol.Tab] = scheme.Tab;
+        colors[(int) ImGuiCol.TabSelected] = scheme.TabActive;
+        colors[(int) ImGuiCol.PlotHistogram] = scheme.SeekBar;
+        colors[(int) ImGuiCol.TableHeaderBg] = scheme.TableHeader;
+        colors[(int) ImGuiCol.TextLink] = scheme.Link;
+        colors[(int) ImGuiCol.ModalWindowDimBg] = scheme.PopupDimBackground;
     }
 
-    public static Theme FromImGuiStyle(string name, Span<Vector4> colors)
+    public static Theme FromImGuiStyle(string name, bool isLightTheme, Span<Vector4> colors)
     {
         ColorScheme scheme = new ColorScheme();
         scheme.Text = colors[(int) ImGuiCol.Text];
-        scheme.DisabledText = colors[(int) ImGuiCol.TextDisabled];
         scheme.MainBackground = colors[(int) ImGuiCol.WindowBg];
         scheme.PopupBackground = colors[(int) ImGuiCol.PopupBg];
         scheme.Container = colors[(int) ImGuiCol.FrameBg];
@@ -96,9 +108,13 @@ public record struct Theme
         
         Theme theme = new()
         {
-            Name = name,
-            Colors = scheme
+            Name = name
         };
+
+        if (isLightTheme)
+            theme.LightColors = scheme;
+        else
+            theme.DarkColors = scheme;
 
         return theme;
     }
@@ -130,24 +146,6 @@ public record struct Theme
         /// </summary>
         [JsonConverter(typeof(HexColorConverter))]
         public Vector4 Text;
-
-        /// <summary>
-        /// Sub-text color, for example the small text in the modern layout showing artist information.
-        /// </summary>
-        [JsonConverter(typeof(HexColorConverter))]
-        public Vector4 SubText;
-
-        /// <summary>
-        /// Disabled text to be grayed out.
-        /// </summary>
-        [JsonConverter(typeof(HexColorConverter))]
-        public Vector4 DisabledText;
-
-        /// <summary>
-        /// Disabled sub-text to be grayed out.
-        /// </summary>
-        [JsonConverter(typeof(HexColorConverter))]
-        public Vector4 DisabledSubText;
         
         /// <summary>
         /// The main Glimpse background color.

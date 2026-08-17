@@ -24,7 +24,7 @@ public class GlimpsePlayer : Window
     private bool _init;
     private bool _needsRefresh;
     private ImGuiStyle _defaultStyle;
-    private Theme _theme;
+    private Theme.ThemeConfig _themeConfig;
 
     private Size _restoreSize;
     private bool _miniplayer;
@@ -167,7 +167,7 @@ public class GlimpsePlayer : Window
             try
             {
                 ImageLoadFlags flags = ImageLoadFlags.None;
-                if (_theme.Config.AlbumArtGrayscale)
+                if (_themeConfig.AlbumArtGrayscale)
                     flags |= ImageLoadFlags.LoadGrayscale;
                 
                 _albumArt = Renderer.CreateImage(_newAlbumArt, flags);
@@ -1306,28 +1306,27 @@ public class GlimpsePlayer : Window
         catch (Exception e)
         {
             Glimpse.Logger.Log("Couldn't load theme. Using default.");
-
-            bool useLightMode = SDL.GetSystemTheme() switch
-            {
-                SDL.SystemTheme.Unknown => true, // default to light theme as some may need it for accessibility reasons
-                SDL.SystemTheme.Light => true,
-                SDL.SystemTheme.Dark => false,
-                _ => throw new ArgumentOutOfRangeException()
-            };
-
-            string defaultTheme = useLightMode ? Theme.DefaultThemeLight : Theme.DefaultThemeDark;
-            Glimpse.Config.Appearance.Theme = defaultTheme;
-
-            stream = Asset.GetAssetStream($"Themes.{defaultTheme}.json");
+            stream = Asset.GetAssetStream($"Themes.{Theme.DefaultTheme}.json");
         }
+
+        bool useLightMode = Glimpse.Config.Appearance.PreferredColorScheme switch
+        {
+            PreferredColorScheme.SyncToOS => SDL.GetSystemTheme() == SDL.SystemTheme.Light,
+            PreferredColorScheme.Dark => false,
+            PreferredColorScheme.Light => true,
+            _ => throw new ArgumentOutOfRangeException()
+        };
         
-        _theme = JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
-        _theme.ApplyImGuiStyle(ImGui.GetStyle().Colors);
+        Theme theme =
+            JsonSerializer.Deserialize<Theme>(stream, ConfigManager.GetDefaultSerializerOptions());
+        theme.ApplyImGuiStyle(useLightMode, ImGui.GetStyle().Colors);
+
+        _themeConfig = theme.Config;
         // Reload current album art in case the settings changed.
         _newAlbumArt = Glimpse.Player.CurrentTrack?.AlbumArt?.Data;
 
         // Reload default album art too.
-        _defaultAlbumArt = Renderer.CreateImage(_theme.Config.Logo ?? "asset://Icons.Glimpse.png");
+        _defaultAlbumArt = Renderer.CreateImage(_themeConfig.Logo ?? "asset://Icons.Glimpse.png");
 
         stream.Dispose();
     }

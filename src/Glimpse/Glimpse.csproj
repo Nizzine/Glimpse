@@ -39,10 +39,6 @@
       <ProjectReference Include="..\Glimpse.Assets\Glimpse.Assets.csproj" />
       <ProjectReference Include="..\Glimpse.Audio\Glimpse.Audio.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Compile Remove="Forms/ThemeEditor.cs" />
-    </ItemGroup>
     
     <ItemGroup>
       <None Update="libempress.so">
