@@ -11,6 +11,7 @@ using Glimpse.API;
 using Glimpse.API.Library;
 using Glimpse.Audio;
 using Glimpse.Configs;
+using Glimpse.Forms;
 using Glimpse.Library;
 using Glimpse.Platforms;
 using Hexa.NET.ImGui;
@@ -254,12 +255,11 @@ public class Glimpse : IGlimpse, IDisposable
         
         AddWindow(window);
         SDL.AddEventWatch(_eventFilter, 0);
-        
+
         if (args.Length > 0)
         {
-            Player.QueueTracks(args, QueueSlot.Clear);
-            Player.TryChangeTrack(0);
-            Player.Play();
+            foreach (string arg in args)
+                ProcessFile(arg, ref _playFiles);
         }
         
         Stopwatch sw = Stopwatch.StartNew();
@@ -288,7 +288,11 @@ public class Glimpse : IGlimpse, IDisposable
             if (_playFiles.Count > 0)
             {
                 Player.QueueTracks(_playFiles, QueueSlot.Clear);
-                Player.TryChangeTrack(0);
+                // in case the user provides a file with invalid track paths,
+                // keep advancing until a valid track is found.
+                int trackIndex = 0;
+                while (!Player.TryChangeTrack(trackIndex))
+                    trackIndex++;
                 Player.Play();
                 _playFiles.Clear();
             }
@@ -673,41 +677,74 @@ public class Glimpse : IGlimpse, IDisposable
             case SDL.EventType.DropFile:
             {
                 string fileName;
-                unsafe { fileName = new string((sbyte*) winEvent.Drop.Data); } // lol
-                
-                if (Path.GetExtension(fileName) == ".gplg")
+                unsafe { fileName = new string(winEvent.Drop.Data); } // lol
+                ProcessFile(fileName, ref _playFiles);
+
+                break;
+            }
+        }
+    }
+
+    private void ProcessFile(string file, ref List<string> playFiles)
+    {
+        string extension = Path.GetExtension(file);
+
+        switch (extension.ToLower())
+        {
+            case ".gplg":
+            {
+                string pluginsLocation = Utils.GetPath("Plugins");
+                string pluginName = Path.GetFileNameWithoutExtension(file);
+                string outDir = Path.Combine(pluginsLocation, pluginName);
+                Logger.Log($"Copying plugin '{pluginName}' to {outDir}.");
+                ZipFile.ExtractToDirectory(file, outDir);
+                try
                 {
-                    string pluginsLocation = Utils.GetPath("Plugins");
-                    string pluginName = Path.GetFileNameWithoutExtension(fileName);
-                    string outDir = Path.Combine(pluginsLocation, pluginName);
-                    Logger.Log($"Copying plugin '{pluginName}' to {outDir}.");
-                    ZipFile.ExtractToDirectory(fileName, outDir);
-                    try
-                    {
-                        string id = LoadPlugin(Path.Combine(outDir, "Plugin.json"));
-                        SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Information, "Glimpse",
-                            $"Plugin \"{id}\" installed! Go to the settings to enable it.", MainWindow.Handle);
-                    }
-                    catch (Exception e)
-                    {
+                    string id = LoadPlugin(Path.Combine(outDir, "Plugin.json"));
+                    SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Information, "Glimpse",
+                        $"Plugin \"{id}\" installed! Go to the settings to enable it.", MainWindow.Handle);
+                }
+                catch (Exception e)
+                {
 #if DEBUG
-                        throw;
+                    throw;
 #else
-                        SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", $"Failed to install plugin: {e}",
-                            MainWindow.Handle);
+                SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", $"Failed to install plugin: {e}",
+                    MainWindow.Handle);
 #endif
-                    }
                 }
-                // if the dropped file is a supported audio file, play it
-                else if (Player.TryGetTrackInfoForFile(fileName, out _)) // todo expose FileIsSupported method !!!
+
+                break;
+            }
+
+            case ".txt":
+            case ".m3u":
+            case ".m3u8":
+            {
+                string text = File.ReadAllText(file);
+                string[] splitLines = text.Split('\n');
+
+                foreach (string path in splitLines)
                 {
-                    _playFiles = [fileName];
+                    string trimmedPath = path.Trim();
+                    if (string.IsNullOrWhiteSpace(trimmedPath))
+                        continue;
+
+                    playFiles.Add(path);
                 }
+
+                break;
+            }
+
+            default:
+            {
+                // if the dropped file is a supported audio file, play it
+                if (Player.TryGetTrackInfoForFile(file, out _)) // todo expose FileIsSupported method !!!
+                    playFiles = [file];
                 else
                 {
-                    Logger.Log($"Attempted to do something with dropped file '{fileName}', but it was not a supported file.");
-                    SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Warning, "Glimpse", "Can't play that file.",
-                        MainWindow.Handle);
+                    Logger.Log($"Attempted to do something with dropped file '{file}', but it was not a supported file.");
+                    MainWindow.AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.Ok, "Can't Play", "Can't play that file."));
                 }
 
                 break;
@@ -778,7 +815,7 @@ public class Glimpse : IGlimpse, IDisposable
             Program.CommunicationFlags flags = (Program.CommunicationFlags) b;
 
             if ((flags & Program.CommunicationFlags.PlayFile) != 0)
-                playFiles.Add(reader.ReadString());
+                ProcessFile(reader.ReadString(), ref playFiles);
         }
 
         _playFiles = playFiles;
