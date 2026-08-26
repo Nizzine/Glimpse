@@ -29,7 +29,7 @@ public class SettingsPopup : Popup
         _themeWidget = new ThemeWidget(this);
     }
 
-    public override void Update(float dt)
+    protected override void Update(float dt)
     {
         Locale currentLocale = Glimpse.Locale;
 

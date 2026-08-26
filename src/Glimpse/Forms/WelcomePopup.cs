@@ -16,7 +16,6 @@ public class WelcomePopup : Popup
     private ThemeWidget _themeWidget;
     
     private bool _hasOldLibrary;
-    private string? _importError;
     
     private string? _disableNext;
     private readonly SDL.DialogFileCallback _folderDialog;
@@ -35,7 +34,7 @@ public class WelcomePopup : Popup
         _tabIndex = 0;
     }
 
-    public override unsafe void Update(float dt)
+    protected override unsafe void Update(float dt)
     {
         _disableNext = null;
 
@@ -144,94 +143,13 @@ public class WelcomePopup : Popup
     private void ImportTab()
     {
         const string importOldLibraryName = "Migration Assistant";
-        
-        if (_hasOldLibrary && !ImGui.IsPopupOpen(importOldLibraryName))
-            ImGui.OpenPopup(importOldLibraryName);
 
-        if (ImGui.BeginPopupModal(importOldLibraryName, ImGuiWindowFlags.AlwaysAutoResize))
+        if (_hasOldLibrary)
         {
-            ImGui.Text("An alpha (< 0.1.0) music library was found.\nWould you like to import it?\nThe original library will NOT be deleted!");
-
-            if (ImGui.Button("Yes"))
-            {
-                Glimpse.ConfigManager.TryGetConfig(OldMusicDatabase.DatabaseName, out OldMusicDatabase oldDb);
-                
-                HashSet<string> paths = [];
-                foreach ((string path, Track track) in oldDb.Tracks)
-                {
-                    track.Path = path;
-                    Glimpse.Library.InsertOrUpdateTrack(track);
-                    
-                    string basePath = Path.GetDirectoryName(path);
-                    if (string.IsNullOrWhiteSpace(basePath))
-                        continue;
-                    
-                    paths.Add(basePath);
-                }
-
-                foreach ((_, Album album) in oldDb.Albums)
-                    Glimpse.Library.InsertOrUpdateAlbum(album);
-
-                foreach ((_, Artist artist) in oldDb.Artists)
-                    Glimpse.Library.InsertOrUpdateArtist(artist);
-
-                foreach ((_, Genre genre) in oldDb.Genres)
-                    Glimpse.Library.InsertOrUpdateGenre(genre);
-
-                // orders the paths by number of / and then checks if each path is "contained inside"
-                // a path already in the base paths set.
-                HashSet<string> basePaths = [];
-                foreach (string path in paths.OrderBy(s => s.Replace('\\', '/').Count('/')))
-                {
-                    foreach (string basePath in basePaths)
-                    {
-                        if (path.StartsWith(basePath))
-                            goto SKIP; // If a match was found then we know that this path is a sub-path.
-                    }
-
-                    basePaths.Add(path);
-                    
-                    SKIP: ;
-                }
-                
-                foreach (string basePath in basePaths)
-                    Glimpse.Library.AddLibraryPath(basePath);
-                
-                if (basePaths.Count == 0)
-                {
-                    _importError =
-                        "The assistant added your songs, but could not determine any\nexisting library folders. Please add them manually!";
-                }
-
-                _manageLibraryWidget.Refresh();
-                _hasOldLibrary = false;
-                ImGui.CloseCurrentPopup();
-            }
-            
-            ImGui.SameLine();
-
-            if (ImGui.Button("No"))
-            {
-                _hasOldLibrary = false;
-                ImGui.CloseCurrentPopup();
-            }
-
-            ImGui.EndPopup();
-        }
-        
-        if (_importError != null && !ImGui.IsPopupOpen("Error"))
-            ImGui.OpenPopup("Error");
-        
-        if (ImGui.BeginPopupModal("Error", ImGuiWindowFlags.AlwaysAutoResize))
-        {
-            ImGui.TextUnformatted(_importError);
-            if (ImGui.Button(Glimpse.Locale.GetString("Button.Ok")))
-            {
-                _importError = null;
-                ImGui.CloseCurrentPopup();
-            }
-
-            ImGui.EndPopup();
+            _hasOldLibrary = false;
+            AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.YesNo, importOldLibraryName,
+                "An alpha (< 0.1.0) music library was found.\nWould you like to import it?\nThe original library will NOT be deleted!",
+                ImportOldLibrary));
         }
         
         if (_manageLibraryWidget.LibraryPaths.Count == 0)
@@ -245,6 +163,60 @@ public class WelcomePopup : Popup
     {
         ref GlimpseConfig config = ref Glimpse.Config;
         _themeWidget.Update(ref config);
+    }
+
+    private void ImportOldLibrary()
+    {
+        Glimpse.ConfigManager.TryGetConfig(OldMusicDatabase.DatabaseName, out OldMusicDatabase oldDb);
+
+        HashSet<string> paths = [];
+        foreach ((string path, Track track) in oldDb.Tracks)
+        {
+            track.Path = path;
+            Glimpse.Library.InsertOrUpdateTrack(track);
+
+            string basePath = Path.GetDirectoryName(path);
+            if (string.IsNullOrWhiteSpace(basePath))
+                continue;
+
+            paths.Add(basePath);
+        }
+
+        foreach ((_, Album album) in oldDb.Albums)
+            Glimpse.Library.InsertOrUpdateAlbum(album);
+
+        foreach ((_, Artist artist) in oldDb.Artists)
+            Glimpse.Library.InsertOrUpdateArtist(artist);
+
+        foreach ((_, Genre genre) in oldDb.Genres)
+            Glimpse.Library.InsertOrUpdateGenre(genre);
+
+        // orders the paths by number of / and then checks if each path is "contained inside"
+        // a path already in the base paths set.
+        HashSet<string> basePaths = [];
+        foreach (string path in paths.OrderBy(s => s.Replace('\\', '/').Count('/')))
+        {
+            foreach (string basePath in basePaths)
+            {
+                if (path.StartsWith(basePath))
+                    goto SKIP; // If a match was found then we know that this path is a sub-path.
+            }
+
+            basePaths.Add(path);
+
+            SKIP: ;
+        }
+
+        foreach (string basePath in basePaths)
+            Glimpse.Library.AddLibraryPath(basePath);
+
+        if (basePaths.Count == 0)
+        {
+            AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.Ok, "Error",
+                "The assistant added your songs, but could not determine any\nexisting library folders. Please add them manually!"));
+        }
+
+        _manageLibraryWidget.Refresh();
     }
 
     public override void Dispose()
