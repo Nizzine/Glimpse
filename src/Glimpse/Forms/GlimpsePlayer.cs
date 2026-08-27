@@ -37,6 +37,8 @@ public class GlimpsePlayer : Window
     private AlbumView _currentView;
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
+
+    private SizedCollection<string>? _playlists;
     
     private bool _wasSeekClicked;
     private double? _seekPosition;
@@ -705,10 +707,26 @@ public class GlimpsePlayer : Window
                 
                 ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
                 {
-                    if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == null))
+                    switch (_currentView)
                     {
-                        ChangeAlbum(null);
-                        switchToTrackList = true;
+                        case AlbumView.Playlists:
+                        {
+                            if (ImGui.Selectable(locale.GetString("Player.Playlists.New")))
+                                Console.WriteLine("TODO");
+
+                            ImGui.Separator();
+                            break;
+                        }
+                        default:
+                        {
+                            if (ImGui.Selectable(locale.GetString("Player.Albums.ShowAll"), _currentAlbum == null))
+                            {
+                                ChangeAlbum(null);
+                                switchToTrackList = true;
+                            }
+
+                            break;
+                        }
                     }
 
                     ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
@@ -909,6 +927,31 @@ public class GlimpsePlayer : Window
                                         player.QueueTrack(path, QueueSlot.AtEnd);
                                     if (ImGui.Selectable(locale.GetString("Menu.PlayNext")))
                                         player.QueueTrack(path, QueueSlot.NextTrack);
+
+                                    ImGui.Separator();
+
+                                    if (ImGui.BeginMenu(locale.GetString("Menu.AddToPlaylist")))
+                                    {
+                                        if (ImGui.MenuItem(locale.GetString("Player.Playlists.New")))
+                                            Console.WriteLine("TODO");
+
+                                        ImGui.Separator();
+
+                                        if (_playlists is not SizedCollection<string> playlists)
+                                            playlists = GetPlaylists();
+
+                                        foreach (string playlist in playlists)
+                                        {
+                                            if (ImGui.MenuItem(playlist))
+                                            {
+                                                // todo this is repeated like 3 times, should be converted to a function or smth
+                                                string filePath = Path.Combine(IConfigManager.BaseDir, "Playlists", $"{playlist}.m3u8");
+                                                File.AppendAllText(filePath, track.Path);
+                                            }
+                                        }
+
+                                        ImGui.EndMenu();
+                                    }
 
                                     ImGui.Separator();
 
@@ -1316,13 +1359,20 @@ public class GlimpsePlayer : Window
             }
             case AlbumView.Playlists:
             {
-                string playlistsPath = Path.Combine(IConfigManager.BaseDir, "Playlists");
-                string[] playlists = Directory.GetFiles(playlistsPath, "*.m3u8");
-                IEnumerable<string> playlistNames = playlists.Select(path => Path.GetFileNameWithoutExtension(path));
-                _albums = new SizedCollection<string>(playlistNames, (uint) playlists.Length);
+                _albums = GetPlaylists();
                 break;
             }
         }
+    }
+
+    private SizedCollection<string> GetPlaylists()
+    {
+        Glimpse.Logger.Log("Refreshing playlists.");
+        string playlistsPath = Path.Combine(IConfigManager.BaseDir, "Playlists");
+        string[] playlists = Directory.GetFiles(playlistsPath, "*.m3u8");
+        IEnumerable<string> playlistNames = playlists.Select(path => Path.GetFileNameWithoutExtension(path));
+        _playlists = new SizedCollection<string>(playlistNames, (uint) playlists.Length);
+        return _playlists.Value;
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)
