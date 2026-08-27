@@ -696,12 +696,12 @@ public class GlimpsePlayer : Window
                     ImGui.EndTabItem();
                 }
 
-                ImGui.BeginDisabled();
                 if (ImGui.BeginTabItemTooltip("\ue05f##Playlists", locale.GetString("Player.ViewSelect.Playlists")))
                 {
+                    if (_currentView != AlbumView.Playlists)
+                        ChangeView(AlbumView.Playlists);
                     ImGui.EndTabItem();
                 }
-                ImGui.EndDisabled();
                 
                 ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
                 {
@@ -718,7 +718,7 @@ public class GlimpsePlayer : Window
                     {
                         IEnumerable<string> albumsRange =
                             _albums.Collection.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
-                        
+
                         foreach (string albumName in albumsRange)
                         {
                             // typically the displayed name is the same as the album name, unless it's the special
@@ -868,8 +868,14 @@ public class GlimpsePlayer : Window
                                 //Console.WriteLine(song);
 
                                 ImGui.TableNextColumn();
-                                if (track.TrackNumber is uint trackNumber)
-                                    ImGui.TextUnformatted(trackNumber.ToString());
+                                // special case for playlists
+                                // instead of displaying the track number in the album, playlists use a continuously
+                                // incrementing number to show the track index.
+                                uint trackNumber = (uint) song + 1;
+                                if (_currentView != AlbumView.Playlists && track.TrackNumber is uint trkNum)
+                                    trackNumber = trkNum;
+
+                                ImGui.TextUnformatted(trackNumber.ToString());
 
                                 ImGui.TableNextColumn();
 
@@ -1244,6 +1250,35 @@ public class GlimpsePlayer : Window
                         goto default;
                     break;
                 }
+
+                case AlbumView.Playlists:
+                {
+                    // read each file
+                    string playlistPath = Path.Combine(IConfigManager.BaseDir, "Playlists", $"{albumName}.m3u8");
+                    List<Track> tracks = [];
+                    foreach (string file in File.ReadLines(playlistPath))
+                    {
+                        string trimmedFile = file.Trim();
+
+                        // ignore blank files. cause they're not files duhHh!!11
+                        if (string.IsNullOrEmpty(trimmedFile))
+                            continue;
+
+                        if (!Glimpse.Library.TryGetTrack(trimmedFile, out Track track))
+                        {
+                            // just ignore the track if it fails for some reason
+                            // todo is this a bad idea?
+                            if (!Glimpse.Player.TryGetTrackInfoForFile(trimmedFile, out TrackInfo info))
+                                continue;
+                            track = new Track(trimmedFile, info);
+                        }
+
+                        tracks.Add(track);
+                    }
+
+                    _currentTracks = new SizedCollection<Track>(tracks, (uint) tracks.Count);
+                    break;
+                }
                 
                 default:
                     _currentTracks = Glimpse.Library.GetTracks();
@@ -1277,6 +1312,14 @@ public class GlimpsePlayer : Window
                 SizedCollection<Genre> genres = Glimpse.Library.GetGenres();
                 IEnumerable<string> genreNames = genres.Collection.Select(genre => genre.Name);
                 _albums = new SizedCollection<string>(genreNames, genres.Count);
+                break;
+            }
+            case AlbumView.Playlists:
+            {
+                string playlistsPath = Path.Combine(IConfigManager.BaseDir, "Playlists");
+                string[] playlists = Directory.GetFiles(playlistsPath, "*.m3u8");
+                IEnumerable<string> playlistNames = playlists.Select(path => Path.GetFileNameWithoutExtension(path));
+                _albums = new SizedCollection<string>(playlistNames, (uint) playlists.Length);
                 break;
             }
         }
@@ -1335,6 +1378,7 @@ public class GlimpsePlayer : Window
     {
         Albums,
         Artists,
-        Genres
+        Genres,
+        Playlists
     }
 }
