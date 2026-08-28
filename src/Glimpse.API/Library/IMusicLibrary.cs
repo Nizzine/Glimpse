@@ -43,10 +43,10 @@ public interface IMusicLibrary
     public SizedCollection<Genre> GetGenres();
 
     /// <summary>
-    /// Gets the playlist names in the library.
+    /// Gets the <see cref="Playlist"/>s in the library.
     /// </summary>
     /// <remarks>This will <b>NOT</b> return the Favorites playlist, as this is a special playlist.</remarks>
-    public SizedCollection<string> GetPlaylistNames();
+    public SizedCollection<Playlist> GetPlaylists();
 
     /// <summary>
     /// Gets a full list of directories that will be indexed by the music library.
@@ -108,6 +108,8 @@ public interface IMusicLibrary
     /// </summary>
     /// <param name="track">The <see cref="Track"/> to update.</param>
     public bool UpdateTrack(Track track);
+
+    public bool UpdatePlaylist(Playlist playlist);
 
     public bool TryGetAlbum(string albumName, out Album album);
 

@@ -74,6 +74,13 @@ public class MusicLibrary : IMusicLibrary
             return;
         }
 
+        // initialize the favourites playlist and playlist directory if they don't exist.
+        if (!File.Exists(GetPlaylistPath(IMusicLibrary.FavoritesPlaylistName)))
+        {
+            Directory.CreateDirectory(_playlistsBasePath);
+            File.Create(GetPlaylistPath(IMusicLibrary.FavoritesPlaylistName)).Dispose();
+        }
+
         // TODO: Handle null
         Library library = JsonSerializer.Deserialize<Library>(File.ReadAllText(_databasePath), ConfigManager.GetDefaultSerializerOptions());
 
@@ -125,12 +132,12 @@ public class MusicLibrary : IMusicLibrary
         return new SizedCollection<Genre>(genreEnumerable, (uint) genres.Count);
     }
 
-    public SizedCollection<string> GetPlaylistNames()
+    public SizedCollection<Playlist> GetPlaylists()
     {
         _logger.Log("Refreshing playlists.");
         string[] playlistFiles = Directory.GetFiles(_playlistsBasePath, $"*{PlaylistFileExtension}");
 
-        List<string> playlists = [];
+        List<Playlist> playlists = [];
         uint numPlaylists = 0;
 
         foreach (string file in playlistFiles)
@@ -140,10 +147,15 @@ public class MusicLibrary : IMusicLibrary
             if (fileName == IMusicLibrary.FavoritesPlaylistName)
                 continue;
 
-            playlists.Add(fileName);
+            // todo: maybe should have a debug assertion here
+            if (!TryGetPlaylist(fileName, out Playlist? playlist))
+                continue;
+
+            playlists.Add(playlist);
             numPlaylists++;
         }
-        return new SizedCollection<string>(playlists, numPlaylists);
+
+        return new SizedCollection<Playlist>(playlists, numPlaylists);
     }
 
     // TODO: Rename this method to EnumerateLibraryPaths() ?
@@ -271,7 +283,11 @@ public class MusicLibrary : IMusicLibrary
 
         // we don't want to order tracks in the playlist.
         // glimpse should show the order in which the songs were added to the playlist.
-        tracks = GetTracksFromPathList(playlist.Tracks, false);
+        // also should not ignore unknown tracks. playlists may contain tracks from outside the library,
+        // and they should still be displayed correctly. this does require fetching the track information
+        // each time though...
+        // todo cache the results of the unknown tracks for faster lookups?
+        tracks = GetTracksFromPathList(playlist.Tracks, false, false);
         return true;
     }
 
@@ -305,6 +321,16 @@ public class MusicLibrary : IMusicLibrary
         SaveLibrary(true);
 
         // TODO: Check if track exists in the library.
+        return true;
+    }
+
+    public bool UpdatePlaylist(Playlist playlist)
+    {
+        string playlistPath = GetPlaylistPath(playlist.Name);
+        using StreamWriter writer = File.CreateText(playlistPath);
+        foreach (string track in playlist.Tracks)
+            writer.WriteLine(track);
+
         return true;
     }
 
@@ -363,13 +389,21 @@ public class MusicLibrary : IMusicLibrary
         return Path.Combine(_playlistsBasePath, $"{playlistName}{PlaylistFileExtension}");
     }
 
-    private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths, bool order = true)
+    private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths, bool order = true, bool ignoreUnknownTracks = true)
     {
         List<Track> trackList = [];
         foreach (string path in paths)
         {
             if (!TryGetTrack(path, out Track? track))
-                continue;
+            {
+                if (ignoreUnknownTracks)
+                    continue;
+
+                if (!_player.TryGetTrackInfoForFile(path, out TrackInfo? info))
+                    continue;
+
+                track = new Track(path, info);
+            }
             
             trackList.Add(track);
         }

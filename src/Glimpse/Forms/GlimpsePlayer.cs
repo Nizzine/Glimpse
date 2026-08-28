@@ -38,7 +38,8 @@ public class GlimpsePlayer : Window
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
 
-    private SizedCollection<string>? _playlists;
+    private Playlist? _favoritesPlaylist;
+    private Dictionary<string, Playlist>? _playlists;
     
     private bool _wasSeekClicked;
     private double? _seekPosition;
@@ -367,7 +368,6 @@ public class GlimpsePlayer : Window
                             ChangeAlbum(player.CurrentTrack.Artist);
                         }
 
-
                         if (ImGui.TextButton(player.CurrentTrack?.Album ?? locale.GetString("UnknownAlbum")) &&
                             player.CurrentTrack?.Album != null)
                         {
@@ -416,11 +416,34 @@ public class GlimpsePlayer : Window
                     ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
 
-                    if (ImGui.ImageButton("HeartButton", _heart, iconSize, new Vector2(1, 0), new Vector2(0, 1),
-                            Vector4.Zero, iconsColor))
+                    bool isInFavorites = false;
+                    if (player.TrackState != TrackState.Stopped)
                     {
-
+                        // if there's no favorites playlist for some reason, create a new one and save it.
+                        // stops the disk from being hammered by queries about if the playlist exists,
+                        // and the simplest solution is literally just to create the playlist.
+                        isInFavorites = GetOrCreateFavoritesPlaylist().Tracks.Contains(player.CurrentTrackPath);
                     }
+
+                    if (ImGui.ImageButton("HeartButton", isInFavorites ? _heartFilled : _heart, iconSize,
+                            new Vector2(1, 0), new Vector2(0, 1), Vector4.Zero, iconsColor))
+                    {
+                        Debug.Assert(_favoritesPlaylist != null);
+
+                        if (isInFavorites)
+                            _favoritesPlaylist.Tracks.Remove(player.CurrentTrackPath);
+                        else
+                            _favoritesPlaylist.Tracks.Add(player.CurrentTrackPath);
+
+                        Glimpse.Library.UpdatePlaylist(_favoritesPlaylist);
+
+                        // if the current view is the favorites playlist, refresh to reflect the change
+                        if (_currentView == AlbumView.Playlists && _currentAlbum == IMusicLibrary.FavoritesPlaylistName)
+                            ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
+                    }
+
+                    ImGui.SetItemTooltipUnformatted(
+                        locale.GetString(isInFavorites ? "Menu.RemoveFromFavorites" : "Menu.AddToFavorites"));
 
                     ImGui.SameLine();
 
@@ -945,9 +968,21 @@ public class GlimpsePlayer : Window
 
                                     ImGui.Separator();
 
-                                    if (ImGui.Selectable(locale.GetString("Menu.AddToFavorites")))
+                                    // much like in the transport bar, create the favorites playlist if it doesn't exist
+                                    bool isInFavorites = GetOrCreateFavoritesPlaylist().Tracks.Contains(path);
+                                    if (ImGui.Selectable(locale.GetString(isInFavorites ? "Menu.RemoveFromFavorites" : "Menu.AddToFavorites")))
                                     {
+                                        Debug.Assert(_favoritesPlaylist != null);
+                                        if (isInFavorites)
+                                            _favoritesPlaylist.Tracks.Remove(path);
+                                        else
+                                            _favoritesPlaylist.Tracks.Add(path);
 
+                                        Glimpse.Library.UpdatePlaylist(_favoritesPlaylist);
+
+                                        // refresh & show the change if the current view is the favourites playlist
+                                        if (_currentView == AlbumView.Playlists && _currentAlbum == IMusicLibrary.FavoritesPlaylistName)
+                                            ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
                                     }
 
                                     if (ImGui.BeginMenu(locale.GetString("Menu.AddToPlaylist")))
@@ -957,19 +992,29 @@ public class GlimpsePlayer : Window
 
                                         ImGui.Separator();
 
-                                        if (_playlists is not SizedCollection<string> playlists)
+                                        if (_playlists is not Dictionary<string, Playlist> playlists)
                                         {
-                                            playlists = Glimpse.Library.GetPlaylistNames();
+                                            playlists = Glimpse.Library.GetPlaylists().ToDictionary(playlist => playlist.Name);
                                             _playlists = playlists;
                                         }
 
-                                        foreach (string playlist in playlists)
+                                        foreach ((string name, Playlist playlist) in playlists)
                                         {
-                                            if (ImGui.MenuItem(playlist))
+                                            bool isInPlaylist = playlist.Tracks.Contains(path);
+
+                                            if (ImGui.MenuItem($"{(isInPlaylist ? "\ue5ca " : "   ")}{name}"))
                                             {
-                                                // todo this is repeated like 3 times, should be converted to a function or smth
-                                                string filePath = Path.Combine(IConfigManager.BaseDir, "Playlists", $"{playlist}.m3u8");
-                                                File.AppendAllText(filePath, track.Path);
+                                                if (isInPlaylist)
+                                                    playlist.Tracks.Remove(path);
+                                                else
+                                                    playlist.Tracks.Add(path);
+
+                                                Glimpse.Library.UpdatePlaylist(playlist);
+
+                                                // refresh and show the change if the current view is the playlist the
+                                                // song was added to/removed from
+                                                if (_currentView == AlbumView.Playlists && _currentAlbum == name)
+                                                    ChangeAlbum(name);
                                             }
                                         }
 
@@ -1283,6 +1328,18 @@ public class GlimpsePlayer : Window
         RefreshLayout();
     }
 
+    private Playlist GetOrCreateFavoritesPlaylist()
+    {
+        if (_favoritesPlaylist == null && !Glimpse.Library.TryGetPlaylist(IMusicLibrary.FavoritesPlaylistName, out _favoritesPlaylist))
+        {
+            Glimpse.Logger.Log("Favorites playlist is missing, a new one is being created.");
+            _favoritesPlaylist = new Playlist(IMusicLibrary.FavoritesPlaylistName, []);
+            Glimpse.Library.UpdatePlaylist(_favoritesPlaylist);
+        }
+
+        return _favoritesPlaylist;
+    }
+
     /// <summary>
     /// Change the current album.
     /// </summary>
@@ -1360,8 +1417,8 @@ public class GlimpsePlayer : Window
             }
             case AlbumView.Playlists:
             {
-                _albums = Glimpse.Library.GetPlaylistNames();
-                _playlists = _albums;
+                _playlists = Glimpse.Library.GetPlaylists().ToDictionary(playlist => playlist.Name);
+                _albums = new SizedCollection<string>(_playlists.Keys, (uint) _playlists.Count);
                 break;
             }
         }
