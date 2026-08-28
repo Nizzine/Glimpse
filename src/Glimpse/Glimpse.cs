@@ -299,14 +299,17 @@ public class Glimpse : IGlimpse, IDisposable
 
             _currentDeltaTime = (float) sw.Elapsed.TotalSeconds;
             sw.Restart();
-            
+
             foreach (Window wnd in _windows)
             {
-                if (ImGui.GetIO().WantTextInput && !SDL.TextInputActive(wnd.Handle))
-                    SDL.StartTextInput(wnd.Handle);
+                if (ImGui.GetIO().WantTextInput)
+                {
+                    if (!SDL.TextInputActive(wnd.Handle))
+                        SDL.StartTextInput(wnd.Handle);
+                }
                 else if (SDL.TextInputActive(wnd.Handle))
                     SDL.StopTextInput(wnd.Handle);
-                
+
                 wnd.SetActive();
                 wnd.UpdateWindow(_currentDeltaTime);
                 wnd.Present();
