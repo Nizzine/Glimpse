@@ -30,10 +30,12 @@
         "Player.Albums.ShowAll": "Show All",
         "Player.Albums.NoAlbum": "No Album",
         "Player.Playlists.New": "\uf3dd New Playlist",
+        "Player.Playlists.Favorites": "Favourites",
         "Player.SearchBar": "Search",
         
         "Menu.AddToQueue": "Add to Queue",
         "Menu.PlayNext": "Play Next",
+        "Menu.AddToFavorites": "Add to Favourites",
         "Menu.AddToPlaylist": "Add to Playlist",
         "Menu.RemoveFromLibrary": "Remove from library...",
         "Menu.ShowInExplorer": "Show File In {0}",

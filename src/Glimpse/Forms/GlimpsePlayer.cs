@@ -58,6 +58,8 @@ public class GlimpsePlayer : Window
     private Image _shuffleButton;
     private Image _repeatButton;
     private Image _repeatOneButton;
+    private Image _heart;
+    private Image _heartFilled;
 
     private Image _defaultAlbumArt;
     private Image? _albumArt;
@@ -94,6 +96,8 @@ public class GlimpsePlayer : Window
         _shuffleButton = Renderer.CreateImage("asset://Icons.Shuffle.png");
         _repeatButton = Renderer.CreateImage("asset://Icons.Repeat.png");
         _repeatOneButton = Renderer.CreateImage("asset://Icons.RepeatOne.png");
+        _heart = Renderer.CreateImage("asset://Icons.Heart.png");
+        _heartFilled = Renderer.CreateImage("asset://Icons.Heart-Filled.png");
         
         Glimpse.Player.TrackChanged += PlayerOnTrackChanged;
         Glimpse.Player.StateChanged += PlayerOnStateChanged;
@@ -383,7 +387,7 @@ public class GlimpsePlayer : Window
                 
                 Vector2 iconSize = new Vector2(32) * Scale * miniplayerScale;
                 // Even though there are 4 icons, 3 icons makes it *feel* more centered, even though it's shifted to the right.
-                const int numIcons = 3;
+                const int numIcons = 4;
                 float spacing = ImGui.GetStyle().ItemSpacing.X * miniplayerScale;
                 float padding = ImGui.GetStyle().FramePadding.X * miniplayerScale;
                 float totalButtonsWidth = (iconSize.X + spacing + padding) * numIcons;
@@ -411,6 +415,14 @@ public class GlimpsePlayer : Window
 
                     ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
+
+                    if (ImGui.ImageButton("HeartButton", _heart, iconSize, new Vector2(1, 0), new Vector2(0, 1),
+                            Vector4.Zero, iconsColor))
+                    {
+
+                    }
+
+                    ImGui.SameLine();
 
                     if (ImGui.ImageButton("BackwardButton", _skipButton, iconSize, new Vector2(1, 0),
                             new Vector2(0, 1), Vector4.Zero, iconsColor))
@@ -714,6 +726,9 @@ public class GlimpsePlayer : Window
                             if (ImGui.Selectable(locale.GetString("Player.Playlists.New")))
                                 Console.WriteLine("TODO");
 
+                            if (ImGui.Selectable(locale.GetString("Player.Playlists.Favorites"), _currentAlbum == IMusicLibrary.FavoritesPlaylistName))
+                                ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
+
                             ImGui.Separator();
                             break;
                         }
@@ -930,6 +945,11 @@ public class GlimpsePlayer : Window
 
                                     ImGui.Separator();
 
+                                    if (ImGui.Selectable(locale.GetString("Menu.AddToFavorites")))
+                                    {
+
+                                    }
+
                                     if (ImGui.BeginMenu(locale.GetString("Menu.AddToPlaylist")))
                                     {
                                         if (ImGui.MenuItem(locale.GetString("Player.Playlists.New")))
@@ -938,7 +958,10 @@ public class GlimpsePlayer : Window
                                         ImGui.Separator();
 
                                         if (_playlists is not SizedCollection<string> playlists)
-                                            playlists = GetPlaylists();
+                                        {
+                                            playlists = Glimpse.Library.GetPlaylistNames();
+                                            _playlists = playlists;
+                                        }
 
                                         foreach (string playlist in playlists)
                                         {
@@ -1296,30 +1319,8 @@ public class GlimpsePlayer : Window
 
                 case AlbumView.Playlists:
                 {
-                    // read each file
-                    string playlistPath = Path.Combine(IConfigManager.BaseDir, "Playlists", $"{albumName}.m3u8");
-                    List<Track> tracks = [];
-                    foreach (string file in File.ReadLines(playlistPath))
-                    {
-                        string trimmedFile = file.Trim();
-
-                        // ignore blank files. cause they're not files duhHh!!11
-                        if (string.IsNullOrEmpty(trimmedFile))
-                            continue;
-
-                        if (!Glimpse.Library.TryGetTrack(trimmedFile, out Track track))
-                        {
-                            // just ignore the track if it fails for some reason
-                            // todo is this a bad idea?
-                            if (!Glimpse.Player.TryGetTrackInfoForFile(trimmedFile, out TrackInfo info))
-                                continue;
-                            track = new Track(trimmedFile, info);
-                        }
-
-                        tracks.Add(track);
-                    }
-
-                    _currentTracks = new SizedCollection<Track>(tracks, (uint) tracks.Count);
+                    if (!Glimpse.Library.TryGetTracksForPlaylist(albumName, out _currentTracks))
+                        goto default;
                     break;
                 }
                 
@@ -1359,20 +1360,11 @@ public class GlimpsePlayer : Window
             }
             case AlbumView.Playlists:
             {
-                _albums = GetPlaylists();
+                _albums = Glimpse.Library.GetPlaylistNames();
+                _playlists = _albums;
                 break;
             }
         }
-    }
-
-    private SizedCollection<string> GetPlaylists()
-    {
-        Glimpse.Logger.Log("Refreshing playlists.");
-        string playlistsPath = Path.Combine(IConfigManager.BaseDir, "Playlists");
-        string[] playlists = Directory.GetFiles(playlistsPath, "*.m3u8");
-        IEnumerable<string> playlistNames = playlists.Select(path => Path.GetFileNameWithoutExtension(path));
-        _playlists = new SizedCollection<string>(playlistNames, (uint) playlists.Length);
-        return _playlists.Value;
     }
 
     private unsafe void SetupStyle(ImGuiStylePtr style)

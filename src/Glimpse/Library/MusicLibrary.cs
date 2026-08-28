@@ -10,12 +10,15 @@ namespace Glimpse.Library;
 
 public class MusicLibrary : IMusicLibrary
 {
+    private const string PlaylistFileExtension = ".m3u";
+
     public const string DatabaseName = "Library";
     public const uint DatabaseVersion = 1;
 
     private readonly Logger _logger;
     private readonly AudioPlayer _player;
     private readonly string _databasePath;
+    private readonly string _playlistsBasePath;
     
     private Task? _indexTask;
     private string? _currentlyIndexedPath;
@@ -52,6 +55,7 @@ public class MusicLibrary : IMusicLibrary
         _logger = logger;
         _player = player;
         _databasePath = Path.Combine(IConfigManager.BaseDir, $"{DatabaseName}.json");
+        _playlistsBasePath = Path.Combine(IConfigManager.BaseDir, "Playlists");
 
         _libraryPaths = [];
         _excludedDirectories = [];
@@ -121,6 +125,27 @@ public class MusicLibrary : IMusicLibrary
         return new SizedCollection<Genre>(genreEnumerable, (uint) genres.Count);
     }
 
+    public SizedCollection<string> GetPlaylistNames()
+    {
+        _logger.Log("Refreshing playlists.");
+        string[] playlistFiles = Directory.GetFiles(_playlistsBasePath, $"*{PlaylistFileExtension}");
+
+        List<string> playlists = [];
+        uint numPlaylists = 0;
+
+        foreach (string file in playlistFiles)
+        {
+            string fileName = Path.GetFileNameWithoutExtension(file);
+
+            if (fileName == IMusicLibrary.FavoritesPlaylistName)
+                continue;
+
+            playlists.Add(fileName);
+            numPlaylists++;
+        }
+        return new SizedCollection<string>(playlists, numPlaylists);
+    }
+
     // TODO: Rename this method to EnumerateLibraryPaths() ?
     public IReadOnlyCollection<string> GetLibraryPaths()
     {
@@ -186,7 +211,6 @@ public class MusicLibrary : IMusicLibrary
     public void Index()
     {
         _indexTask = Task.Run(IndexLibrary);
-        //IndexLibrary(); // TODO: Make this threaded again
     }
     
     public bool TryGetTrack(string path, [NotNullWhen(true)] out Track? track)
@@ -234,6 +258,44 @@ public class MusicLibrary : IMusicLibrary
         }
 
         tracks = GetTracksFromPathList(genre.Tracks);
+        return true;
+    }
+
+    public bool TryGetTracksForPlaylist(string playlistName, out SizedCollection<Track> tracks)
+    {
+        if (!TryGetPlaylist(playlistName, out Playlist? playlist))
+        {
+            tracks = [];
+            return false;
+        }
+
+        // we don't want to order tracks in the playlist.
+        // glimpse should show the order in which the songs were added to the playlist.
+        tracks = GetTracksFromPathList(playlist.Tracks, false);
+        return true;
+    }
+
+    public bool TryGetPlaylist(string playlistName, [NotNullWhen(true)] out Playlist? playlist)
+    {
+        string playlistPath = GetPlaylistPath(playlistName);
+        if (!File.Exists(playlistPath))
+        {
+            playlist = null;
+            return false;
+        }
+
+        HashSet<string> trackPaths = [];
+        foreach (string file in File.ReadLines(playlistPath))
+        {
+            string trimmedFile = file.Trim();
+            // ignore gaps in the file
+            if (string.IsNullOrWhiteSpace(trimmedFile))
+                continue;
+
+            trackPaths.Add(trimmedFile);
+        }
+
+        playlist = new Playlist(playlistName, trackPaths);
         return true;
     }
 
@@ -296,7 +358,12 @@ public class MusicLibrary : IMusicLibrary
         return true;
     }
 
-    private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths)
+    private string GetPlaylistPath(string playlistName)
+    {
+        return Path.Combine(_playlistsBasePath, $"{playlistName}{PlaylistFileExtension}");
+    }
+
+    private SizedCollection<Track> GetTracksFromPathList(IReadOnlyCollection<string> paths, bool order = true)
     {
         List<Track> trackList = [];
         foreach (string path in paths)
@@ -307,7 +374,11 @@ public class MusicLibrary : IMusicLibrary
             trackList.Add(track);
         }
 
-        IEnumerable<Track> trackEnumerable = trackList.OrderBy(track => track.TrackNumber).ThenBy(track => track.Title);
+        IEnumerable<Track> trackEnumerable;
+        if (order)
+            trackEnumerable = trackList.OrderBy(track => track.TrackNumber).ThenBy(track => track.Title);
+        else
+            trackEnumerable = trackList;
         return new SizedCollection<Track>(trackEnumerable, (uint) trackList.Count);
     }
 

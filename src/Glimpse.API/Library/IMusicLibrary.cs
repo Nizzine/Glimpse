@@ -5,6 +5,11 @@ namespace Glimpse.API.Library;
 public interface IMusicLibrary
 {
     /// <summary>
+    /// The name of the favorites playlist. This will not be returned by <see cref="GetPlaylists"/>.
+    /// </summary>
+    public const string FavoritesPlaylistName = "Favorites";
+
+    /// <summary>
     /// This event is invoked whenever the library is updated, for example, when a <see cref="Track"/> is updated or deleted.
     /// </summary>
     public event OnChanged Updated;
@@ -36,6 +41,12 @@ public interface IMusicLibrary
     /// Gets the <see cref="Genre"/>s in the library.
     /// </summary>
     public SizedCollection<Genre> GetGenres();
+
+    /// <summary>
+    /// Gets the playlist names in the library.
+    /// </summary>
+    /// <remarks>This will <b>NOT</b> return the Favorites playlist, as this is a special playlist.</remarks>
+    public SizedCollection<string> GetPlaylistNames();
 
     /// <summary>
     /// Gets a full list of directories that will be indexed by the music library.
@@ -82,11 +93,15 @@ public interface IMusicLibrary
     /// <returns>The <see cref="Track"/>.</returns>
     public bool TryGetTrack(string path, [NotNullWhen(true)] out Track? track);
 
+    public bool TryGetPlaylist(string playlistName, [NotNullWhen(true)] out Playlist? playlist);
+
     public bool TryGetTracksForAlbum(string albumName, out SizedCollection<Track> tracks);
 
     public bool TryGetTracksForArtist(string artistName, out SizedCollection<Track> tracks);
 
     public bool TryGetTracksForGenre(string genreName, out SizedCollection<Track> tracks);
+
+    public bool TryGetTracksForPlaylist(string playlistName, out SizedCollection<Track> tracks);
     
     /// <summary>
     /// Update a <see cref="Track"/> in the library.
