@@ -747,7 +747,7 @@ public class GlimpsePlayer : Window
                         case AlbumView.Playlists:
                         {
                             if (ImGui.Selectable(locale.GetString("Player.Playlists.New")))
-                                Console.WriteLine("TODO");
+                                AddPopup(new NewPlaylistPopup(name => CreatePlaylist(name, null)));
 
                             if (ImGui.Selectable(locale.GetString("Player.Playlists.Favorites"), _currentAlbum == IMusicLibrary.FavoritesPlaylistName))
                                 ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
@@ -793,6 +793,7 @@ public class GlimpsePlayer : Window
                             {
                                 if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
                                 {
+                                    // todo this is broken on everything except albums!!
                                     if (Glimpse.Library.TryGetAlbum(albumName, out Album album))
                                         player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
                                 }
@@ -988,7 +989,7 @@ public class GlimpsePlayer : Window
                                     if (ImGui.BeginMenu(locale.GetString("Menu.AddToPlaylist")))
                                     {
                                         if (ImGui.MenuItem(locale.GetString("Player.Playlists.New")))
-                                            Console.WriteLine("TODO");
+                                            AddPopup(new NewPlaylistPopup(name => CreatePlaylist(name, path)));
 
                                         ImGui.Separator();
 
@@ -1338,6 +1339,22 @@ public class GlimpsePlayer : Window
         }
 
         return _favoritesPlaylist;
+    }
+
+    private void CreatePlaylist(string name, string? trackToAdd)
+    {
+        // if the playlist already exists, just add it to the existing playlist
+        if (!Glimpse.Library.TryGetPlaylist(name, out Playlist? playlist))
+            playlist = new Playlist(name, []);
+
+        if (trackToAdd != null)
+            playlist.Tracks.Add(trackToAdd);
+
+        Glimpse.Library.UpdatePlaylist(playlist);
+
+        // refresh the view if necessary
+        if (_currentView == AlbumView.Playlists)
+            ChangeView(AlbumView.Albums);
     }
 
     /// <summary>

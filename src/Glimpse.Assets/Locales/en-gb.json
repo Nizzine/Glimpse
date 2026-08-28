@@ -49,6 +49,7 @@
         "Button.No": "No",
         "Button.Ok": "OK",
         "Button.Close": "Close",
+        "Button.Create": "Create",
         "Checkbox.Enabled": "Enabled",
         
         "Popup.Settings.Name": "Settings",
@@ -102,6 +103,9 @@
         "Popup.ManageLibrary.UpdateButton": "Update",
         "Popup.ManageLibrary.UpdateButton.Tooltip": "Update the music library",
         "Popup.ManageLibrary.IndexingStatus": "Indexing {0}",
+
+        "Popup.NewPlaylist.Name": "New Playlist",
+        "Popup.NewPlaylist.TextBoxHint": "Name",
 
         "Widget.ManageLibrary.AddFolders.Tooltip": "Add Folders to Library",
         "Widget.ManageLibrary.RemoveSelectedFolder.Tooltip": "Remove selected folder from library",
