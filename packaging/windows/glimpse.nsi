@@ -26,12 +26,35 @@ InstallDirRegKey HKLM "SOFTWARE\Glimpse" "InstallDir"
 
 !insertmacro MUI_LANGUAGE "English"
 
+# ensure glimpse is not running before installing
+Function .onInit
+	System::Call 'kernel32::WaitNamedPipe(t "\\.\pipe\GlimpsePlayer")i.R0'
+	IntCmp $R0 0 notRunning
+		System::Call 'kernel32::CloseHandle(p $R0)'
+		MessageBox MB_OK|MB_ICONEXCLAMATION "Glimpse is running. Please close it, then re-run the installer." /SD IDOK
+		Abort
+	notRunning:
+FunctionEnd
+
+# ensure glimpse is not running before uninstalling
+Function un.onInit
+	System::Call 'kernel32::WaitNamedPipe(t "\\.\pipe\GlimpsePlayer")i.R0'
+	IntCmp $R0 0 notRunning
+		System::Call 'kernel32::CloseHandle(p $R0)'
+		MessageBox MB_OK|MB_ICONEXCLAMATION "Glimpse is running. Please close it, then re-run the uninstaller." /SD IDOK
+		Abort
+	notRunning:
+FunctionEnd
+
 Section "Install Glimpse"
 
     SectionIn RO
     SetOutPath $INSTDIR
-
+	
+	Delete "$INSTDIR\*.*"
     File /r "${PUBLISHDIR}\*.*"
+	ExecWait "$INSTDIR\vc_redist.x64.exe /install /quiet /norestart"
+	Delete "$INSTDIR\vc_redist.x64.exe"
 
     SetRegView 64
     WriteRegStr HKLM "SOFTWARE\Glimpse" "InstallDir" "$INSTDIR"
@@ -48,11 +71,9 @@ Section "Install Glimpse"
 
 SectionEnd
 
-Section "Start Menu Shortcuts"
+Section "Start Menu Shortcut"
 
-    CreateDirectory "$SMPROGRAMS\Glimpse"
-    CreateShortcut "$SMPROGRAMS\Glimpse\Glimpse.lnk" "$INSTDIR\Glimpse.exe"
-    CreateShortcut "$SMPROGRAMS\Glimpse\Uninstall.lnk" "$INSTDIR\uninstall.exe"
+    CreateShortcut "$SMPROGRAMS\Glimpse.lnk" "$INSTDIR\Glimpse.exe"
 
 SectionEnd
 
@@ -63,9 +84,8 @@ Section "Uninstall"
     DeleteRegKey HKLM "SOFTWARE\Glimpse"
 
     Delete "$INSTDIR\*.*"
-    Delete "$SMPROGRAMS\Glimpse\*.*"
-
-    RMDir "$SMPROGRAMS\Glimpse"
-    RMDir "$INSTDIR"
+	RMDir "$INSTDIR"
+	
+    Delete "$SMPROGRAMS\Glimpse.lnk"
 
 SectionEnd

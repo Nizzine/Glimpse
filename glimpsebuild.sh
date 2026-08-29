@@ -98,6 +98,8 @@ if $NOZIP; then
 fi
 
 if [[ $RUNTIME == "win"* ]]; then
+  curl -LO https://aka.ms/vc14/vc_redist.x64.exe || exit 1
+  mv vc_redist.x64.exe "$BUILD_DIR_NAME/" || exit 1
   zip -r "$OUT_NAME-$RUNTIME.zip" "$BUILD_DIR_NAME/" || exit 1
   makensis -DVERSION="$VERSION" -DPUBLISHDIR="$BUILD_DIR" ./packaging/windows/glimpse.nsi || exit 1
 elif [[ $RUNTIME == "osx"* ]]; then
