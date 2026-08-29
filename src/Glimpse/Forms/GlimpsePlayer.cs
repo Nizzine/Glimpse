@@ -793,9 +793,39 @@ public class GlimpsePlayer : Window
                             {
                                 if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
                                 {
-                                    // todo this is broken on everything except albums!!
-                                    if (Glimpse.Library.TryGetAlbum(albumName, out Album album))
-                                        player.QueueTracks(album.Tracks, QueueSlot.AtEnd);
+                                    HashSet<string>? tracks = null;
+                                    switch (_currentView)
+                                    {
+                                        case AlbumView.Albums:
+                                            if (Glimpse.Library.TryGetAlbum(albumName, out Album? album))
+                                                tracks = album.Tracks;
+                                            break;
+                                        case AlbumView.Artists:
+                                            if (Glimpse.Library.TryGetArtist(albumName, out Artist? artist))
+                                                tracks = artist.Tracks;
+                                            break;
+                                        case AlbumView.Genres:
+                                            if (Glimpse.Library.TryGetGenre(albumName, out Genre? genre))
+                                                tracks = genre.Tracks;
+                                            break;
+                                        case AlbumView.Playlists:
+                                            if (Glimpse.Library.TryGetPlaylist(albumName, out Playlist? playlist))
+                                                tracks = playlist.Tracks;
+                                            break;
+                                        default:
+                                            throw new ArgumentOutOfRangeException();
+                                    }
+
+                                    if (tracks != null && tracks.Count > 0)
+                                    {
+                                        player.QueueTracks(tracks, QueueSlot.AtEnd);
+                                        if (player.TrackState == TrackState.Stopped)
+                                        {
+                                            int trackIndex = 0;
+                                            while (!player.TryChangeTrack(trackIndex++)) ;
+                                            player.Play();
+                                        }
+                                    }
                                 }
 
                                 ImGui.Separator();

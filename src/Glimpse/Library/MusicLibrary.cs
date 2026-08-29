@@ -291,6 +291,21 @@ public class MusicLibrary : IMusicLibrary
         return true;
     }
 
+    public bool TryGetAlbum(string albumName, [NotNullWhen(true)] out Album? album)
+    {
+        return _albums.TryGetValue(albumName, out album);
+    }
+
+    public bool TryGetArtist(string artistName, [NotNullWhen(true)] out Artist? artist)
+    {
+        return _artists.TryGetValue(artistName, out artist);
+    }
+
+    public bool TryGetGenre(string genreName, [NotNullWhen(true)] out Genre? genre)
+    {
+        return _genres.TryGetValue(genreName, out genre);
+    }
+
     public bool TryGetPlaylist(string playlistName, [NotNullWhen(true)] out Playlist? playlist)
     {
         string playlistPath = GetPlaylistPath(playlistName);
@@ -332,11 +347,6 @@ public class MusicLibrary : IMusicLibrary
             writer.WriteLine(track);
 
         return true;
-    }
-
-    public bool TryGetAlbum(string albumName, out Album album)
-    {
-        return _albums.TryGetValue(albumName, out album);
     }
 
     // TODO: These methods MUST call SaveLibrary, but implement Transactions first.

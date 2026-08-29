@@ -93,6 +93,12 @@ public interface IMusicLibrary
     /// <returns>The <see cref="Track"/>.</returns>
     public bool TryGetTrack(string path, [NotNullWhen(true)] out Track? track);
 
+    public bool TryGetAlbum(string albumName, [NotNullWhen(true)] out Album? album);
+
+    public bool TryGetArtist(string artistName, [NotNullWhen(true)] out Artist? artist);
+
+    public bool TryGetGenre(string genreName, [NotNullWhen(true)] out Genre? genre);
+
     public bool TryGetPlaylist(string playlistName, [NotNullWhen(true)] out Playlist? playlist);
 
     public bool TryGetTracksForAlbum(string albumName, out SizedCollection<Track> tracks);
@@ -110,8 +116,6 @@ public interface IMusicLibrary
     public bool UpdateTrack(Track track);
 
     public bool UpdatePlaylist(Playlist playlist);
-
-    public bool TryGetAlbum(string albumName, out Album album);
 
     public bool InsertOrUpdateTrack(Track track);
 
