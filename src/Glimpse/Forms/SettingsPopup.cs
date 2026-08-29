@@ -226,23 +226,23 @@ public class SettingsPopup : Popup
                             ImGui.TextUnformatted(currentLocale.GetString("Popup.Settings.Tab.About.Credits"));
                             
                             ImGui.Spacing();
-                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Website")))
-                                Utils.OpenLink("https://glimpseplayer.com");
+                            ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Website"),
+                                "https://glimpseplayer.com");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Donate")))
-                                Utils.OpenLink("https://glimpseplayer.com/donate");
+                            ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Donate"),
+                                "https://glimpseplayer.com/donate");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Repository")))
-                                Utils.OpenLink("https://glimpseplayer.com/repo");
+                            ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Repository"),
+                                "https://glimpseplayer.com/repo");
                             
                             ImGui.SameLine();
                             
-                            if (ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Discord")))
-                                Utils.OpenLink("https://glimpseplayer.com/discord");
+                            ImGui.TextLink(currentLocale.GetString("Popup.Settings.Tab.About.Discord"),
+                                "https://glimpseplayer.com/discord");
                             
                             ImGui.EndChild();
                         }
@@ -251,28 +251,17 @@ public class SettingsPopup : Popup
                         {
                             ImGui.BeginChild("OSLibraries");
                             {
-                                if (ImGui.TextLink("mixr"))
-                                    Utils.OpenLink("https://github.com/Aquatic-Games/mixr");
-                                if (ImGui.TextLink("Hexa.NET.ImGui"))
-                                    Utils.OpenLink("https://github.com/HexaEngine/Hexa.NET.ImGui");
-                                if (ImGui.TextLink("Silk.NET"))
-                                    Utils.OpenLink("https://dotnet.github.io/Silk.NET/");
-                                if (ImGui.TextLink("piko"))
-                                    Utils.OpenLink("https://github.com/aquagoose/piko");
-                                if (ImGui.TextLink("TagLibSharp"))
-                                    Utils.OpenLink("https://github.com/mono/taglib-sharp");
-                                if (ImGui.TextLink("ImageSharp"))
-                                    Utils.OpenLink("https://sixlabors.com/products/imagesharp/");
-                                if (ImGui.TextLink("empress"))
-                                    Utils.OpenLink("https://github.com/aquagoose/empress");
-                                if (ImGui.TextLink("DiscordRichPresence"))
-                                    Utils.OpenLink("https://github.com/Lachee/discord-rpc-csharp");
-                                if (ImGui.TextLink("MetaBrainz.MusicBrainz"))
-                                    Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz");
-                                if (ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt"))
-                                    Utils.OpenLink("https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
-                                if (ImGui.TextLink("TerraFX.Interop.Windows"))
-                                    Utils.OpenLink("https://github.com/terrafx/terrafx.interop.windows");
+                                ImGui.TextLink("Slant", "https://github.com/aquagoose/Slant");
+                                ImGui.TextLink("Hexa.NET.ImGui", "https://github.com/HexaEngine/Hexa.NET.ImGui");
+                                ImGui.TextLink("Silk.NET", "https://dotnet.github.io/Silk.NET/");
+                                ImGui.TextLink("piko", "https://github.com/aquagoose/piko");
+                                ImGui.TextLink("TagLibSharp", "https://github.com/mono/taglib-sharp");
+                                ImGui.TextLink("ImageSharp", "https://sixlabors.com/products/imagesharp/");
+                                ImGui.TextLink("empress", "https://github.com/aquagoose/empress");
+                                ImGui.TextLink("DiscordRichPresence", "https://github.com/Lachee/discord-rpc-csharp");
+                                ImGui.TextLink("MetaBrainz.MusicBrainz", "https://github.com/Zastai/MetaBrainz.MusicBrainz");
+                                ImGui.TextLink("MetaBrainz.MusicBrainz.CoverArt", "https://github.com/Zastai/MetaBrainz.MusicBrainz.CoverArt");
+                                ImGui.TextLink("TerraFX.Interop.Windows", "https://github.com/terrafx/terrafx.interop.windows");
 
                                 ImGui.EndChild();
                             }
