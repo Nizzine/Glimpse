@@ -42,6 +42,7 @@
         "Menu.ShowInExplorer": "Show File In {0}",
         "Menu.DeleteAlbum": "Delete album...",
         "Menu.DeleteFile": "Delete file...",
+        "Menu.DeletePlaylist": "Delete playlist...",
 
         "Button.Yes": "Yes",
         "Button.Save": "Save",
@@ -106,6 +107,11 @@
 
         "Popup.NewPlaylist.Name": "New Playlist",
         "Popup.NewPlaylist.TextBoxHint": "Name",
+
+        "Popup.DeletePlaylist.Name": "Delete Playlist?",
+        "Popup.DeletePlaylist.Text": "Delete playlist \"{0}\"?",
+        "Popup.DeletePlaylist.Failed.Name": "Failed",
+        "Popup.DeletePlaylist.Failed.Text": "Failed to delete playlist.\nIt may have already been deleted.",
 
         "Widget.ManageLibrary.AddFolders.Tooltip": "Add Folders to Library",
         "Widget.ManageLibrary.RemoveSelectedFolder.Tooltip": "Remove selected folder from library",

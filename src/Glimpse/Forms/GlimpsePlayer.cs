@@ -799,6 +799,32 @@ public class GlimpsePlayer : Window
                                 }
 
                                 ImGui.Separator();
+
+                                switch (_currentView)
+                                {
+                                    case AlbumView.Playlists:
+                                    {
+                                        if (ImGui.Selectable(locale.GetString("Menu.DeletePlaylist")))
+                                        {
+                                            AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.YesNo,
+                                                locale.GetString("Popup.DeletePlaylist.Name"),
+                                                locale.GetString("Popup.DeletePlaylist.Text", albumName), () =>
+                                                {
+                                                    if (!Glimpse.Library.TryDeletePlaylist(albumName))
+                                                    {
+                                                        AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.Ok,
+                                                            locale.GetString("Popup.DeletePlaylist.Failed.Name"),
+                                                            locale.GetString("Popup.DeletePlaylist.Failed.Text")));
+                                                    }
+
+                                                    // we're already in the album view so don't need to perform the check.
+                                                    ChangeView(AlbumView.Albums);
+                                                }));
+                                        }
+
+                                        break;
+                                    }
+                                }
                             
                                 // TODO: Reimplement album removal & deletion
                                 /*if (ImGui.Selectable(locale.GetString("Menu.RemoveFromLibrary")))

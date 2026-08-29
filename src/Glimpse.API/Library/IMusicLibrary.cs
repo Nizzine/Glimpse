@@ -123,5 +123,7 @@ public interface IMusicLibrary
 
     public bool TryDeleteTrack(string path);
 
+    public bool TryDeletePlaylist(string name);
+
     public delegate void OnChanged();
 }

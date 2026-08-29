@@ -384,6 +384,15 @@ public class MusicLibrary : IMusicLibrary
         return true;
     }
 
+    public bool TryDeletePlaylist(string name)
+    {
+        string playlistPath = GetPlaylistPath(name);
+        if (!File.Exists(playlistPath))
+            return false;
+        File.Delete(playlistPath);
+        return true;
+    }
+
     private string GetPlaylistPath(string playlistName)
     {
         return Path.Combine(_playlistsBasePath, $"{playlistName}{PlaylistFileExtension}");
