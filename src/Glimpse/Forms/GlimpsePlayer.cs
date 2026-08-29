@@ -386,8 +386,9 @@ public class GlimpsePlayer : Window
                 float miniplayerScale = _miniplayer ? 0.75f : 1.0f;
                 
                 Vector2 iconSize = new Vector2(32) * Scale * miniplayerScale;
-                // Even though there are 4 icons, 3 icons makes it *feel* more centered, even though it's shifted to the right.
-                const int numIcons = 4;
+                // there are 5 icons but 4 makes it centered. no i don't know why!
+                // miniplayer moves the heart next to the shuffle/repeat icons, so we reduce the icon count by 1.
+                int numIcons = _miniplayer ? 3 : 4;
                 float spacing = ImGui.GetStyle().ItemSpacing.X * miniplayerScale;
                 float padding = ImGui.GetStyle().FramePadding.X * miniplayerScale;
                 float totalButtonsWidth = (iconSize.X + spacing + padding) * numIcons;
@@ -416,36 +417,11 @@ public class GlimpsePlayer : Window
                     ImGui.PushStyleColor(ImGuiCol.Button, Vector4.Zero);
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, buttonColor);
 
-                    bool isInFavorites = false;
-                    if (player.TrackState != TrackState.Stopped)
+                    if (!_miniplayer)
                     {
-                        // if there's no favorites playlist for some reason, create a new one and save it.
-                        // stops the disk from being hammered by queries about if the playlist exists,
-                        // and the simplest solution is literally just to create the playlist.
-                        isInFavorites = GetOrCreateFavoritesPlaylist().Tracks.Contains(player.CurrentTrackPath);
+                        FavoriteButton(player, locale, iconSize, iconsColor);
+                        ImGui.SameLine();
                     }
-
-                    if (ImGui.ImageButton("HeartButton", isInFavorites ? _heartFilled : _heart, iconSize,
-                            new Vector2(1, 0), new Vector2(0, 1), Vector4.Zero, iconsColor))
-                    {
-                        Debug.Assert(_favoritesPlaylist != null);
-
-                        if (isInFavorites)
-                            _favoritesPlaylist.Tracks.Remove(player.CurrentTrackPath);
-                        else
-                            _favoritesPlaylist.Tracks.Add(player.CurrentTrackPath);
-
-                        Glimpse.Library.UpdatePlaylist(_favoritesPlaylist);
-
-                        // if the current view is the favorites playlist, refresh to reflect the change
-                        if (_currentView == AlbumView.Playlists && _currentAlbum == IMusicLibrary.FavoritesPlaylistName)
-                            ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
-                    }
-
-                    ImGui.SetItemTooltipUnformatted(
-                        locale.GetString(isInFavorites ? "Menu.RemoveFromFavorites" : "Menu.AddToFavorites"));
-
-                    ImGui.SameLine();
 
                     if (ImGui.ImageButton("BackwardButton", _skipButton, iconSize, new Vector2(1, 0),
                             new Vector2(0, 1), Vector4.Zero, iconsColor))
@@ -493,7 +469,7 @@ public class GlimpsePlayer : Window
                 Vector2 cursorPos = ImGui.GetCursorPos();
 
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - (_miniplayer ? 55 : 150) * Scale, _miniplayer ? 20 : 20));
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (_miniplayer ? 75 : 150) * Scale, 20));
                 //if (!_miniplayer)
                 {
                     ImGui.BeginChild("VolumeDock", ImGuiChildFlags.AutoResizeY);
@@ -508,8 +484,16 @@ public class GlimpsePlayer : Window
                         Vector4 repeatButtonTint = iconsColor;
                         if (repeat == RepeatMode.Off)
                             repeatButtonTint.W = 0.5f;
-                            
+
                         ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0, 0, 0, 0));
+
+                        // move the favorite button up to the "volume dock" if we're in the mini player
+                        if (_miniplayer)
+                        {
+                            FavoriteButton(player, locale, ScaleVec(16) * miniplayerScale, iconsColor);
+                            ImGui.SameLine(0, 0);
+                        }
+
                         if (ImGui.ImageButton("ShuffleButton", _shuffleButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, shuffleButtonTint))
                         {
                             player.Shuffle = shuffle switch
@@ -1383,6 +1367,38 @@ public class GlimpsePlayer : Window
         ImGuiStylePtr style = ImGui.GetStyle();
         SetupStyle(style);
         RefreshLayout();
+    }
+
+    private void FavoriteButton(AudioPlayer player, Locale locale, Vector2 iconSize, Vector4 iconsColor)
+    {
+        bool isInFavorites = false;
+        if (player.TrackState != TrackState.Stopped)
+        {
+            // if there's no favorites playlist for some reason, create a new one and save it.
+            // stops the disk from being hammered by queries about if the playlist exists,
+            // and the simplest solution is literally just to create the playlist.
+            isInFavorites = GetOrCreateFavoritesPlaylist().Tracks.Contains(player.CurrentTrackPath);
+        }
+
+        if (ImGui.ImageButton("HeartButton", isInFavorites ? _heartFilled : _heart, iconSize,
+                new Vector2(1, 0), new Vector2(0, 1), Vector4.Zero, iconsColor))
+        {
+            Debug.Assert(_favoritesPlaylist != null);
+
+            if (isInFavorites)
+                _favoritesPlaylist.Tracks.Remove(player.CurrentTrackPath);
+            else
+                _favoritesPlaylist.Tracks.Add(player.CurrentTrackPath);
+
+            Glimpse.Library.UpdatePlaylist(_favoritesPlaylist);
+
+            // if the current view is the favorites playlist, refresh to reflect the change
+            if (_currentView == AlbumView.Playlists && _currentAlbum == IMusicLibrary.FavoritesPlaylistName)
+                ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
+        }
+
+        ImGui.SetItemTooltipUnformatted(
+            locale.GetString(isInFavorites ? "Menu.RemoveFromFavorites" : "Menu.AddToFavorites"));
     }
 
     private Playlist GetOrCreateFavoritesPlaylist()
