@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Globalization;
 using System.Numerics;
@@ -723,6 +724,50 @@ public class GlimpsePlayer : Window
                         ChangeView(AlbumView.Playlists);
                     ImGui.EndTabItem();
                 }
+
+                // make this a common function as the Favorites playlist is separate from the other buttons yet requires
+                // *most of* the same context menu functionality
+                void ShowAlbumEntrySharedContextMenu(string albumName)
+                {
+                    if (ImGui.Selectable(locale.GetString("Menu.PlayAll")))
+                    {
+                        if (TryGetTracks(albumName, out HashSet<string>? tracks))
+                        {
+                            // turn shuffle off as the player will auto shuffle once playback starts.
+                            player.Shuffle = ShuffleMode.Off;
+                            player.QueueTracks(tracks, QueueSlot.Clear);
+                            int trackIndex = 0;
+                            while (!player.TryChangeTrack(trackIndex++)) ;
+                            player.Play();
+                        }
+                    }
+
+                    if (ImGui.Selectable(locale.GetString("Menu.ShuffleAll")))
+                    {
+                        if (TryGetTracks(albumName, out HashSet<string>? tracks))
+                        {
+                            int numTracks = tracks.Count;
+                            player.Shuffle = ShuffleMode.Default;
+                            player.QueueTracks(tracks, QueueSlot.Clear);
+                            while (!player.TryChangeTrack(Random.Shared.Next(numTracks))) ;
+                            player.Play();
+                        }
+                    }
+
+                    if (ImGui.Selectable(locale.GetString("Menu.AddAllToQueue")))
+                    {
+                        if (TryGetTracks(albumName, out HashSet<string>? tracks))
+                        {
+                            player.QueueTracks(tracks, QueueSlot.AtEnd);
+                            if (player.TrackState == TrackState.Stopped)
+                            {
+                                int trackIndex = 0;
+                                while (!player.TryChangeTrack(trackIndex++)) ;
+                                player.Play();
+                            }
+                        }
+                    }
+                }
                 
                 ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
                 {
@@ -735,6 +780,12 @@ public class GlimpsePlayer : Window
 
                             if (ImGui.Selectable(locale.GetString("Player.Playlists.Favorites"), _currentAlbum == IMusicLibrary.FavoritesPlaylistName))
                                 ChangeAlbum(IMusicLibrary.FavoritesPlaylistName);
+
+                            if (ImGui.BeginPopupContextItem())
+                            {
+                                ShowAlbumEntrySharedContextMenu(IMusicLibrary.FavoritesPlaylistName);
+                                ImGui.EndPopup();
+                            }
 
                             ImGui.Separator();
                             break;
@@ -775,49 +826,14 @@ public class GlimpsePlayer : Window
 
                             if (ImGui.BeginPopupContextItem())
                             {
-                                if (ImGui.Selectable(locale.GetString("Menu.AddToQueue")))
-                                {
-                                    HashSet<string>? tracks = null;
-                                    switch (_currentView)
-                                    {
-                                        case AlbumView.Albums:
-                                            if (Glimpse.Library.TryGetAlbum(albumName, out Album? album))
-                                                tracks = album.Tracks;
-                                            break;
-                                        case AlbumView.Artists:
-                                            if (Glimpse.Library.TryGetArtist(albumName, out Artist? artist))
-                                                tracks = artist.Tracks;
-                                            break;
-                                        case AlbumView.Genres:
-                                            if (Glimpse.Library.TryGetGenre(albumName, out Genre? genre))
-                                                tracks = genre.Tracks;
-                                            break;
-                                        case AlbumView.Playlists:
-                                            if (Glimpse.Library.TryGetPlaylist(albumName, out Playlist? playlist))
-                                                tracks = playlist.Tracks;
-                                            break;
-                                        default:
-                                            throw new ArgumentOutOfRangeException();
-                                    }
-
-                                    if (tracks != null && tracks.Count > 0)
-                                    {
-                                        player.QueueTracks(tracks, QueueSlot.AtEnd);
-                                        if (player.TrackState == TrackState.Stopped)
-                                        {
-                                            int trackIndex = 0;
-                                            while (!player.TryChangeTrack(trackIndex++)) ;
-                                            player.Play();
-                                        }
-                                    }
-                                }
-
-                                ImGui.Separator();
+                                ShowAlbumEntrySharedContextMenu(albumName);
 
                                 switch (_currentView)
                                 {
                                     case AlbumView.Playlists:
                                     {
+                                        ImGui.Separator();
+
                                         if (ImGui.Selectable(locale.GetString("Menu.DeletePlaylist")))
                                         {
                                             AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.YesNo,
@@ -1427,6 +1443,34 @@ public class GlimpsePlayer : Window
         // refresh the view if necessary
         if (_currentView == AlbumView.Playlists)
             ChangeView(AlbumView.Albums);
+    }
+
+    private bool TryGetTracks(string name, [NotNullWhen(true)] out HashSet<string>? tracks)
+    {
+        tracks = null;
+        switch (_currentView)
+        {
+            case AlbumView.Albums:
+                if (Glimpse.Library.TryGetAlbum(name, out Album? album))
+                    tracks = album.Tracks;
+                break;
+            case AlbumView.Artists:
+                if (Glimpse.Library.TryGetArtist(name, out Artist? artist))
+                    tracks = artist.Tracks;
+                break;
+            case AlbumView.Genres:
+                if (Glimpse.Library.TryGetGenre(name, out Genre? genre))
+                    tracks = genre.Tracks;
+                break;
+            case AlbumView.Playlists:
+                if (Glimpse.Library.TryGetPlaylist(name, out Playlist? playlist))
+                    tracks = playlist.Tracks;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+
+        return tracks != null && tracks.Count > 0;
     }
 
     /// <summary>

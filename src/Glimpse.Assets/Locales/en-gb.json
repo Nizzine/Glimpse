@@ -34,7 +34,10 @@
         "Player.SearchBar": "Search",
         
         "Menu.AddToQueue": "Add to Queue",
+        "Menu.AddAllToQueue": "Add All to Queue",
         "Menu.PlayNext": "Play Next",
+        "Menu.PlayAll": "Play All",
+        "Menu.ShuffleAll": "Shuffle All",
         "Menu.AddToFavorites": "Add to Favourites",
         "Menu.RemoveFromFavorites": "Remove from Favourites",
         "Menu.AddToPlaylist": "Add to Playlist",
