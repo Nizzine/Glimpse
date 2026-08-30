@@ -73,6 +73,9 @@ SectionEnd
 
 Section "Start Menu Shortcut"
 
+	# delete the old start menu folders from previous installs, if present
+	Delete "$SMPROGRAMS\Glimpse\*.*"
+    RMDir "$SMPROGRAMS\Glimpse"
     CreateShortcut "$SMPROGRAMS\Glimpse.lnk" "$INSTDIR\Glimpse.exe"
 
 SectionEnd
