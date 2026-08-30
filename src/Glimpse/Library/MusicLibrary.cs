@@ -67,18 +67,18 @@ public class MusicLibrary : IMusicLibrary
         
         Updated = delegate { };
 
-        // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
-        if (!File.Exists(_databasePath))
-        {
-            SaveLibrary(false);
-            return;
-        }
-
         // initialize the favourites playlist and playlist directory if they don't exist.
         if (!File.Exists(GetPlaylistPath(IMusicLibrary.FavoritesPlaylistName)))
         {
             Directory.CreateDirectory(_playlistsBasePath);
             File.Create(GetPlaylistPath(IMusicLibrary.FavoritesPlaylistName)).Dispose();
+        }
+
+        // Handle first-time usage. TODO This will also deal with the migration from Database.json -> Library.json
+        if (!File.Exists(_databasePath))
+        {
+            SaveLibrary(false);
+            return;
         }
 
         // TODO: Handle null
@@ -341,6 +341,7 @@ public class MusicLibrary : IMusicLibrary
 
     public bool UpdatePlaylist(Playlist playlist)
     {
+        Directory.CreateDirectory(_playlistsBasePath);
         string playlistPath = GetPlaylistPath(playlist.Name);
         using StreamWriter writer = File.CreateText(playlistPath);
         foreach (string track in playlist.Tracks)
