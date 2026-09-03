@@ -972,7 +972,7 @@ public class GlimpsePlayer : Window
                         {
                             int song = clipper.DisplayStart;
                             IEnumerable<Track> visibleTracks =
-                                _currentTracks.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
+                                _currentTracks.Collection.Take(new Range(clipper.DisplayStart, clipper.DisplayEnd));
                             foreach (Track track in visibleTracks)
                             {
                                 ImGui.TableNextRow(/*songEntryHeight*/);
