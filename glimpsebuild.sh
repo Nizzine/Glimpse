@@ -41,18 +41,23 @@ dotnet publish -c Release -r $RUNTIME -o $BUILD_DIR -p:Version="$VERSION" --self
 # As glimpse uses MixrSharp as a project reference rather than a nuget, we must delete the library file that doesn't
 # match the output runtime.
 pushd $BUILD_DIR
+rm Silk.NET.SDL.dll
+
 # TODO: There MUST be a better way to do this.
 if [[ $RUNTIME == "win"* ]]; then
-  rm libmixr.so || exit 1
+  rm libmixr.so
   rm libempress.so
-  rm libmixr.dylib || exit 1
+  rm libmixr.dylib
+  rm SDL2.dll
 elif [[ $RUNTIME == "osx"* ]]; then
-  rm libmixr.so || exit 1
+  rm libmixr.so
   rm libempress.so
-  rm mixr.dll || exit 1
+  rm mixr.dll
+  rm libSDL2-2.0.dylib
 elif [[ $RUNTIME == "linux"* ]]; then
-  rm mixr.dll || exit 1
-  rm libmixr.dylib || exit 1
+  rm mixr.dll
+  rm libmixr.dylib
+  rm libSDL2-2.0.so
 fi
 popd
 
