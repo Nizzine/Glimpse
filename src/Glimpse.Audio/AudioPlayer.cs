@@ -349,7 +349,17 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         }
 
         _logger?.Log("    Getting track info.");
-        info = codec.GetTrackInfo(path);
+        try
+        {
+            info = codec.GetTrackInfo(path);
+        }
+        catch (Exception e)
+        {
+            _logger?.Log($"    Failed! Exception: ====================================\n{e}");
+            info = null;
+            return false;
+        }
+
         return true;
     }
     
