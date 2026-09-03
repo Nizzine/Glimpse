@@ -832,5 +832,5 @@ public class Glimpse : IGlimpse, IDisposable
     IConfigManager IGlimpse.ConfigManager => ConfigManager;
     IAudioPlayer IGlimpse.Player => Player;
     IMusicLibrary IGlimpse.Library => Library;
-    ILocale? IGlimpse.Locale => Locale;
+    ILocale IGlimpse.Locale => Locale;
 }

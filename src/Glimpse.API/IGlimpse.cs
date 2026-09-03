@@ -14,5 +14,5 @@ public interface IGlimpse
     
     public IMusicLibrary Library { get; }
     
-    public ILocale? Locale { get; }
+    public ILocale Locale { get; }
 }
