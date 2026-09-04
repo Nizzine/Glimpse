@@ -1,6 +1,6 @@
 {
-  "ID": "Nizzine.TrackInfoToTXTFile",
-  "Name": "Track Info to TXT File Tool",
+  "ID": "Nizzine.TrackInfoToTXTTool",
+  "Name": "Track Info to TXT Tool",
   "Description": "Creates text files from played songs that other programs can access. Useful for broadcasting",
   "Version": "1.0"
 }
