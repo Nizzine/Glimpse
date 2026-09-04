@@ -1,6 +1,9 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Numerics;
 using System.Text.Json;
 using Glimpse.API;
+using Glimpse.API.UI;
 using Glimpse.Assets;
 using Glimpse.Configs;
 using Glimpse.Forms.Widgets;
@@ -12,6 +15,8 @@ namespace Glimpse.Forms;
 
 public class SettingsPopup : Popup
 {
+    private ImmediateGUI _gui;
+
     private GlimpseConfig _currentConfig;
     private ThemeWidget _themeWidget;
     
@@ -23,6 +28,8 @@ public class SettingsPopup : Popup
 
     public override void Open()
     {
+        _gui = new ImmediateGUI();
+
         _currentConfig = Glimpse.Config;
         _currentConfig.Plugins.EnabledPlugins = new HashSet<string>(Glimpse.Config.Plugins.EnabledPlugins);
 
@@ -31,6 +38,8 @@ public class SettingsPopup : Popup
 
     protected override void Update(float dt)
     {
+        _gui.Scale = Scale;
+
         Locale currentLocale = Glimpse.Locale;
 
         ImGuiWindowFlags flags = ImGuiWindowFlags.None;
@@ -190,7 +199,7 @@ public class SettingsPopup : Popup
                                         {
                                             ImGui.Separator();
                                             if (Glimpse.Plugins[_currentPlugin].IsInitialized)
-                                                Glimpse.Plugins[_currentPlugin].DisplayGui();
+                                                Glimpse.Plugins[_currentPlugin].DisplayGui(_gui);
                                         }
                                     }
 
@@ -331,5 +340,73 @@ public class SettingsPopup : Popup
     public override void Dispose()
     {
         _glimpseLogo?.Dispose();
+    }
+
+    private class ImmediateGUI : IImmediateGUI
+    {
+        public float Scale;
+
+        public ImmediateGUI()
+        {
+            Scale = 1;
+        }
+
+        public void Separator()
+        {
+            ImGui.Separator();
+        }
+
+        public void Separator(string heading)
+        {
+            ImGui.SeparatorText(heading);
+        }
+
+        public void Text(string text)
+        {
+            ImGui.TextUnformatted(text);
+        }
+
+        public void Text(string text, uint size)
+        {
+            ImGui.PushFont(ImFontPtr.Null, size * Scale);
+            ImGui.TextUnformatted(text);
+            ImGui.PopFont();
+        }
+
+        public bool Button(string text)
+        {
+            return ImGui.Button(text);
+        }
+
+        public bool Button(string text, Size size)
+        {
+            return ImGui.Button(text, new Vector2(size.Width * Scale, size.Height * Scale));
+        }
+
+        public bool Checkbox(string text, ref bool ticked)
+        {
+            return ImGui.Checkbox(text, ref ticked);
+        }
+
+        public bool Dropdown(string label, ref int value, params ReadOnlySpan<string> items)
+        {
+            bool hasItemBeenSelected = false;
+
+            if (ImGui.BeginCombo(label, items[value]))
+            {
+                for (int i = 0; i < items.Length; i++)
+                {
+                    if (ImGui.Selectable(items[i]))
+                    {
+                        hasItemBeenSelected = true;
+                        value = i;
+                    }
+                }
+
+                ImGui.EndCombo();
+            }
+
+            return hasItemBeenSelected;
+        }
     }
 }

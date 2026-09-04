@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using DiscordRPC;
 using Glimpse.API;
+using Glimpse.API.UI;
 using Hexa.NET.ImGui;
 using MetaBrainz.MusicBrainz;
 using MetaBrainz.MusicBrainz.CoverArt;
@@ -26,7 +27,7 @@ public partial class DiscordPresence : IPlugin
     
     public string Name => "Discord RPC";
 
-    public void DisplayGui()
+    public void DisplayGui(IImmediateGUI ui)
     {
         if (ImGui.BeginTable("ArtTable", 2, ImGuiTableFlags.ScrollY))
         {

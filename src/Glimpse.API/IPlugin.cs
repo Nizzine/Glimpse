@@ -1,4 +1,6 @@
-﻿namespace Glimpse.API;
+﻿using Glimpse.API.UI;
+
+namespace Glimpse.API;
 
 public interface IPlugin : IDisposable
 {
@@ -10,7 +12,7 @@ public interface IPlugin : IDisposable
     
     public void Initialize(IGlimpse glimpse);
 
-    public void DisplayGui() { }
+    public void DisplayGui(IImmediateGUI ui) { }
 
     public void SaveConfig() { }
 
