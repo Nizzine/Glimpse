@@ -614,6 +614,26 @@ public class Glimpse : IGlimpse, IDisposable
 
             case SDL.EventType.KeyDown:
             {
+                // play/pause on space. if text input is active then obviously that should not pause the player
+                if (winEvent.Key.Key == SDL.Keycode.Space && !SDL.TextInputActive(MainWindow.Handle))
+                {
+                    switch (Player.TrackState)
+                    {
+                        case TrackState.Stopped:
+                            // ignore if stopped
+                            break;
+                        case TrackState.Paused:
+                            Player.Play();
+                            break;
+                        case TrackState.Playing:
+                            Player.Pause();
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+                
+                // we allow the above events to repeat
                 if (winEvent.Key.Repeat)
                     break;
                 
