@@ -123,11 +123,13 @@ public abstract unsafe class Window : IDisposable
         {
             if (!_isCreated)
                 field = value;
-
-            if (field)
-                SDL.MaximizeWindow(_window);
             else
-                SDL.RestoreWindow(_window);
+            {
+                if (value)
+                    SDL.MaximizeWindow(_window);
+                else
+                    SDL.RestoreWindow(_window);
+            }
         }
     }
 
