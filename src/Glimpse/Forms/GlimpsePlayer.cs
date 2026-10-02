@@ -28,6 +28,8 @@ public class GlimpsePlayer : Window
     private Theme.ThemeConfig _themeConfig;
 
     private List<CustomButton> _customButtons;
+    private List<ContextMenuItem> _customTrackContextMenuItems;
+    private List<ContextMenuItem> _customAlbumContextMenuItems;
 
     private Size _restoreSize;
     private bool _miniplayer;
@@ -77,6 +79,8 @@ public class GlimpsePlayer : Window
     public GlimpsePlayer()
     {
         _customButtons = [];
+        _customTrackContextMenuItems = [];
+        _customAlbumContextMenuItems = [];
         
 #if DEBUG
         Title = "Glimpse DEBUG";
@@ -165,7 +169,6 @@ public class GlimpsePlayer : Window
         }
 
         _hasIncrementedPlayCount = true;
-        // TODO: I don't like this.
         if (Glimpse.Library.TryGetTrack(player.CurrentTrackPath, out Track? track))
         {
             track.PlayCount++;
@@ -775,6 +778,19 @@ public class GlimpsePlayer : Window
                             }
                         }
                     }
+                    
+                    if (_customAlbumContextMenuItems.Count > 0)
+                    {
+                        ImGui.Separator();
+                        
+                        foreach (ContextMenuItem item in _customAlbumContextMenuItems)
+                        {
+                            if (ImGui.Selectable(item.Text))
+                                item.OnClick();
+                            if (item.Tooltip != null)
+                                ImGui.SetItemTooltipUnformatted(item.Tooltip);
+                        }
+                    }
                 }
                 
                 ImGui.BeginChild("AlbumList", ImGuiWindowFlags.HorizontalScrollbar);
@@ -1104,6 +1120,18 @@ public class GlimpsePlayer : Window
                                         ImGui.EndMenu();
                                     }
 
+                                    if (_customTrackContextMenuItems.Count > 0)
+                                    {
+                                        ImGui.Separator();
+                                        foreach (ContextMenuItem item in _customTrackContextMenuItems)
+                                        {
+                                            if (ImGui.Selectable(item.Text))
+                                                item.OnClick();
+                                            if (item.Tooltip != null)
+                                                ImGui.SetItemTooltipUnformatted(item.Tooltip);
+                                        }
+                                    }
+                                    
                                     ImGui.Separator();
 
                                     if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer", Glimpse.Platform.FileManagerName)))
@@ -1386,6 +1414,16 @@ public class GlimpsePlayer : Window
         _customButtons.Add(button);
     }
 
+    public void AddCustomTrackContextMenuItem(ContextMenuItem item)
+    {
+        _customTrackContextMenuItems.Add(item);
+    }
+    
+    public void AddCustomAlbumContextMenuItem(ContextMenuItem item)
+    {
+        _customAlbumContextMenuItems.Add(item);
+    }
+
     public override void Dispose()
     {
         _playCountTimer.Dispose();
@@ -1666,6 +1704,20 @@ public class GlimpsePlayer : Window
         {
             Name = name;
             Image = image;
+            Tooltip = tooltip;
+            OnClick = onClick;
+        }
+    }
+    
+    public struct ContextMenuItem
+    {
+        public string Text;
+        public string? Tooltip;
+        public Action OnClick;
+        
+        public ContextMenuItem(string text, string? tooltip, Action onClick)
+        {
+            Text = text;
             Tooltip = tooltip;
             OnClick = onClick;
         }

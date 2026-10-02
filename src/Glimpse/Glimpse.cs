@@ -818,6 +818,17 @@ public class Glimpse : IGlimpse, IDisposable
     {
         GlimpsePlayer player = (GlimpsePlayer) MainWindow;
         Image image = player.Renderer.CreateImage(icon);
-        ((GlimpsePlayer) MainWindow).AddCustomButton(new GlimpsePlayer.CustomButton(name, image, tooltip, onClick));
+        player.AddCustomButton(new GlimpsePlayer.CustomButton(name, image, tooltip, onClick));
+    }
+    
+    public void AddContextMenuItem(ContextMenuType type, string text, string? tooltip, Action onClick)
+    {
+        GlimpsePlayer player = (GlimpsePlayer) MainWindow;
+        GlimpsePlayer.ContextMenuItem item = new GlimpsePlayer.ContextMenuItem(text, tooltip, onClick);
+        
+        if ((type & ContextMenuType.Track) != 0)
+            player.AddCustomTrackContextMenuItem(item);
+        if ((type & ContextMenuType.Album) != 0)
+            player.AddCustomAlbumContextMenuItem(item);
     }
 }

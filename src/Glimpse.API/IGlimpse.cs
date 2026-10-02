@@ -17,4 +17,6 @@ public interface IGlimpse
     public ILocale Locale { get; }
 
     public void AddButton(string name, string icon, string? tooltip, Action onClick);
+    
+    public void AddContextMenuItem(ContextMenuType type, string text, string? tooltip, Action onClick);
 }
