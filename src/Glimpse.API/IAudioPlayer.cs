@@ -91,14 +91,14 @@ public interface IAudioPlayer
     public void QueueTracks(IEnumerable<string> paths, QueueSlot slot);
 
     /// <summary>
-    /// Try and change to the given queue index.
+    /// Play the track at the given index.
     /// </summary>
     /// <param name="index">The index in the queue to change to.</param>
-    /// <returns>True if the change was successful, false otherwise.</returns>
-    public bool TryChangeTrack(int index);
+    /// <returns>True if the track is playing, false otherwise.</returns>
+    public bool Play(int index);
 
     /// <summary>
-    /// Start playback of the currently playing track.
+    /// Resume playback of the currently playing track.
     /// </summary>
     public void Play();
 

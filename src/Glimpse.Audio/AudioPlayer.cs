@@ -167,7 +167,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
         
         if (isFirstQueue)
-            TryChangeTrack(0);
+            Play(0);
     }
 
     public void QueueTracks(IEnumerable<string> paths, QueueSlot slot)
@@ -186,7 +186,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _shouldShuffle = true;
     }
 
-    public bool TryChangeTrack(int queueIndex)
+    public bool Play(int queueIndex)
     {
         Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
         
@@ -304,7 +304,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
                 Stop();
                 return;
             }
-        } while (!TryChangeTrack(_currentTrackIndex));
+        } while (!Play(_currentTrackIndex));
     }
 
     public void Next()
@@ -320,7 +320,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
             if (_currentTrackIndex < 0)
                 _currentTrackIndex = 0;
-        } while(!TryChangeTrack(_currentTrackIndex));
+        } while (!Play(_currentTrackIndex));
     }
 
     public void Seek(double second)

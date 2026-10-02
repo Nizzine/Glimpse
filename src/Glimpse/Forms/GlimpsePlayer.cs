@@ -748,8 +748,7 @@ public class GlimpsePlayer : Window
                             player.Shuffle = ShuffleMode.Off;
                             player.QueueTracks(tracks, QueueSlot.Clear);
                             int trackIndex = 0;
-                            while (!player.TryChangeTrack(trackIndex++)) ;
-                            player.Play();
+                            while (!player.Play(trackIndex++)) ;
                         }
                     }
 
@@ -760,8 +759,7 @@ public class GlimpsePlayer : Window
                             int numTracks = tracks.Count;
                             player.Shuffle = ShuffleMode.Default;
                             player.QueueTracks(tracks, QueueSlot.Clear);
-                            while (!player.TryChangeTrack(Random.Shared.Next(numTracks))) ;
-                            player.Play();
+                            while (!player.Play(Random.Shared.Next(numTracks))) ;
                         }
                     }
 
@@ -773,8 +771,7 @@ public class GlimpsePlayer : Window
                             if (player.TrackState == TrackState.Stopped)
                             {
                                 int trackIndex = 0;
-                                while (!player.TryChangeTrack(trackIndex++)) ;
-                                player.Play();
+                                while (!player.Play(trackIndex++)) ;
                             }
                         }
                     }
@@ -1037,7 +1034,7 @@ public class GlimpsePlayer : Window
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, isRatingHovered ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.SpanAllColumns))
                                 {
                                     player.QueueTracks(_currentTracks.Select(trk => trk.Path), QueueSlot.Clear);
-                                    if (!player.TryChangeTrack(song))
+                                    if (!player.Play(song))
                                         AddPopup(new FileNotFoundPopup(title));
                                 }
                                 ImGui.SetColumnTooltip(title);
@@ -1221,10 +1218,8 @@ public class GlimpsePlayer : Window
                                 
                                 if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
                                 {
-                                    if (!player.TryChangeTrack(i))
-                                    {
+                                    if (!player.Play(i))
                                         AddPopup(new FileNotFoundPopup(title));
-                                    }
                                 }
                                 ImGui.SetCursorPos(cursorPos);
                                 ImGui.SameLine();
