@@ -814,21 +814,31 @@ public class Glimpse : IGlimpse, IDisposable
     IMusicLibrary IGlimpse.Library => Library;
     ILocale IGlimpse.Locale => Locale;
     
-    public void AddButton(string name, string icon, string? tooltip, Action onClick)
+    public void AddButton(string id, string icon, string? tooltip, Action onClick)
     {
         GlimpsePlayer player = (GlimpsePlayer) MainWindow;
         Image image = player.Renderer.CreateImage(icon);
-        player.AddCustomButton(new GlimpsePlayer.CustomButton(name, image, tooltip, onClick));
+        player.AddCustomButton(new GlimpsePlayer.CustomButton(id, image, tooltip, onClick));
     }
-    
-    public void AddContextMenuItem(ContextMenuType type, string text, string? tooltip, Action onClick)
+
+    public void RemoveButton(string id)
+    {
+        ((GlimpsePlayer) MainWindow).RemoveCustomButton(id);
+    }
+
+    public void AddContextMenuItem(string id, ContextMenuType type, string text, string? tooltip, Action onClick)
     {
         GlimpsePlayer player = (GlimpsePlayer) MainWindow;
-        GlimpsePlayer.ContextMenuItem item = new GlimpsePlayer.ContextMenuItem(text, tooltip, onClick);
+        GlimpsePlayer.ContextMenuItem item = new GlimpsePlayer.ContextMenuItem(id, text, tooltip, onClick);
         
         if ((type & ContextMenuType.Track) != 0)
             player.AddCustomTrackContextMenuItem(item);
         if ((type & ContextMenuType.Album) != 0)
             player.AddCustomAlbumContextMenuItem(item);
+    }
+
+    public void RemoveContextMenuItem(string id)
+    {
+        ((GlimpsePlayer) MainWindow).RemoveCustomContextMenuItem(id);
     }
 }

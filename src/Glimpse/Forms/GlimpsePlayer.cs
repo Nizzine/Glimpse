@@ -930,7 +930,7 @@ public class GlimpsePlayer : Window
                 {
                     foreach (CustomButton button in _customButtons)
                     {
-                        if (ImGui.ImageButton(button.Name, button.Image, ScaleVec(16), Vector4.Zero, iconsColor))
+                        if (ImGui.ImageButton(button.ID, button.Image, ScaleVec(16), Vector4.Zero, iconsColor))
                             button.OnClick();
                         
                         if (button.Tooltip != null)
@@ -1414,6 +1414,11 @@ public class GlimpsePlayer : Window
         _customButtons.Add(button);
     }
 
+    public void RemoveCustomButton(string id)
+    {
+        _customButtons.RemoveAll(button => button.ID == id);
+    }
+
     public void AddCustomTrackContextMenuItem(ContextMenuItem item)
     {
         _customTrackContextMenuItems.Add(item);
@@ -1422,6 +1427,14 @@ public class GlimpsePlayer : Window
     public void AddCustomAlbumContextMenuItem(ContextMenuItem item)
     {
         _customAlbumContextMenuItems.Add(item);
+    }
+
+    public void RemoveCustomContextMenuItem(string id)
+    {
+        // its quite a naive way to do things but whatever. it works
+        // once the UI is overhauled this shouldn't be a problem anymore.
+        _customTrackContextMenuItems.RemoveAll(item => item.ID == id);
+        _customAlbumContextMenuItems.RemoveAll(item => item.ID == id);
     }
 
     public override void Dispose()
@@ -1695,14 +1708,14 @@ public class GlimpsePlayer : Window
 
     public struct CustomButton
     {
-        public string Name;
+        public string ID;
         public Image Image;
         public string? Tooltip;
         public Action OnClick;
 
-        public CustomButton(string name, Image image, string? tooltip, Action onClick)
+        public CustomButton(string id, Image image, string? tooltip, Action onClick)
         {
-            Name = name;
+            ID = id;
             Image = image;
             Tooltip = tooltip;
             OnClick = onClick;
@@ -1711,12 +1724,14 @@ public class GlimpsePlayer : Window
     
     public struct ContextMenuItem
     {
+        public string ID;
         public string Text;
         public string? Tooltip;
         public Action OnClick;
         
-        public ContextMenuItem(string text, string? tooltip, Action onClick)
+        public ContextMenuItem(string id, string text, string? tooltip, Action onClick)
         {
+            ID = id;
             Text = text;
             Tooltip = tooltip;
             OnClick = onClick;
