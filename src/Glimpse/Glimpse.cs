@@ -747,25 +747,47 @@ public class Glimpse : IGlimpse, IDisposable
         
         Logger.Log($"Loading plugin \"{name}\" ({id}) at {entryPoint}");
 
-        string currentFileDir = Path.GetDirectoryName(pluginJsonFile);
-        string entryPointPath = Path.Combine(currentFileDir, entryPoint);
-        Assembly assembly = _pluginsContext.LoadFromAssemblyPath(entryPointPath);
-
-        if (dependencies != null)
+        try
         {
-            foreach (string dep in dependencies)
+            string currentFileDir = Path.GetDirectoryName(pluginJsonFile);
+            string entryPointPath = Path.Combine(currentFileDir, entryPoint);
+            Assembly assembly = _pluginsContext.LoadFromAssemblyPath(entryPointPath);
+
+            if (dependencies != null)
             {
-                string depPath = Path.Combine(currentFileDir, dep);
-                _pluginsContext.LoadFromAssemblyPath(depPath);
+                foreach (string dep in dependencies)
+                {
+                    string depPath = Path.Combine(currentFileDir, dep);
+                    _pluginsContext.LoadFromAssemblyPath(depPath);
+                }
             }
+
+            Type pluginType = assembly.GetTypes().First(type => type.IsAssignableTo(typeof(IPlugin)));
+            IPlugin
+                plugin = (IPlugin) Activator
+                    .CreateInstance(pluginType)!; // can ignore the nullable as plugins should not be nullable
+            Plugins.Add(id, new Plugin(id, name, author, description, plugin));
+
+            if (Config.Plugins.EnabledPlugins.Contains(id))
+                plugin.Initialize(this);
         }
-        
-        Type pluginType = assembly.GetTypes().First(type => type.IsAssignableTo(typeof(IPlugin)));
-        IPlugin plugin = (IPlugin) Activator.CreateInstance(pluginType)!; // can ignore the nullable as plugins should not be nullable
-        Plugins.Add(id, new Plugin(id, name, author, description, plugin));
-        
-        if (Config.Plugins.EnabledPlugins.Contains(id))
-            plugin.Initialize(this);
+        // plugin load errors shouldn't crash glimpse, especially for an incompatible api version.
+        // todo the messagebox system breaks when there's multiple messageboxes displayed at once. oops
+        catch (ReflectionTypeLoadException e)
+        {
+            Logger.Log($"Failed to load plugin \"{id}\":\n{e}");
+            ((GlimpsePlayer) MainWindow).AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.Ok, "Plugin Error",
+                $"Failed to load plugin \"{id}\" as it is incompatible with the current API version.\nIt has not been loaded. Please update to the latest version or remove the plugin."));
+        }
+        catch (Exception e)
+        {
+            Logger.Log($"Failed to load plugin \"{id}\":\n{e}");
+            ((GlimpsePlayer) MainWindow).AddPopup(new MessageBoxPopup(MessageBoxPopup.Buttons.Ok, "Plugin Error",
+                $"Failed to load plugin \"{id}\" due to error:\n{e}"));
+#if DEBUG
+            throw;
+#endif
+        }
 
         return true;
     }
