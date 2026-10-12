@@ -13,12 +13,9 @@ public interface IPlugin : IDisposable
     public bool IsInitialized { get; }
 
     /// <summary>
-    /// Gets/sets the config associated with this plugin.
-    /// This value may be accessed and updated by Glimpse.
-    /// Return null if the plugin does not contain a config.
+    /// Gets if the config has been changed since the last save.
     /// </summary>
-    /// <remarks>Glimpse will <b>NEVER</b> set a null config, so it is safe to assume the config is not null in the setter.</remarks>
-    public IConfig? Config { get; set; }
+    public bool ConfigChanged { get; }
 
     /// <summary>
     /// Called when the plugin is ready to be initialized.
@@ -33,7 +30,12 @@ public interface IPlugin : IDisposable
     public void OnGUI(IImmediateGUI ui) { }
 
     /// <summary>
-    /// Called when the config should be saved to disk.
+    /// Save the config to disk.
     /// </summary>
-    public void SaveConfig() { }
+    public void SaveConfigChanges() { }
+
+    /// <summary>
+    /// Cancel any changes to the config and revert.
+    /// </summary>
+    public void CancelConfigChanges() { }
 }

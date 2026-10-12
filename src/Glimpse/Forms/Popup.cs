@@ -42,7 +42,7 @@ public abstract class Popup : IDisposable
         }
     }
 
-    public void Close()
+    public virtual void Close()
     {
         IsRemoved = true;
     }

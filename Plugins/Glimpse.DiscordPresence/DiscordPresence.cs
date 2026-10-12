@@ -25,11 +25,7 @@ public partial class DiscordPresence : IPlugin
 
     public bool IsInitialized => _initialized;
 
-    public IConfig Config
-    {
-        get => _config;
-        set => _config = (DiscordConfig) value!;
-    }
+    public bool ConfigChanged => false; // the discord config is not currently editable
 
     public void OnGUI(IImmediateGUI ui)
     {
