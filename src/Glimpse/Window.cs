@@ -83,6 +83,14 @@ public abstract unsafe class Window : IDisposable
 
             SDL.GetWindowSize(_window, out int w, out int h);
 
+            // sdl on x11 seems to return the window size in pixels, so we must divide it by the scale
+            // to ensure its at the "correct" size value.
+            if (OperatingSystem.IsLinux() && SDL.GetCurrentVideoDriver() == "x11")
+            {
+                w = (int) (w / _scale);
+                h = (int) (h / _scale);
+            }
+
             return new Size(w, h);
         }
         set
@@ -91,7 +99,11 @@ public abstract unsafe class Window : IDisposable
                 _size = value;
             else
             {
-                SDL.SetWindowSize(_window, value.Width, value.Height);
+                // x11 doesn't auto scale windows when resizing, so we must apply the scale here.
+                if (OperatingSystem.IsLinux() && SDL.GetCurrentVideoDriver() == "x11")
+                    SDL.SetWindowSize(_window, (int) (value.Width * _scale), (int) (value.Height * _scale));
+                else
+                    SDL.SetWindowSize(_window, value.Width, value.Height);
                 Renderer.Resize(new Size((int) (value.Width * _scale), (int) (value.Height * _scale)));
             }
         }
@@ -195,12 +207,15 @@ public abstract unsafe class Window : IDisposable
         float mouseX, mouseY;
         SDL.GetGlobalMouseState(&mouseX, &mouseY);
         SDL.Point mousePoint = new() { X = (int) mouseX, Y = (int) mouseY };
-        uint display = SDL_GetDisplayForPoint(in mousePoint);
+        uint display = SDL.GetDisplayForPoint(&mousePoint);
         uint displayPos = display == 0 ? SDL.WindowposCentered : SDL.WindowPosCenteredDisplay(display);
         
         // windows doesn't auto-scale windows when created so we must do that here
         // todo create the window first then resize using the window display scale?
-        float displayScale = OperatingSystem.IsWindows() ? SDL.GetDisplayContentScale(display) : 1;
+        float displayScale = 1;
+        if (OperatingSystem.IsWindows() || (OperatingSystem.IsLinux() && !isWayland))
+            displayScale = SDL.GetDisplayContentScale(display);
+        
         SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateWidthNumber, (uint) (_size.Width * displayScale));
         SDL.SetNumberProperty(windowProps, SDL.Prop.WindowCreateHeightNumber, (uint) (_size.Height * displayScale));
         
@@ -338,7 +353,5 @@ public abstract unsafe class Window : IDisposable
             SDL.DestroyCursor(cursor);
     }
     
-    // Workaround because SDL3-CS doesn't use a pointer for this method when the ABI expects one, meaning it fails.
-    [DllImport("SDL3")]
-    private static extern uint SDL_GetDisplayForPoint(in SDL.Point point);
+    
 }
