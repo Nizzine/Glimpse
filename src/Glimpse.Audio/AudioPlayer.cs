@@ -29,6 +29,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private PlayerSettings _settings;
     private readonly List<ICodec> _codecs;
+    private readonly List<IAudioPlayer.AudioEffect> _effects;
 
     public readonly List<string> QueuedTracks;
     public readonly List<int> PlayOrder;
@@ -126,6 +127,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
         _logger?.Log("Initializing codecs.");
         _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
+        _effects = [];
 
         QueuedTracks = [];
         PlayOrder = [];
@@ -218,7 +220,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         TrackInfo info = stream.TrackInfo;
 
         _logger?.Log("  Creating track.");
-        _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
+        _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger, _effects);
         _activeTrack.Speed = Speed;
         //_activeTrack.UpdateBuffers += () => Stop();
 
@@ -337,6 +339,16 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public void DeregisterCodec(ICodec codec)
     {
         _codecs.Remove(codec);
+    }
+
+    public void AddEffect(IAudioPlayer.AudioEffect effect)
+    {
+        _effects.Add(effect);
+    }
+    
+    public void RemoveEffect(IAudioPlayer.AudioEffect effect)
+    {
+        _effects.Remove(effect);
     }
 
     public bool TryGetTrackInfoForFile(string path, out TrackInfo? info)

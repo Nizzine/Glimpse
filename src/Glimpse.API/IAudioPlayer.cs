@@ -141,6 +141,10 @@ public interface IAudioPlayer
     /// <param name="codec">The <see cref="ICodec"/> to deregister.</param>
     public void DeregisterCodec(ICodec codec);
 
+    public void AddEffect(AudioEffect effect);
+
+    public void RemoveEffect(AudioEffect effect);
+
     /// <summary>
     /// Get <see cref="TrackInfo"/> for the given file path.
     /// </summary>
@@ -151,4 +155,6 @@ public interface IAudioPlayer
     
     public delegate void OnTrackChanged(TrackInfo info, string path);
     public delegate void OnStateChanged(TrackState state);
+
+    public delegate void AudioEffect(Span<byte> buffer, AudioFormat format);
 }
