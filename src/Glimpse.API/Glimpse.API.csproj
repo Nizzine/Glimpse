@@ -16,6 +16,7 @@
         <PackageIcon>Glimpse.png</PackageIcon>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/aquagoose/Glimpse</RepositoryUrl>
+        <PackageProjectUrl>https://glimpseplayer.com/</PackageProjectUrl>
     </PropertyGroup>
     
     <ItemGroup>
