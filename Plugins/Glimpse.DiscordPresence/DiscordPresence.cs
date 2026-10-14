@@ -121,7 +121,7 @@ public partial class DiscordPresence : IPlugin
             
             Task.Run(() =>
             {
-                const string app = "GlimpseAudioPlayer";
+                const string app = "com.aquagoose.glimpse";
                 const string contact = "https://github.com/aquagoose";
                 string version = _glimpse.Version.ToString();
 
