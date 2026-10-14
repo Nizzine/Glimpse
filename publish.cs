@@ -310,7 +310,7 @@ if (pack)
 
         CopyPublishFilesToDir(appImageBinaryDir);
 
-        //RunProcess("appimagetool-x86_64.AppImage", appImageDir, appImageDest);
+        RunProcess("appimagetool-x86_64.AppImage", appImageDir, appImageDest);
 
         // ===========================
 
@@ -318,7 +318,7 @@ if (pack)
         Directory.Delete(publishDir, true);
         Directory.CreateDirectory(publishDir);
 
-        //File.Move(appImageDest, Path.Combine(publishDir, appImageDest));
+        File.Move(appImageDest, Path.Combine(publishDir, appImageDest));
 
         using FileStream tarWriteStream = File.Create(Path.Combine(publishDir, $"{outName}.tar.gz"));
         using GZipStream gZipStream = new GZipStream(tarWriteStream, CompressionLevel.Optimal);
