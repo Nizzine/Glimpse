@@ -18,11 +18,12 @@ public static class Program
         {
             pipeClient.Connect(100);
             Console.WriteLine("Found!");
+            BinaryWriter writer = new BinaryWriter(pipeClient);
+            
             if (args.Length > 0)
             {
                 string cwd = Environment.CurrentDirectory;
                 
-                BinaryWriter writer = new BinaryWriter(pipeClient);
                 foreach (string path in args)
                 {
                     writer.Write((byte) CommunicationFlags.PlayFile);
@@ -35,6 +36,8 @@ public static class Program
                         writer.Write(Path.Combine(cwd, path));
                 }
             }
+            else
+                writer.Write((byte) CommunicationFlags.Focus);
 
             return;
         }
@@ -79,6 +82,8 @@ public static class Program
     {
         None = 0,
         
-        PlayFile = 1 << 0
+        PlayFile = 1 << 0,
+        
+        Focus = 1 << 1,
     }
 }

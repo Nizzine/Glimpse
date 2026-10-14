@@ -806,8 +806,7 @@ public class Glimpse : IGlimpse, IDisposable
         {
             return;
         }
-
-        _shouldFocusWindow = true;
+        
         // Only copy to the global _playFiles when ready, as this may be called on a separate thread.
         // Helps prevent race conditions.
         List<string> playFiles = [];
@@ -818,7 +817,9 @@ public class Glimpse : IGlimpse, IDisposable
         while ((b = _pipeServer.ReadByte()) != -1)
         {
             Program.CommunicationFlags flags = (Program.CommunicationFlags) b;
-
+        
+            if ((flags & Program.CommunicationFlags.Focus) != 0)
+                _shouldFocusWindow = true;
             if ((flags & Program.CommunicationFlags.PlayFile) != 0)
                 ProcessFile(reader.ReadString(), ref playFiles);
         }
