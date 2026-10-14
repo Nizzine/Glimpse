@@ -1,0 +1,5 @@
+<Project>
+    <PropertyGroup>
+        <Version Condition="'$(Version)' == null">$(GlimpseVersion)</Version>
+    </PropertyGroup>
+</Project>

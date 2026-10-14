@@ -122,7 +122,7 @@ Process process = new()
 };
 
 if (glimpseVersion != null)
-    process.StartInfo.Arguments += $" -p:Version=\"{glimpseVersion}\"";
+    process.StartInfo.Arguments += $" -p:GlimpseVersion=\"{glimpseVersion}\"";
 
 process.Start();
 process.WaitForExit();

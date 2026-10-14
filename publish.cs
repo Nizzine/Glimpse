@@ -133,7 +133,7 @@ List<string> glimpsePublishArgs =
     "-c", "Release",
     "-r", runtime,
     "-o", publishDir,
-    $"-p:Version=\"{version}\"",
+    $"-p:GlimpseVersion=\"{version}\"",
     "-p:GenerateDocumentationFile=false"
 ];
 
