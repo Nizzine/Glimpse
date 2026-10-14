@@ -104,7 +104,8 @@ public abstract unsafe class Window : IDisposable
                     SDL.SetWindowSize(_window, (int) (value.Width * _scale), (int) (value.Height * _scale));
                 else
                     SDL.SetWindowSize(_window, value.Width, value.Height);
-                Renderer.Resize(new Size((int) (value.Width * _scale), (int) (value.Height * _scale)));
+                
+                Renderer.Resize(FramebufferSize);
             }
         }
     }
@@ -286,6 +287,9 @@ public abstract unsafe class Window : IDisposable
 
         SDL.GLMakeCurrent(_window, _glContext);
         Renderer = new Renderer(GL.GetApi(SDL.GLGetProcAddress), FramebufferSize);
+        
+        if (OperatingSystem.IsWindows())
+            Size = _size;
         
         Initialize();
         
