@@ -190,15 +190,27 @@ public class Glimpse : IGlimpse, IDisposable
         
 #if !PUBLISH_AOT
         Logger.Log("Searching for 'Plugins' directory.");
-        string pluginsLocation = Utils.GetPath("Plugins");
+        string pluginsLocationInstallDir = Utils.GetPath("Plugins");
+        string pluginsLocationAppData = Path.Combine(IConfigManager.BaseDir, "Plugins");
         _pluginsContext = new AssemblyLoadContext("Plugins");
         Plugins = [];
-        
-        if (Directory.Exists(pluginsLocation))
+
+        void LoadPluginsFromDir(string dir)
         {
-            Logger.Log($"Searching for plugins in {pluginsLocation}");
-            foreach (string file in Directory.GetFiles(pluginsLocation, "*.json", SearchOption.AllDirectories))
+            foreach (string file in Directory.GetFiles(dir, "*.json", SearchOption.AllDirectories))
                 TryLoadPlugin(file, out _);
+        }
+        
+        if (Directory.Exists(pluginsLocationInstallDir))
+        {
+            Logger.Log($"Searching for plugins in {pluginsLocationInstallDir}");
+            LoadPluginsFromDir(pluginsLocationInstallDir);
+        }
+
+        if (Directory.Exists(pluginsLocationAppData))
+        {
+            Logger.Log($"Searching for plugins in {pluginsLocationAppData}");
+            LoadPluginsFromDir(pluginsLocationAppData);
         }
 #endif
 
@@ -665,7 +677,7 @@ public class Glimpse : IGlimpse, IDisposable
         {
             case ".gplg":
             {
-                string pluginsLocation = Utils.GetPath("Plugins");
+                string pluginsLocation = Path.Combine(IConfigManager.BaseDir, "Plugins");
                 string pluginName = Path.GetFileNameWithoutExtension(file);
                 string outDir = Path.Combine(pluginsLocation, pluginName);
                 Logger.Log($"Copying plugin '{pluginName}' to {outDir}.");
