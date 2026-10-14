@@ -515,14 +515,14 @@ public class Glimpse : IGlimpse, IDisposable
     {
         ConfigManager.WriteConfig(GlimpseConfig.ConfigName, Config);
         
-        if (Plugins != null)
+        Logger.Log("Disposing all plugins.");
+        foreach ((string name, Plugin plugin) in Plugins)
         {
-            Logger.Log("Disposing all plugins.");
-            foreach ((string name, Plugin plugin) in Plugins)
-            {
-                Logger.Log($"Disposing plugin {name}");
-                plugin.Instance.Dispose();
-            }
+            if (!plugin.Instance.IsInitialized)
+                return;
+            
+            Logger.Log($"Disposing plugin {name}");
+            plugin.Instance.Dispose();
         }
         
         foreach (Window window in _windows)
