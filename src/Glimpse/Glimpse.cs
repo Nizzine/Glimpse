@@ -826,6 +826,20 @@ public class Glimpse : IGlimpse, IDisposable
 
         _playFiles = playFiles;
 
+        // push an event so that SDL_WaitEvents can be bypassed.
+        // on platforms where WaitEvents fully pauses the thread (like on Windows),
+        // not doing this would cause glimpse to completely ignore all requests (like to play a file)
+        // until glimpse was re-opened by the user.
+        // doing this ensures glimpse will play the file when requested, even when minimized
+        unsafe
+        {
+            SDL.Event userEvent = new SDL.Event()
+            {
+                Type = (uint) SDL.EventType.User
+            };
+            SDL.PushEvent(&userEvent);
+        }
+
         _pipeServer.Disconnect();
         _pipeServer.BeginWaitForConnection(OnPipeServerConnection, this);
     }
