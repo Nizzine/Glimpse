@@ -43,6 +43,12 @@ public class GlimpsePlayer : Window
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
 
+    // set this value to false, to update the play queue tab.
+    // after the queue has updated, it will set this value to true, to prevent it updating every frame.
+    // setting this to false will force the queue to update, for example when a song is added to the queue.
+    private bool _hasUpdatedQueue;
+    private List<Track> _queuedTracks;
+
     private Playlist? _favoritesPlaylist;
     private Dictionary<string, Playlist>? _playlists;
     
@@ -81,6 +87,8 @@ public class GlimpsePlayer : Window
         _customButtons = [];
         _customTrackContextMenuItems = [];
         _customAlbumContextMenuItems = [];
+
+        _queuedTracks = [];
         
 #if DEBUG
         Title = "Glimpse DEBUG";
@@ -517,6 +525,8 @@ public class GlimpsePlayer : Window
                                 ShuffleMode.Default => ShuffleMode.Off,
                                 _ => throw new ArgumentOutOfRangeException()
                             };
+
+                            _hasUpdatedQueue = false; // refresh the queue layout to show the newly shuffled/unshuffled queue
                         }
                         ImGui.SameLine(0, 0);
                         if (ImGui.ImageButton("RepeatButton", repeat == RepeatMode.RepeatOne ? _repeatOneButton : _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
@@ -771,6 +781,7 @@ public class GlimpsePlayer : Window
                         if (TryGetTracks(albumName, out HashSet<string>? tracks))
                         {
                             player.QueueTracks(tracks, QueueSlot.AtEnd);
+                            _hasUpdatedQueue = false; // force update of the queue if its the current view
                             if (player.TrackState == TrackState.Stopped)
                             {
                                 int trackIndex = 0;
@@ -1207,22 +1218,45 @@ public class GlimpsePlayer : Window
 
                 ImGuiTabItemFlags queueFlags =
                     switchToQueueView ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
-                
+
                 if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Queue"), queueFlags))
                 {
-                    ImGui.BeginChild("QueuedTracks");
+                    if (!_hasUpdatedQueue)
                     {
+                        _hasUpdatedQueue = true;
+                        Glimpse.Logger.Log("Updating play queue.");
+                        
                         List<string> queuedTracks = player.QueuedTracks;
                         List<int> playOrder = player.PlayOrder;
+
+                        _queuedTracks.Clear();
+                        _queuedTracks.EnsureCapacity(playOrder.Count);
+                        foreach (int i in playOrder)
+                        {
+                            string trackPath = queuedTracks[i];
+                            if (!Glimpse.Library.TryGetTrack(trackPath, out Track? track))
+                            {
+                                if (!Glimpse.Player.TryGetTrackInfoForFile(trackPath, out TrackInfo? info))
+                                    info = new TrackInfo(null, null, null, null, null, null, null, null);
+
+                                track = new Track(trackPath, info);
+                            }
+                            
+                            _queuedTracks.Add(track);
+                        }
+                    }
+
+                    ImGui.BeginChild("QueuedTracks");
+                    {
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                        clipper.Begin(queuedTracks.Count, (32 + 2) * Scale);
+                        clipper.Begin(_queuedTracks.Count, (32 + 2) * Scale);
 
                         while (clipper.Step())
                         {
                             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-                        //for (int i = 0; i < queuedTracks.Count; i++)
+                                //for (int i = 0; i < queuedTracks.Count; i++)
                             {
-                                string path = queuedTracks[playOrder[i]];
+                                Track track = _queuedTracks[i];
 
                                 bool selected = i == player.CurrentTrackIndex;
                                 bool dark = i < player.CurrentTrackIndex;
@@ -1237,18 +1271,18 @@ public class GlimpsePlayer : Window
 
                                 Vector2 cursorPos = ImGui.GetCursorPos();
                                 int height = (int) ((32 + 6) * Scale);
-
-                                // TODO: perform better checking here!
-                                Glimpse.Library.TryGetTrack(path, out Track? track);
-                                string title = track?.Title ?? locale.GetString("UnknownTrack");
-                                string artist = track?.Artist ?? locale.GetString("UnknownArtist");
-                                string album = track?.Album ?? locale.GetString("UnknownAlbum");
                                 
-                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
+                                string title = track.Title ?? locale.GetString("UnknownTrack");
+                                string artist = track.Artist ?? locale.GetString("UnknownArtist");
+                                string album = track.Album ?? locale.GetString("UnknownAlbum");
+
+                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap,
+                                        new Vector2(0, height)))
                                 {
                                     if (!player.Play(i))
                                         AddPopup(new FileNotFoundPopup(title));
                                 }
+
                                 ImGui.SetCursorPos(cursorPos);
                                 ImGui.SameLine();
 
@@ -1280,9 +1314,11 @@ public class GlimpsePlayer : Window
 
                         ImGui.EndChild();
                     }
-                    
+
                     ImGui.EndTabItem();
                 }
+                else
+                    _hasUpdatedQueue = false;
                 
                 ImGui.EndTabBar();
             }
@@ -1312,6 +1348,7 @@ public class GlimpsePlayer : Window
     private void PlayerOnStateChanged(TrackState state)
     {
         Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack, Glimpse.Player.ElapsedTime);
+        _hasUpdatedQueue = false;
         
         if (state != TrackState.Stopped)
             return;
