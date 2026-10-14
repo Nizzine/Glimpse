@@ -28,7 +28,8 @@ public class Glimpse : IGlimpse, IDisposable
 #else
     public const string PipeServerName = "GlimpsePlayer";
 #endif
-    
+
+    private bool _alive;
     private List<Window> _windows;
     private Dictionary<uint, Window> _windowIds;
     private AssemblyLoadContext _pluginsContext;
@@ -214,7 +215,8 @@ public class Glimpse : IGlimpse, IDisposable
         
         Stopwatch sw = Stopwatch.StartNew();
 
-        while (_windows.Count > 0)
+        _alive = true;
+        while (_alive)
         {
             SDL.Event winEvent;
 
@@ -523,6 +525,9 @@ public class Glimpse : IGlimpse, IDisposable
             }
         }
         
+        foreach (Window window in _windows)
+            window.Dispose();
+        
         Player.Dispose();
         //ConfigManager.WriteConfig(MusicDatabase.DatabaseName, Database);
         Platform.Dispose();
@@ -535,7 +540,10 @@ public class Glimpse : IGlimpse, IDisposable
     {
         switch ((SDL.EventType) winEvent.Type)
         {
-            case SDL.EventType.WindowCloseRequested:
+            // todo temporarily removed window close requested, due to plugins being disposed AFTER the window has
+            //  closed which may cause an exception. as glimpse only has one window its safe to rely on Quit for this
+            //  however if multiple windows are used later then a solution should be figured out.
+            /*case SDL.EventType.WindowCloseRequested:
             {
                 if (!_windowIds.TryGetValue(winEvent.Window.WindowID, out Window wnd))
                     break;
@@ -544,18 +552,11 @@ public class Glimpse : IGlimpse, IDisposable
                 _windowIds.Remove(winEvent.Window.WindowID);
                 _windows.Remove(wnd);
                 break;
-            }
+            }*/
 
             case SDL.EventType.Quit:
-            {
-                foreach (Window window in _windows)
-                    window.Dispose();
-
-                _windows.Clear();
-                _windowIds.Clear();
-
+                _alive = false;
                 break;
-            }
 
             case SDL.EventType.MouseMotion:
             {
