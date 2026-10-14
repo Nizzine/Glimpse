@@ -319,7 +319,7 @@ public class SettingsPopup : Popup
                         {
                             ImGui.BeginChild("OSLibraries");
                             {
-                                ImGui.TextLink("Slant", "https://github.com/aquagoose/Slant");
+                                ImGui.TextLink("mixr", "https://github.com/aquagoose/mixr");
                                 ImGui.TextLink("Hexa.NET.ImGui", "https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 ImGui.TextLink("Silk.NET", "https://dotnet.github.io/Silk.NET/");
                                 ImGui.TextLink("piko", "https://github.com/aquagoose/piko");
