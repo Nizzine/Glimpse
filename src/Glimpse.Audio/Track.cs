@@ -13,7 +13,6 @@ public class Track : IDisposable
     
     private ICodecStream? _stream;
     private ILogger? _logger;
-    private List<IAudioPlayer.AudioEffect> _effects;
     
     private MixrSharp.AudioFormat _format;
     private AudioSource? _source;
@@ -74,12 +73,11 @@ public class Track : IDisposable
         }
     }
     
-    internal Track(Context context, ICodecStream stream, TrackInfo info, Action onFinish, ILogger? logger, List<IAudioPlayer.AudioEffect> effects)
+    internal Track(Context context, ICodecStream stream, TrackInfo info, Action onFinish, ILogger? logger)
     {
         _stream = stream;
         _onFinish = onFinish;
         _logger = logger;
-        _effects = effects;
         Info = info;
 
         _format = stream.Format.ToMixr();
@@ -105,7 +103,7 @@ public class Track : IDisposable
         _buffers = new AudioBuffer[2];
         for (int i = 0; i < _buffers.Length; i++)
         {
-            ulong amount = GetBuffer();
+            ulong amount = _stream.GetBuffer(_audioBuffer);
             if (amount == 0)
             {
                 _source.Looping = false;
@@ -147,7 +145,7 @@ public class Track : IDisposable
         _logger?.Log("  Updating buffers.");
         for (int i = 0; i < _buffers.Length; i++)
         {
-            ulong amount = GetBuffer();
+            ulong amount = _stream.GetBuffer(_audioBuffer);
             if (amount == 0)
             {
                 _source.Looping = false;
@@ -180,7 +178,7 @@ public class Track : IDisposable
                 if (_stream == null || _buffers == null || _source == null)
                     return;
                 
-                ulong bytesProcessed = GetBuffer();
+                ulong bytesProcessed = _stream.GetBuffer(_audioBuffer);
 
                 if (bytesProcessed == 0)
                 {
@@ -233,17 +231,6 @@ public class Track : IDisposable
             _stream?.Dispose();
             _stream = null;
         }
-    }
-
-    private ulong GetBuffer()
-    {
-        ulong bytesReceived = _stream.GetBuffer(_audioBuffer);
-        Span<byte> buffer = _audioBuffer.AsSpan(0, (int) bytesReceived);
-        AudioFormat format = _format.ToGlimpse();
-        foreach (IAudioPlayer.AudioEffect effect in _effects)
-            effect(buffer, format);
-
-        return bytesReceived;
     }
 
     //public delegate void OnUpdateBuffers();

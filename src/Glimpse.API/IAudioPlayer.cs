@@ -156,5 +156,5 @@ public interface IAudioPlayer
     public delegate void OnTrackChanged(TrackInfo info, string path);
     public delegate void OnStateChanged(TrackState state);
 
-    public delegate void AudioEffect(Span<byte> buffer, AudioFormat format);
+    public delegate void AudioEffect(Span<float> buffer, in AudioFormat format);
 }

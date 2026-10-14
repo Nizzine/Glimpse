@@ -38,8 +38,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public float Volume
     {
-        get => _context.MasterVolume;
-        set => _context.MasterVolume = value;
+        get => _device.MasterVolume;
+        set => _device.MasterVolume = value;
     }
 
     public double Speed
@@ -116,18 +116,19 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     {
         _logger = logger;
         _settings = settings;
+        _effects = [];
         
         _logger?.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
-        Volume = _settings.Volume;
-        Speed = settings.SpeedAdjust;
         
         _logger?.Log("Creating device.");
-        _device = new AudioDevice(_context, _settings.SampleRate);
+        _device = new AudioDevice(_context, _settings.SampleRate, _effects);
+        
+        Volume = _settings.Volume;
+        Speed = settings.SpeedAdjust;
 
         _logger?.Log("Initializing codecs.");
         _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
-        _effects = [];
 
         QueuedTracks = [];
         PlayOrder = [];
@@ -220,7 +221,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         TrackInfo info = stream.TrackInfo;
 
         _logger?.Log("  Creating track.");
-        _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger, _effects);
+        _activeTrack = new Track(_context, stream, info, OnTrackFinish, _logger);
         _activeTrack.Speed = Speed;
         //_activeTrack.UpdateBuffers += () => Stop();
 
