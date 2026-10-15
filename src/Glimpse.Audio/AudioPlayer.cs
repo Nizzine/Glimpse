@@ -29,6 +29,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     private PlayerSettings _settings;
     private readonly List<ICodec> _codecs;
+    private readonly List<IAudioPlayer.AudioEffect> _effects;
 
     public readonly List<string> QueuedTracks;
     public readonly List<int> PlayOrder;
@@ -37,8 +38,8 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
     public float Volume
     {
-        get => _context.MasterVolume;
-        set => _context.MasterVolume = value;
+        get => _device.MasterVolume;
+        set => _device.MasterVolume = value;
     }
 
     public double Speed
@@ -115,14 +116,16 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     {
         _logger = logger;
         _settings = settings;
+        _effects = [];
         
         _logger?.Log("Creating context.");
         _context = new Context(_settings.SampleRate);
-        Volume = _settings.Volume;
-        Speed = settings.SpeedAdjust;
         
         _logger?.Log("Creating device.");
-        _device = new AudioDevice(_context, _settings.SampleRate);
+        _device = new AudioDevice(_context, _settings.SampleRate, _effects);
+        
+        Volume = _settings.Volume;
+        Speed = settings.SpeedAdjust;
 
         _logger?.Log("Initializing codecs.");
         _codecs = [new Mp3Codec(), new FlacCodec(), new VorbisCodec(), new WavCodec()];
@@ -167,7 +170,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
         
         if (isFirstQueue)
-            TryChangeTrack(0);
+            Play(0);
     }
 
     public void QueueTracks(IEnumerable<string> paths, QueueSlot slot)
@@ -186,7 +189,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
         _shouldShuffle = true;
     }
 
-    public bool TryChangeTrack(int queueIndex)
+    public bool Play(int queueIndex)
     {
         Debug.Assert(QueuedTracks.Count == PlayOrder.Count);
         
@@ -304,7 +307,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
                 Stop();
                 return;
             }
-        } while (!TryChangeTrack(_currentTrackIndex));
+        } while (!Play(_currentTrackIndex));
     }
 
     public void Next()
@@ -320,7 +323,7 @@ public class AudioPlayer : IAudioPlayer, IDisposable
 
             if (_currentTrackIndex < 0)
                 _currentTrackIndex = 0;
-        } while(!TryChangeTrack(_currentTrackIndex));
+        } while (!Play(_currentTrackIndex));
     }
 
     public void Seek(double second)
@@ -337,6 +340,16 @@ public class AudioPlayer : IAudioPlayer, IDisposable
     public void DeregisterCodec(ICodec codec)
     {
         _codecs.Remove(codec);
+    }
+
+    public void AddEffect(IAudioPlayer.AudioEffect effect)
+    {
+        _effects.Add(effect);
+    }
+    
+    public void RemoveEffect(IAudioPlayer.AudioEffect effect)
+    {
+        _effects.Remove(effect);
     }
 
     public bool TryGetTrackInfoForFile(string path, out TrackInfo? info)

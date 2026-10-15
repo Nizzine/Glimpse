@@ -419,9 +419,7 @@ public class MusicLibrary : IMusicLibrary
                 if (ignoreUnknownTracks)
                     continue;
 
-                if (!_player.TryGetTrackInfoForFile(path, out TrackInfo? info))
-                    continue;
-
+                _player.TryGetTrackInfoForFile(path, out TrackInfo? info);
                 track = new Track(path, info);
             }
             
@@ -468,7 +466,7 @@ public class MusicLibrary : IMusicLibrary
                 {
                     _logger.Log($"  Indexing {path}");
                     _currentlyIndexedPath = path;
-                    if (!_player.TryGetTrackInfoForFile(path, out TrackInfo info))
+                    if (!_player.TryGetTrackInfoForFile(path, out TrackInfo? info))
                     {
                         _logger.Log("    ... failed.");
                         continue;
@@ -479,7 +477,7 @@ public class MusicLibrary : IMusicLibrary
                     _tracks[path] = track;
 
                     string albumName = track.Album ?? string.Empty;
-                    if (!_albums.TryGetValue(albumName, out Album album))
+                    if (!_albums.TryGetValue(albumName, out Album? album))
                     {
                         album = new Album(albumName, []);
                         _albums[album.Name] = album;
@@ -489,7 +487,7 @@ public class MusicLibrary : IMusicLibrary
 
                     if (track.Artist != null)
                     {
-                        if (!_artists.TryGetValue(track.Artist, out Artist artist))
+                        if (!_artists.TryGetValue(track.Artist, out Artist? artist))
                         {
                             artist = new Artist(track.Artist, []);
                             _artists[artist.Name] = artist;
@@ -500,7 +498,7 @@ public class MusicLibrary : IMusicLibrary
 
                     if (track.Genre != null)
                     {
-                        if (!_genres.TryGetValue(track.Genre, out Genre genre))
+                        if (!_genres.TryGetValue(track.Genre, out Genre? genre))
                         {
                             genre = new Genre(track.Genre, []);
                             _genres[genre.Name] = genre;

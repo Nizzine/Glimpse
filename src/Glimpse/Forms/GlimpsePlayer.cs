@@ -27,6 +27,10 @@ public class GlimpsePlayer : Window
     private ImGuiStyle _defaultStyle;
     private Theme.ThemeConfig _themeConfig;
 
+    private List<CustomButton> _customButtons;
+    private List<ContextMenuItem> _customTrackContextMenuItems;
+    private List<ContextMenuItem> _customAlbumContextMenuItems;
+
     private Size _restoreSize;
     private bool _miniplayer;
 
@@ -38,6 +42,12 @@ public class GlimpsePlayer : Window
     private AlbumView _currentView;
     private SizedCollection<Track> _currentTracks;
     private SizedCollection<string> _albums;
+
+    // set this value to false, to update the play queue tab.
+    // after the queue has updated, it will set this value to true, to prevent it updating every frame.
+    // setting this to false will force the queue to update, for example when a song is added to the queue.
+    private bool _hasUpdatedQueue;
+    private List<Track> _queuedTracks;
 
     private Playlist? _favoritesPlaylist;
     private Dictionary<string, Playlist>? _playlists;
@@ -74,6 +84,12 @@ public class GlimpsePlayer : Window
     
     public GlimpsePlayer()
     {
+        _customButtons = [];
+        _customTrackContextMenuItems = [];
+        _customAlbumContextMenuItems = [];
+
+        _queuedTracks = [];
+        
 #if DEBUG
         Title = "Glimpse DEBUG";
 #else
@@ -161,7 +177,6 @@ public class GlimpsePlayer : Window
         }
 
         _hasIncrementedPlayCount = true;
-        // TODO: I don't like this.
         if (Glimpse.Library.TryGetTrack(player.CurrentTrackPath, out Track? track))
         {
             track.PlayCount++;
@@ -510,6 +525,8 @@ public class GlimpsePlayer : Window
                                 ShuffleMode.Default => ShuffleMode.Off,
                                 _ => throw new ArgumentOutOfRangeException()
                             };
+
+                            _hasUpdatedQueue = false; // refresh the queue layout to show the newly shuffled/unshuffled queue
                         }
                         ImGui.SameLine(0, 0);
                         if (ImGui.ImageButton("RepeatButton", repeat == RepeatMode.RepeatOne ? _repeatOneButton : _repeatButton, ScaleVec(16) * miniplayerScale, Vector4.Zero, repeatButtonTint))
@@ -744,8 +761,7 @@ public class GlimpsePlayer : Window
                             player.Shuffle = ShuffleMode.Off;
                             player.QueueTracks(tracks, QueueSlot.Clear);
                             int trackIndex = 0;
-                            while (!player.TryChangeTrack(trackIndex++)) ;
-                            player.Play();
+                            while (!player.Play(trackIndex++)) ;
                         }
                     }
 
@@ -756,8 +772,7 @@ public class GlimpsePlayer : Window
                             int numTracks = tracks.Count;
                             player.Shuffle = ShuffleMode.Default;
                             player.QueueTracks(tracks, QueueSlot.Clear);
-                            while (!player.TryChangeTrack(Random.Shared.Next(numTracks))) ;
-                            player.Play();
+                            while (!player.Play(Random.Shared.Next(numTracks))) ;
                         }
                     }
 
@@ -766,12 +781,25 @@ public class GlimpsePlayer : Window
                         if (TryGetTracks(albumName, out HashSet<string>? tracks))
                         {
                             player.QueueTracks(tracks, QueueSlot.AtEnd);
+                            _hasUpdatedQueue = false; // force update of the queue if its the current view
                             if (player.TrackState == TrackState.Stopped)
                             {
                                 int trackIndex = 0;
-                                while (!player.TryChangeTrack(trackIndex++)) ;
-                                player.Play();
+                                while (!player.Play(trackIndex++)) ;
                             }
+                        }
+                    }
+                    
+                    if (_customAlbumContextMenuItems.Count > 0)
+                    {
+                        ImGui.Separator();
+                        
+                        foreach (ContextMenuItem item in _customAlbumContextMenuItems)
+                        {
+                            if (ImGui.Selectable(item.Text))
+                                item.OnClick();
+                            if (item.Tooltip != null)
+                                ImGui.SetItemTooltipUnformatted(item.Tooltip);
                         }
                     }
                 }
@@ -903,10 +931,25 @@ public class GlimpsePlayer : Window
                 Vector2 contentRegion = ImGui.GetContentRegionAvail();
 
                 bool updateAvailable = _newVersionURL != null;
+
+                int numButtons = updateAvailable ? 4 : 3;
+                numButtons += _customButtons.Count;
+                float totalButtonWidth = numButtons * ((16 * Scale) + (ImGui.GetStyle().FramePadding.X * 2 + ImGui.GetStyle().ItemSpacing.X));
                 
-                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) ((updateAvailable ? 114 : 82) * Scale), (int) (5 * Scale)));
+                ImGui.SetCursorPos(new Vector2(contentRegion.X - (int) totalButtonWidth + 15 * Scale, (int) (5 * Scale)));
                 ImGui.BeginChild("SettingsButtons");
                 {
+                    foreach (CustomButton button in _customButtons)
+                    {
+                        if (ImGui.ImageButton(button.ID, button.Image, ScaleVec(16), Vector4.Zero, iconsColor))
+                            button.OnClick();
+                        
+                        if (button.Tooltip != null)
+                            ImGui.SetItemTooltipUnformatted(button.Tooltip);
+                        
+                        ImGui.SameLine();
+                    }
+                    
                     if (updateAvailable)
                     {
                         Vector4 buttonColor = *ImGui.GetStyleColorVec4(ImGuiCol.Button);
@@ -1018,7 +1061,7 @@ public class GlimpsePlayer : Window
                                 if (ImGui.Selectable($"{title}##{path}", path == currentTrackPath, isRatingHovered ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.SpanAllColumns))
                                 {
                                     player.QueueTracks(_currentTracks.Select(trk => trk.Path), QueueSlot.Clear);
-                                    if (!player.TryChangeTrack(song))
+                                    if (!player.Play(song))
                                         AddPopup(new FileNotFoundPopup(title));
                                 }
                                 ImGui.SetColumnTooltip(title);
@@ -1088,6 +1131,18 @@ public class GlimpsePlayer : Window
                                         ImGui.EndMenu();
                                     }
 
+                                    if (_customTrackContextMenuItems.Count > 0)
+                                    {
+                                        ImGui.Separator();
+                                        foreach (ContextMenuItem item in _customTrackContextMenuItems)
+                                        {
+                                            if (ImGui.Selectable(item.Text))
+                                                item.OnClick();
+                                            if (item.Tooltip != null)
+                                                ImGui.SetItemTooltipUnformatted(item.Tooltip);
+                                        }
+                                    }
+                                    
                                     ImGui.Separator();
 
                                     if (ImGui.Selectable(locale.GetString("Menu.ShowInExplorer", Glimpse.Platform.FileManagerName)))
@@ -1163,22 +1218,43 @@ public class GlimpsePlayer : Window
 
                 ImGuiTabItemFlags queueFlags =
                     switchToQueueView ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None;
-                
+
                 if (ImGui.BeginTabItem(locale.GetString("Player.Tab.Queue"), queueFlags))
                 {
-                    ImGui.BeginChild("QueuedTracks");
+                    if (!_hasUpdatedQueue)
                     {
+                        _hasUpdatedQueue = true;
+                        Glimpse.Logger.Log("Updating play queue.");
+                        
                         List<string> queuedTracks = player.QueuedTracks;
                         List<int> playOrder = player.PlayOrder;
+
+                        _queuedTracks.Clear();
+                        _queuedTracks.EnsureCapacity(playOrder.Count);
+                        foreach (int i in playOrder)
+                        {
+                            string trackPath = queuedTracks[i];
+                            if (!Glimpse.Library.TryGetTrack(trackPath, out Track? track))
+                            {
+                                Glimpse.Player.TryGetTrackInfoForFile(trackPath, out TrackInfo? info);
+                                track = new Track(trackPath, info);
+                            }
+                            
+                            _queuedTracks.Add(track);
+                        }
+                    }
+
+                    ImGui.BeginChild("QueuedTracks");
+                    {
                         ImGuiListClipperPtr clipper = ImGui.ImGuiListClipper();
-                        clipper.Begin(queuedTracks.Count, (32 + 2) * Scale);
+                        clipper.Begin(_queuedTracks.Count, (32 + 2) * Scale);
 
                         while (clipper.Step())
                         {
                             for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-                        //for (int i = 0; i < queuedTracks.Count; i++)
+                                //for (int i = 0; i < queuedTracks.Count; i++)
                             {
-                                string path = queuedTracks[playOrder[i]];
+                                Track track = _queuedTracks[i];
 
                                 bool selected = i == player.CurrentTrackIndex;
                                 bool dark = i < player.CurrentTrackIndex;
@@ -1193,20 +1269,18 @@ public class GlimpsePlayer : Window
 
                                 Vector2 cursorPos = ImGui.GetCursorPos();
                                 int height = (int) ((32 + 6) * Scale);
-
-                                // TODO: perform better checking here!
-                                Glimpse.Library.TryGetTrack(path, out Track? track);
-                                string title = track?.Title ?? locale.GetString("UnknownTrack");
-                                string artist = track?.Artist ?? locale.GetString("UnknownArtist");
-                                string album = track?.Album ?? locale.GetString("UnknownAlbum");
                                 
-                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap, new Vector2(0, height)))
+                                string title = track.Title ?? locale.GetString("UnknownTrack");
+                                string artist = track.Artist ?? locale.GetString("UnknownArtist");
+                                string album = track.Album ?? locale.GetString("UnknownAlbum");
+
+                                if (ImGui.Selectable($"##Queue{i}", selected, ImGuiSelectableFlags.AllowOverlap,
+                                        new Vector2(0, height)))
                                 {
-                                    if (!player.TryChangeTrack(i))
-                                    {
+                                    if (!player.Play(i))
                                         AddPopup(new FileNotFoundPopup(title));
-                                    }
                                 }
+
                                 ImGui.SetCursorPos(cursorPos);
                                 ImGui.SameLine();
 
@@ -1238,9 +1312,11 @@ public class GlimpsePlayer : Window
 
                         ImGui.EndChild();
                     }
-                    
+
                     ImGui.EndTabItem();
                 }
+                else
+                    _hasUpdatedQueue = false;
                 
                 ImGui.EndTabBar();
             }
@@ -1270,6 +1346,7 @@ public class GlimpsePlayer : Window
     private void PlayerOnStateChanged(TrackState state)
     {
         Glimpse.Platform.SetPlayState(state, Glimpse.Player.CurrentTrack, Glimpse.Player.ElapsedTime);
+        _hasUpdatedQueue = false;
         
         if (state != TrackState.Stopped)
             return;
@@ -1365,6 +1442,34 @@ public class GlimpsePlayer : Window
         {
             logger.Log($"Error occurred while checking for update: {e}");
         }
+    }
+
+    public void AddCustomButton(CustomButton button)
+    {
+        _customButtons.Add(button);
+    }
+
+    public void RemoveCustomButton(string id)
+    {
+        _customButtons.RemoveAll(button => button.ID == id);
+    }
+
+    public void AddCustomTrackContextMenuItem(ContextMenuItem item)
+    {
+        _customTrackContextMenuItems.Add(item);
+    }
+    
+    public void AddCustomAlbumContextMenuItem(ContextMenuItem item)
+    {
+        _customAlbumContextMenuItems.Add(item);
+    }
+
+    public void RemoveCustomContextMenuItem(string id)
+    {
+        // its quite a naive way to do things but whatever. it works
+        // once the UI is overhauled this shouldn't be a problem anymore.
+        _customTrackContextMenuItems.RemoveAll(item => item.ID == id);
+        _customAlbumContextMenuItems.RemoveAll(item => item.ID == id);
     }
 
     public override void Dispose()
@@ -1634,5 +1739,37 @@ public class GlimpsePlayer : Window
         Artists,
         Genres,
         Playlists
+    }
+
+    public struct CustomButton
+    {
+        public string ID;
+        public Image Image;
+        public string? Tooltip;
+        public Action OnClick;
+
+        public CustomButton(string id, Image image, string? tooltip, Action onClick)
+        {
+            ID = id;
+            Image = image;
+            Tooltip = tooltip;
+            OnClick = onClick;
+        }
+    }
+    
+    public struct ContextMenuItem
+    {
+        public string ID;
+        public string Text;
+        public string? Tooltip;
+        public Action OnClick;
+        
+        public ContextMenuItem(string id, string text, string? tooltip, Action onClick)
+        {
+            ID = id;
+            Text = text;
+            Tooltip = tooltip;
+            OnClick = onClick;
+        }
     }
 }

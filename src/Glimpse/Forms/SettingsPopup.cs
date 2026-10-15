@@ -47,6 +47,12 @@ public class SettingsPopup : Popup
         ImGuiWindowFlags flags = ImGuiWindowFlags.None;
         if (Glimpse.Config != _currentConfig)
             flags |= ImGuiWindowFlags.UnsavedDocument;
+
+        foreach ((_, Plugin plugin) in Glimpse.Plugins)
+        {
+            if (plugin.Instance.ConfigChanged)
+                flags |= ImGuiWindowFlags.UnsavedDocument;
+        }
         
         if (ImGui.OpenPopupModal(currentLocale.GetString("Popup.Settings.Name"), ScaleVec(620, 570), flags))
         {
@@ -313,7 +319,7 @@ public class SettingsPopup : Popup
                         {
                             ImGui.BeginChild("OSLibraries");
                             {
-                                ImGui.TextLink("Slant", "https://github.com/aquagoose/Slant");
+                                ImGui.TextLink("mixr", "https://github.com/aquagoose/mixr");
                                 ImGui.TextLink("Hexa.NET.ImGui", "https://github.com/HexaEngine/Hexa.NET.ImGui");
                                 ImGui.TextLink("Silk.NET", "https://dotnet.github.io/Silk.NET/");
                                 ImGui.TextLink("piko", "https://github.com/aquagoose/piko");
@@ -355,6 +361,12 @@ public class SettingsPopup : Popup
 
     private void Apply()
     {
+        foreach ((_, Plugin plugin) in Glimpse.Plugins)
+        {
+            if (plugin.Instance.ConfigChanged)
+                plugin.Instance.SaveConfigChanges();
+        }
+        
         GlimpseConfig oldConfig = Glimpse.Config;
         if (oldConfig == _currentConfig)
             return;
@@ -388,6 +400,14 @@ public class SettingsPopup : Popup
                 plugin.Instance.Initialize(Glimpse);
             }
         }
+    }
+
+    public override void Close()
+    {
+        foreach ((_, Plugin plugin) in Glimpse.Plugins)
+            plugin.Instance.CancelConfigChanges();
+        
+        base.Close();
     }
 
     public override void Dispose()

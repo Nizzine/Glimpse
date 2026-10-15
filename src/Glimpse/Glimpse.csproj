@@ -9,7 +9,6 @@
         <ApplicationIcon Condition="$(Configuration) != 'Debug'">Icon.ico</ApplicationIcon>
         <ApplicationIcon Condition="$(Configuration) == 'Debug'">Icon-Dbg.ico</ApplicationIcon>
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
-        <VersionPrefix>$([System.DateTime]::Now.ToString("yyyy.MM.dd"))</VersionPrefix>
         <SelfContained>true</SelfContained>
     </PropertyGroup>
     

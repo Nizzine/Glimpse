@@ -18,11 +18,12 @@ public static class Program
         {
             pipeClient.Connect(100);
             Console.WriteLine("Found!");
+            BinaryWriter writer = new BinaryWriter(pipeClient);
+            
             if (args.Length > 0)
             {
                 string cwd = Environment.CurrentDirectory;
                 
-                BinaryWriter writer = new BinaryWriter(pipeClient);
                 foreach (string path in args)
                 {
                     writer.Write((byte) CommunicationFlags.PlayFile);
@@ -35,6 +36,8 @@ public static class Program
                         writer.Write(Path.Combine(cwd, path));
                 }
             }
+            else
+                writer.Write((byte) CommunicationFlags.Focus);
 
             return;
         }
@@ -45,10 +48,8 @@ public static class Program
         
         AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
         {
-            Logger logger = new Logger();
             string msg = eventArgs.ExceptionObject?.ToString() ??
                          "An error occurred, but there was no message attached.";
-            logger.Log(msg);
             SDL.ShowSimpleMessageBox(SDL.MessageBoxFlags.Error, "Glimpse", msg, new SDL.Window());
         };
 
@@ -61,8 +62,16 @@ public static class Program
 #if !DEBUG
         catch (Exception e)
         {
-            Logger logger = new Logger();
-            logger.Log(e.ToString());
+            // try and log the exception if possible.
+            // for whatever reason sometimes the logger tries to open itself multiple times, throws an exception, then
+            // overwrites the original exception.
+            // todo fix this, ideally by moving away from LastSession.log to a named Glimpse-yyyy-mm-dd-hh-mm-ss.log file
+            try
+            {
+                Logger logger = new Logger();
+                logger.Log(e.ToString());
+            }
+            catch (Exception) { }
 
             const string title = "Glimpse";
             
@@ -79,6 +88,8 @@ public static class Program
     {
         None = 0,
         
-        PlayFile = 1 << 0
+        PlayFile = 1 << 0,
+        
+        Focus = 1 << 1,
     }
 }

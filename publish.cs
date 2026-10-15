@@ -8,6 +8,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Formats.Tar;
 using System.IO.Compression;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -133,7 +134,7 @@ List<string> glimpsePublishArgs =
     "-c", "Release",
     "-r", runtime,
     "-o", publishDir,
-    $"-p:Version=\"{version}\"",
+    $"-p:GlimpseVersion=\"{version}\"",
     "-p:GenerateDocumentationFile=false"
 ];
 
@@ -289,9 +290,9 @@ if (pack)
 
         CopyPublishFilesToDir(tarballBinDir);
 
-        using MemoryStream zipStream = new MemoryStream();
-        ZipFile.CreateFromDirectory(tarballDir, zipStream);
-        Console.WriteLine(zipStream.Length);
+        using MemoryStream tarStream = new MemoryStream();
+        TarFile.CreateFromDirectory(tarballDir, tarStream, false);
+        Console.WriteLine(tarStream.Length);
 
         // ===========================
 
@@ -319,8 +320,9 @@ if (pack)
 
         File.Move(appImageDest, Path.Combine(publishDir, appImageDest));
 
-        using FileStream zipWriteStream = File.Create(Path.Combine(publishDir, $"{outName}.zip"));
-        zipStream.WriteTo(zipWriteStream);
+        using FileStream tarWriteStream = File.Create(Path.Combine(publishDir, $"{outName}.tar.gz"));
+        using GZipStream gZipStream = new GZipStream(tarWriteStream, CompressionLevel.Optimal);
+        tarStream.WriteTo(gZipStream);
 
         // cleanup garbage
         Directory.Delete(tarballBinDir, true);

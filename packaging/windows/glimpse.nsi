@@ -1,5 +1,6 @@
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
+!include "FileAssociation.nsh"
 
 Name "Glimpse"
 OutFile "InstallGlimpse-${VERSION}.exe"
@@ -80,6 +81,15 @@ Section "Start Menu Shortcut"
 
 SectionEnd
 
+Section "Make File Associations"
+
+	${RegisterExtension} "$INSTDIR\Glimpse.exe" ".mp3" "GlimpsePlayer.Media.mp3"
+	${RegisterExtension} "$INSTDIR\Glimpse.exe" ".flac" "GlimpsePlayer.Media.flac"
+	${RegisterExtension} "$INSTDIR\Glimpse.exe" ".wav" "GlimpsePlayer.Media.wav"
+	${RegisterExtension} "$INSTDIR\Glimpse.exe" ".ogg" "GlimpsePlayer.Media.ogg"
+
+SectionEnd
+
 Section "Uninstall"
 
     SetRegView 64
@@ -90,5 +100,10 @@ Section "Uninstall"
 	RMDir "$INSTDIR"
 	
     Delete "$SMPROGRAMS\Glimpse.lnk"
+	
+	${UnRegisterExtension} ".mp3" "GlimpsePlayer.Media.mp3"
+	${UnRegisterExtension} ".flac" "GlimpsePlayer.Media.flac"
+	${UnRegisterExtension} ".wav" "GlimpsePlayer.Media.wav"
+	${UnRegisterExtension} ".ogg" "GlimpsePlayer.Media.ogg"
 
 SectionEnd
